@@ -1,0 +1,26 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--target",
+        "runner",
+        "-t",
+        "southamerica-east1-docker.pkg.dev/fluworkbr/fluworkbr-images/fluworkbr:latest",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--target",
+        "migrate",
+        "-t",
+        "southamerica-east1-docker.pkg.dev/fluworkbr/fluworkbr-images/fluworkbr-migrate:latest",
+        ".",
+      ]
+images:
+  - "southamerica-east1-docker.pkg.dev/fluworkbr/fluworkbr-images/fluworkbr:latest"
+  - "southamerica-east1-docker.pkg.dev/fluworkbr/fluworkbr-images/fluworkbr-migrate:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY
