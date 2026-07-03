@@ -8,7 +8,7 @@ export function SetupInstructions() {
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         <p>
-          O FluxoPay usa Postgres (Drizzle ORM) via a variável de ambiente <code>DATABASE_URL</code>.
+          O FluXork usa Postgres (Drizzle ORM) via a variável de ambiente <code>DATABASE_URL</code>.
         </p>
         <p>
           Rode as migrations com <code>pnpm db:migrate</code> após configurar a variável de ambiente.

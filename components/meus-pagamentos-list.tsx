@@ -311,7 +311,7 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 text-sm">
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Salário Base</p>
+                        <p className="text-xs text-muted-foreground mb-1">Valor Contratual Base</p>
                         <p className="font-medium tabular-nums">{formatValue(colaborador?.salario || 0)}</p>
                       </div>
                       <div>

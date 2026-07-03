@@ -51,7 +51,7 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
   if (pedidos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h3 className="text-base font-semibold mb-1">Todos os colaboradores anexaram suas notas</h3>
+        <h3 className="text-base font-semibold mb-1">Todos os prestadores anexaram suas notas</h3>
         <p className="text-sm text-muted-foreground">Nenhum pedido aprovado aguardando nota fiscal no momento.</p>
       </div>
     )
@@ -146,7 +146,7 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Colaborador</TableHead>
+                <TableHead>Prestador</TableHead>
                 <TableHead>Criado em</TableHead>
                 <TableHead>Sem nota há</TableHead>
                 <TableHead className="text-right">Valor NF</TableHead>
@@ -172,7 +172,7 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
 
                 return (
                   <TableRow key={pedido.id}>
-                    <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Colaborador"}</TableCell>
+                    <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Prestador"}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(pedido.created_at).toLocaleDateString("pt-BR")}
                     </TableCell>

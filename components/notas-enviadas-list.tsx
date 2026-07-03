@@ -86,7 +86,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
     // Block if no nota and not KM-only
     if (!hasNotaFiscal && !isReembolsoKm && !hasOnlyKm) {
       alert(
-        "Este pedido não pode ser aprovado pois não possui nota fiscal anexada. Solicite ao colaborador que anexe a nota fiscal primeiro.",
+        "Este pedido não pode ser aprovado pois não possui nota fiscal anexada. Solicite ao prestador que anexe a nota fiscal primeiro.",
       )
       return
     }
@@ -116,14 +116,14 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
       return
     }
 
-    if (!confirm("Deseja recusar esta nota e solicitar correção ao colaborador?")) {
+    if (!confirm("Deseja recusar esta nota e solicitar correção ao prestador?")) {
       return
     }
 
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
-      alert("Nota fiscal recusada. O colaborador foi notificado para anexar uma nova nota.")
+      alert("Nota fiscal recusada. O prestador foi notificado para anexar uma nova nota.")
       setMotivoRecusa({ ...motivoRecusa, [pedidoId]: "" })
       router.refresh()
     } catch (error) {
@@ -148,7 +148,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <h3 className="text-base font-semibold mb-1">Nenhuma nota fiscal enviada</h3>
-        <p className="text-sm text-muted-foreground">Não há notas fiscais anexadas pelos colaboradores no momento.</p>
+        <p className="text-sm text-muted-foreground">Não há notas fiscais anexadas pelos prestadores no momento.</p>
       </div>
     )
   }
@@ -234,7 +234,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Colaborador</TableHead>
+                <TableHead>Prestador</TableHead>
                 <TableHead>Emitida em</TableHead>
                 <TableHead className="text-right">Valor NF</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -291,7 +291,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                       onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
                     >
                       <TableCell className="font-medium">
-                        {pedido.colaborador?.nome_completo || "Colaborador"}
+                        {pedido.colaborador?.nome_completo || "Prestador"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {pedido.data_emissao_nota ? formatDateBR(pedido.data_emissao_nota) : "N/A"}
@@ -333,7 +333,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                             ) : (
                               <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 text-sm">
                                 <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Salário</p>
+                                  <p className="text-xs text-muted-foreground mb-1">Valor Contratual</p>
                                   <p className="font-medium tabular-nums">
                                     {formatReais(pedido.colaborador?.salario || 0)}
                                   </p>

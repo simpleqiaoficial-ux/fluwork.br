@@ -82,7 +82,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="colaboradorNome" className="text-xs text-muted-foreground">Nome do colaborador</Label>
+            <Label htmlFor="colaboradorNome" className="text-xs text-muted-foreground">Nome do prestador</Label>
             <Input
               id="colaboradorNome"
               type="text"
@@ -113,7 +113,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Colaborador</TableHead>
+                <TableHead>Prestador</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor total</TableHead>
@@ -135,7 +135,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
                       className="cursor-pointer"
                       onClick={() => setExpandedRow(isExpanded ? null : pedido.id)}
                     >
-                      <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Colaborador"}</TableCell>
+                      <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Prestador"}</TableCell>
                       <TableCell className="text-muted-foreground">{formatDateTime(pedido.created_at)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-normal">
@@ -173,7 +173,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
                             ) : (
                               <>
                                 <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Salário base</p>
+                                  <p className="text-xs text-muted-foreground mb-1">Valor contratual base</p>
                                   <p className="font-medium tabular-nums">{formatValue(salarioBase)}</p>
                                 </div>
                                 <div>

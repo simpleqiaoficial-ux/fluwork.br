@@ -142,7 +142,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <h3 className="font-semibold text-foreground">Nenhuma equipe cadastrada</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-            Crie equipes para organizar seus colaboradores.
+            Crie equipes para organizar seus prestadores.
           </p>
           <Button onClick={openNew} variant="outline" size="sm" className="mt-4 gap-2">
             <Plus className="h-4 w-4" />
@@ -299,7 +299,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir equipe?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa acao nao pode ser desfeita. Colaboradores vinculados serao desvinculados da equipe.
+              Essa acao nao pode ser desfeita. Prestadores vinculados serao desvinculados da equipe.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

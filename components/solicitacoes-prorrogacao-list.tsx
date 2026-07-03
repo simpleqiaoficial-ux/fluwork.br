@@ -111,7 +111,7 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Colaborador</TableHead>
+              <TableHead>Prestador</TableHead>
               <TableHead className="text-right">Valor total</TableHead>
               <TableHead>Prazo original</TableHead>
               <TableHead>Situação</TableHead>

@@ -30,7 +30,7 @@ export async function aplicarReajuste(data: NovoReajuste) {
     .where(eq(colaboradores.id, data.colaborador_id))
 
   if (!colaborador) {
-    throw new Error("Colaborador não encontrado")
+    throw new Error("Prestador não encontrado")
   }
 
   const salarioAnterior = Number(colaborador.salario)

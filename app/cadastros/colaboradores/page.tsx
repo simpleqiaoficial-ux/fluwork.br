@@ -31,8 +31,8 @@ export default async function ColaboradoresPage() {
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Colaboradores</h1>
-        <p className="text-sm text-muted-foreground">Gerencie os colaboradores da sua empresa</p>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Prestadores</h1>
+        <p className="text-sm text-muted-foreground">Gerencie os prestadores da sua empresa</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

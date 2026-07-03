@@ -82,7 +82,7 @@ export async function excluirCentroCusto(id: string): Promise<void> {
     .limit(1)
 
   if (colaboradoresVinculados && colaboradoresVinculados.length > 0) {
-    throw new Error("Nao e possivel excluir: existem colaboradores vinculados a este centro de custo")
+    throw new Error("Nao e possivel excluir: existem prestadores vinculados a este centro de custo")
   }
 
   try {

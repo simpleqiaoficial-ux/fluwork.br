@@ -68,7 +68,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
         centro_custo_id: formData.centro_custo_id === "0" ? null : formData.centro_custo_id,
       })
 
-      toast.success("Colaborador cadastrado com sucesso!")
+      toast.success("Prestador cadastrado com sucesso!")
 
       setFormData({
         nome_completo: "",
@@ -87,7 +87,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
       })
       router.refresh()
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Erro ao cadastrar colaborador"
+      const msg = error instanceof Error ? error.message : "Erro ao cadastrar prestador"
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -97,7 +97,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Novo Colaborador</CardTitle>
+        <CardTitle>Novo Prestador</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -172,7 +172,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tipo_acesso">Tipo de Acesso</Label>
+              <Label htmlFor="tipo_acesso">Perfil de Acesso</Label>
               <Select
                 value={formData.tipo_acesso}
                 onValueChange={(value) => setFormData({ ...formData, tipo_acesso: value as TipoAcesso })}
@@ -181,7 +181,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Colaborador">Colaborador</SelectItem>
+                  <SelectItem value="Colaborador">Prestador</SelectItem>
                   <SelectItem value="Supervisor">Supervisor</SelectItem>
                   <SelectItem value="Gerente">Gerente</SelectItem>
                   <SelectItem value="Financeiro">Financeiro</SelectItem>
@@ -227,7 +227,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="salario">Salario Base (R$)</Label>
+              <Label htmlFor="salario">Valor Contratual Base (R$)</Label>
               <Input
                 id="salario"
                 type="number"
@@ -296,7 +296,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Cadastrando..." : "Cadastrar Colaborador"}
+            {loading ? "Cadastrando..." : "Cadastrar Prestador"}
           </Button>
         </form>
       </CardContent>

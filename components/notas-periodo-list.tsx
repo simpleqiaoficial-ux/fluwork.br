@@ -71,7 +71,7 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Colaborador</TableHead>
+              <TableHead>Prestador</TableHead>
               <TableHead>Data</TableHead>
               <TableHead className="text-right">Valor NF</TableHead>
               <TableHead>Status</TableHead>
@@ -108,7 +108,7 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
                     onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
                   >
                     <TableCell className="font-medium">
-                      {pedido.colaborador?.nome_completo || "Colaborador"}
+                      {pedido.colaborador?.nome_completo || "Prestador"}
                       {isReembolsoKm && (
                         <Badge variant="outline" className="font-normal ml-2">
                           Reembolso KM
@@ -152,7 +152,7 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
                           ) : (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
                               <div>
-                                <p className="text-xs text-muted-foreground mb-1">Salário</p>
+                                <p className="text-xs text-muted-foreground mb-1">Valor Contratual</p>
                                 <p className="font-medium tabular-nums">
                                   {formatValue(pedido.colaborador?.salario || 0)}
                                 </p>

@@ -127,9 +127,9 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Colaboradores cadastrados</h2>
+          <h2 className="text-base font-semibold text-foreground">Prestadores cadastrados</h2>
           <p className="text-sm text-muted-foreground">
-            {colaboradoresFiltrados.length} de {colaboradores.length} colaborador
+            {colaboradoresFiltrados.length} de {colaboradores.length} prestador
             {colaboradores.length !== 1 ? "es" : ""}
           </p>
         </div>
@@ -173,12 +173,12 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
       {colaboradoresFiltrados.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-12">
           {searchTerm
-            ? "Nenhum colaborador encontrado com este termo de busca"
+            ? "Nenhum prestador encontrado com este termo de busca"
             : equipeSelecionada === "todas"
-              ? "Nenhum colaborador cadastrado ainda"
+              ? "Nenhum prestador cadastrado ainda"
               : equipeSelecionada === "sem-equipe"
-                ? "Nenhum colaborador sem equipe"
-                : "Nenhum colaborador nesta equipe"}
+                ? "Nenhum prestador sem equipe"
+                : "Nenhum prestador nesta equipe"}
         </p>
       ) : (
         <>

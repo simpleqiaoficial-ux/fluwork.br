@@ -130,7 +130,7 @@ export function AniversariosContratoDashboard({ colaboradores, onReajusteAplicad
         <CardContent>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <AlertTriangle className="h-4 w-4" />
-            <span>{semData.length} colaborador(es) sem data de aniversário cadastrada</span>
+            <span>{semData.length} prestador(es) sem data de contrato cadastrada</span>
           </div>
         </CardContent>
       </Card>
@@ -218,7 +218,7 @@ export function AniversariosContratoDashboard({ colaboradores, onReajusteAplicad
           {semData.length > 0 && (
             <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
               <AlertTriangle className="h-3.5 w-3.5" />
-              <span>{semData.length} colaborador(es) sem data de aniversário cadastrada</span>
+              <span>{semData.length} prestador(es) sem data de contrato cadastrada</span>
             </div>
           )}
         </CardContent>

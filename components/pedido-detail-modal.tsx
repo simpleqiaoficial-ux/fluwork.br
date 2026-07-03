@@ -54,7 +54,7 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
           {/* Informações gerais */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Colaborador</p>
+              <p className="text-xs text-muted-foreground mb-1">Prestador</p>
               <p className="font-medium">{pedido.colaborador?.nome_completo || "N/A"}</p>
             </div>
             <div>
@@ -92,7 +92,7 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
               {!isReembolsoKm && (
                 <>
                   <div className="flex justify-between items-center py-2.5">
-                    <span className="text-sm text-muted-foreground">Salário base</span>
+                    <span className="text-sm text-muted-foreground">Valor contratual base</span>
                     <span className="font-medium tabular-nums">{formatCurrency(pedido.salario_base)}</span>
                   </div>
                   {pedido.horas_extras > 0 && (

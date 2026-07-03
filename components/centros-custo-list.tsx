@@ -121,7 +121,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <h3 className="font-medium text-foreground">Nenhum centro de custo</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-            Crie centros de custo para organizar seus colaboradores por area.
+            Crie centros de custo para organizar seus prestadores por area.
           </p>
           <Button onClick={openNew} variant="outline" size="sm" className="mt-4">
             <Plus className="h-4 w-4" />
@@ -210,7 +210,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir centro de custo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa acao nao pode ser desfeita. Centros de custo com colaboradores vinculados nao podem ser excluidos.
+              Essa acao nao pode ser desfeita. Centros de custo com prestadores vinculados nao podem ser excluidos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

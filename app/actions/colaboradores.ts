@@ -102,7 +102,7 @@ export async function criarColaborador(data: NovoColaborador) {
       .returning()
   } catch (error) {
     console.error("[v0] Erro ao criar colaborador:", error)
-    throw new Error("Erro ao salvar dados do colaborador. Por favor, tente novamente.")
+    throw new Error("Erro ao salvar dados do prestador. Por favor, tente novamente.")
   }
 
   console.log("[v0] Colaborador criado com sucesso:", colaborador.id)
@@ -150,7 +150,7 @@ export async function listarColaboradores() {
       })
     } catch (error) {
       console.error("[v0] Erro ao listar colaboradores:", error)
-      throw new Error("Erro ao listar colaboradores")
+      throw new Error("Erro ao listar prestadores")
     }
 
     return attachBloqueio(rows, tresDiasAtras)
@@ -186,7 +186,7 @@ export async function listarColaboradores() {
       })
     } catch (error) {
       console.error("[v0] Erro ao listar colaboradores:", error)
-      throw new Error("Erro ao listar colaboradores")
+      throw new Error("Erro ao listar prestadores")
     }
 
     return attachBloqueio(rows, tresDiasAtras)
@@ -200,7 +200,7 @@ export async function listarColaboradores() {
     })
   } catch (error) {
     console.error("[v0] Erro ao listar colaboradores:", error)
-    throw new Error("Erro ao listar colaboradores")
+    throw new Error("Erro ao listar prestadores")
   }
 
   return attachBloqueio(rows, tresDiasAtras)
@@ -245,7 +245,7 @@ export async function deletarColaborador(id: string) {
       .limit(1)
   } catch (pedidosError) {
     console.error("[v0] Erro ao verificar pedidos do colaborador:", pedidosError)
-    throw new Error("Erro ao verificar pedidos do colaborador")
+    throw new Error("Erro ao verificar pedidos do prestador")
   }
 
   if (pedidos && pedidos.length > 0) {
@@ -260,14 +260,14 @@ export async function deletarColaborador(id: string) {
     .where(eq(colaboradores.id, id))
 
   if (!colaborador) {
-    throw new Error("Colaborador não encontrado")
+    throw new Error("Prestador não encontrado")
   }
 
   try {
     await db.delete(colaboradores).where(eq(colaboradores.id, id))
   } catch (error) {
     console.error("[v0] Erro ao deletar colaborador:", error)
-    throw new Error("Erro ao deletar colaborador")
+    throw new Error("Erro ao deletar prestador")
   }
 
   revalidatePath("/colaboradores")
@@ -294,7 +294,7 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
       .where(and(eq(colaboradores.email, sanitizedEmail), ne(colaboradores.id, id)))
 
     if (emailExistente) {
-      throw new Error("Este email já está cadastrado em outro colaborador")
+      throw new Error("Este email já está cadastrado em outro prestador")
     }
   }
 
@@ -344,7 +344,7 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
     await db.update(colaboradores).set(updateData).where(eq(colaboradores.id, id))
   } catch (error) {
     console.error("[v0] Erro ao atualizar colaborador:", error)
-    throw new Error("Erro ao atualizar colaborador. Por favor, tente novamente.")
+    throw new Error("Erro ao atualizar prestador. Por favor, tente novamente.")
   }
 
   revalidatePath("/colaboradores")
@@ -381,7 +381,7 @@ export async function listarColaboradoresGerente(gerenteId: string) {
     })
   } catch (error) {
     console.error("[v0] Erro ao listar colaboradores:", error)
-    throw new Error("Erro ao listar colaboradores")
+    throw new Error("Erro ao listar prestadores")
   }
 
   return rows.map(toColaboradorDTO)
@@ -419,7 +419,7 @@ export async function listarColaboradoresComGerente() {
       })
     } catch (error) {
       console.error("[v0] Erro ao listar colaboradores:", error)
-      throw new Error("Erro ao listar colaboradores")
+      throw new Error("Erro ao listar prestadores")
     }
 
     return attachBloqueio(rows, tresDiasAtras)
@@ -455,7 +455,7 @@ export async function listarColaboradoresComGerente() {
       })
     } catch (error) {
       console.error("[v0] Erro ao listar colaboradores:", error)
-      throw new Error("Erro ao listar colaboradores")
+      throw new Error("Erro ao listar prestadores")
     }
 
     return attachBloqueio(rows, tresDiasAtras)
@@ -469,7 +469,7 @@ export async function listarColaboradoresComGerente() {
     })
   } catch (error) {
     console.error("[v0] Erro ao listar colaboradores:", error)
-    throw new Error("Erro ao listar colaboradores")
+    throw new Error("Erro ao listar prestadores")
   }
 
   return attachBloqueio(rows, tresDiasAtras)
@@ -484,7 +484,7 @@ export async function exportarColaboradoresExcel() {
     })
   } catch (error) {
     console.error("[v0] Erro ao exportar colaboradores:", error)
-    throw new Error("Erro ao exportar colaboradores")
+    throw new Error("Erro ao exportar prestadores")
   }
 
   const dadosFormatados = data.map((colaborador) => ({

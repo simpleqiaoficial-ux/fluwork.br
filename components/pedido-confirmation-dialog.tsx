@@ -59,7 +59,7 @@ export function PedidoConfirmationDialog({
 
         <div className="space-y-6">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Colaborador</p>
+            <p className="text-xs text-muted-foreground mb-1">Prestador</p>
             <p className="font-medium">{colaboradorNome}</p>
           </div>
 
@@ -72,7 +72,7 @@ export function PedidoConfirmationDialog({
             ) : (
               <>
                 <div className="flex justify-between items-center py-2.5">
-                  <span className="text-sm text-muted-foreground">Salário base</span>
+                  <span className="text-sm text-muted-foreground">Valor contratual base</span>
                   <span className="font-medium tabular-nums">{fmt(salario)}</span>
                 </div>
 

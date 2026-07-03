@@ -95,7 +95,7 @@ export function Navigation({ tipoAcesso }: NavigationProps) {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center gap-6">
           <Link href="/" className="font-semibold text-base">
-            FluxoPay
+            FluXork
           </Link>
           <div className="hidden md:flex gap-1 ml-auto items-center">
             {links.map((link) => {

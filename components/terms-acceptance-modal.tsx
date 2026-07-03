@@ -104,7 +104,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               <DialogTitle>Recusar termos de uso</DialogTitle>
             </div>
             <DialogDescription className="text-center">
-              Ao recusar os termos de uso, você será desconectado do sistema e não poderá acessar o FluxoPay até aceitar os termos.
+              Ao recusar os termos de uso, você será desconectado do sistema e não poderá acessar o FluXork até aceitar os termos.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 sm:flex-row">
@@ -139,7 +139,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
       >
         {/* Header fixo */}
         <DialogHeader className="px-4 sm:px-6 pt-5 pb-3 border-b shrink-0">
-          <DialogTitle className="text-center text-lg sm:text-xl">Termos de Uso do FluxoPay</DialogTitle>
+          <DialogTitle className="text-center text-lg sm:text-xl">Termos de Uso do FluXork</DialogTitle>
           <DialogDescription className="text-center text-xs sm:text-sm">
             {userName && <span className="font-medium">{userName}, </span>}
             Por favor, leia atentamente os termos antes de continuar.
@@ -159,7 +159,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">1. Aceitacao dos Termos</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Ao acessar e utilizar o sistema FluxoPay, voce concorda em cumprir e estar vinculado a estes 
+                Ao acessar e utilizar o sistema FluXork, voce concorda em cumprir e estar vinculado a estes 
                 Termos de Uso. Se voce nao concordar com qualquer parte destes termos, nao devera utilizar 
                 o sistema.
               </p>
@@ -168,7 +168,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">2. Descricao do Servico</h3>
               <p className="text-muted-foreground leading-relaxed">
-                O FluxoPay e um sistema de gestao de pagamentos para colaboradores, permitindo o controle 
+                O FluXork e um sistema de gestao de pagamentos para colaboradores, permitindo o controle 
                 de pedidos, notas fiscais, aprovacoes e pagamentos. O sistema e disponibilizado pela empresa 
                 contratante para uso exclusivo de seus colaboradores autorizados.
               </p>
@@ -249,7 +249,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">10. Disposicoes Gerais</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Estes termos constituem o acordo integral entre voce e o FluxoPay. A invalidade de qualquer 
+                Estes termos constituem o acordo integral entre voce e o FluXork. A invalidade de qualquer 
                 disposicao nao afetara a validade das demais. O nao exercicio de qualquer direito nao implica 
                 renuncia ao mesmo.
               </p>
@@ -281,7 +281,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               htmlFor="accept-terms"
               className={`text-sm leading-relaxed cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
             >
-              Li e concordo com os Termos de Uso do FluxoPay. Entendo que meus dados serao processados conforme
+              Li e concordo com os Termos de Uso do FluXork. Entendo que meus dados serao processados conforme
               descrito acima e que devo utilizar o sistema de forma responsavel.
             </Label>
           </div>

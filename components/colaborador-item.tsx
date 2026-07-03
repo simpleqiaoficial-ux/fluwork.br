@@ -45,7 +45,7 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
       await deletarColaborador(colaborador.id)
     } catch (error) {
       console.error("[v0] Erro ao deletar:", error)
-      const errorMessage = error instanceof Error ? error.message : "Erro ao deletar colaborador"
+      const errorMessage = error instanceof Error ? error.message : "Erro ao deletar prestador"
       alert(errorMessage)
     } finally {
       setLoading(false)
@@ -74,10 +74,10 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
             <p className="text-sm text-muted-foreground truncate">
               {salarioOculto ? (
                 <span className="inline-flex items-center gap-1">
-                  {"Salário: "}<EyeOff className="w-3 h-3" />{" Confidencial"}
+                  {"Valor contratual: "}<EyeOff className="w-3 h-3" />{" Confidencial"}
                 </span>
               ) : (
-                `Salário: ${formatCurrency(colaborador.salario)}`
+                `Valor contratual: ${formatCurrency(colaborador.salario)}`
               )}{" "}
               {"• CNPJ: "}{colaborador.cnpj}
             </p>
@@ -103,8 +103,8 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
         open={passwordDialogOpen}
         onOpenChange={setPasswordDialogOpen}
         onConfirm={handleConfirmDelete}
-        title="Confirmar Exclusão de Colaborador"
-        description={`Tem certeza que deseja excluir o colaborador ${colaborador.nome_completo}? Esta ação não pode ser desfeita.`}
+        title="Confirmar Exclusão de Prestador"
+        description={`Tem certeza que deseja excluir o prestador ${colaborador.nome_completo}? Esta ação não pode ser desfeita.`}
       />
     </>
   )

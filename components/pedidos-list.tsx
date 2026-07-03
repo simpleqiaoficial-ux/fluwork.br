@@ -38,7 +38,7 @@ export async function PedidosList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Colaborador</TableHead>
+                <TableHead>Prestador</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor total</TableHead>

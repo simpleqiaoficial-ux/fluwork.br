@@ -101,7 +101,7 @@ export function ReajustesPageContent() {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Aplicar Reajustes</h1>
           <p className="text-sm text-muted-foreground">
-            Aplique reajustes salariais e consulte o histórico
+            Aplique reajustes contratuais aos prestadores e consulte o histórico.
           </p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export function ReajustesPageContent() {
 
           <Card>
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando colaboradores...</div>
+              <div className="text-center py-8 text-muted-foreground">Carregando prestadores...</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -142,7 +142,7 @@ export function ReajustesPageContent() {
                     <TableHead>Email</TableHead>
                     <TableHead>CNPJ</TableHead>
                     <TableHead>Equipe</TableHead>
-                    <TableHead className="text-right">Salário Atual</TableHead>
+                    <TableHead className="text-right">Valor Contratual Atual</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -150,7 +150,7 @@ export function ReajustesPageContent() {
                   {colaboradoresFiltrados.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        {filtro ? "Nenhum colaborador encontrado" : "Nenhum colaborador cadastrado"}
+                        {filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -183,7 +183,7 @@ export function ReajustesPageContent() {
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por colaborador ou motivo..."
+                placeholder="Buscar por prestador ou motivo..."
                 value={filtroHistorico}
                 onChange={(e) => setFiltroHistorico(e.target.value)}
                 className="pl-10"
@@ -199,10 +199,10 @@ export function ReajustesPageContent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data/Hora</TableHead>
-                    <TableHead>Colaborador</TableHead>
+                    <TableHead>Prestador</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Salário Anterior</TableHead>
-                    <TableHead className="text-right">Novo Salário</TableHead>
+                    <TableHead className="text-right">Valor Contratual Anterior</TableHead>
+                    <TableHead className="text-right">Novo Valor Contratual</TableHead>
                     <TableHead>Motivo</TableHead>
                     <TableHead>Aplicado por</TableHead>
                   </TableRow>

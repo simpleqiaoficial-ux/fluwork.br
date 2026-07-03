@@ -52,7 +52,7 @@ export function PedidoItem({ pedido }: PedidoItemProps) {
       ) : (
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-xs text-muted-foreground mb-0.5">Salário Base</p>
+            <p className="text-xs text-muted-foreground mb-0.5">Valor Contratual Base</p>
             <p className="font-medium tabular-nums">{formatValue(colaboradorSalario)}</p>
           </div>
 

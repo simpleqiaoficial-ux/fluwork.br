@@ -24,9 +24,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "FluxoPay - Sistema de Gestão de Pagamentos",
-  description: "Gerencie pagamentos de colaboradores com facilidade",
-    generator: 'v0.app'
+  title: "FluXork - Gestão de Prestadores",
+  description: "Gerencie contratos, notas fiscais e valores contratuais de prestadores com facilidade",
 }
 
 export default async function RootLayout({
@@ -46,7 +45,7 @@ export default async function RootLayout({
         <ValoresVisibilityProvider>
           {!isAuthPage && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
 
-          <div className={cn("min-h-screen", !isAuthPage && "lg:pl-60")}>
+          <div className={cn("min-h-screen", !isAuthPage && "lg:pl-64")}>
             {!isAuthPage && session && (
               <UserHeader
                 nomeCompleto={session.nomeCompleto}

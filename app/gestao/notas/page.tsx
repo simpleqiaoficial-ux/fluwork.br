@@ -77,7 +77,7 @@ export default async function NotasPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Gerenciamento de Notas</h1>
         <p className="text-sm text-muted-foreground">
-          Visualize e gerencie as notas fiscais organizadas por periodo
+          Visualize e gerencie as notas fiscais dos prestadores organizadas por mês de competência.
         </p>
       </div>
 

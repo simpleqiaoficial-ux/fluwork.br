@@ -46,7 +46,7 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
         motivo: motivo || undefined,
       })
 
-      const mensagem = `Reajuste aplicado com sucesso!\n\nColaborador: ${resultado.colaborador}\nSalário Anterior: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioAnterior)}\nNovo Salário: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioNovo)}`
+      const mensagem = `Reajuste aplicado com sucesso!\n\nPrestador: ${resultado.colaborador}\nValor Contratual Anterior: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioAnterior)}\nNovo Valor Contratual: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioNovo)}`
 
       alert(mensagem)
       setValorReajuste("")
@@ -63,17 +63,17 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Aplicar Reajuste Salarial</DialogTitle>
+          <DialogTitle>Aplicar Reajuste Contratual</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4 pb-4 border-b">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Colaborador</p>
+              <p className="text-xs text-muted-foreground mb-1">Prestador</p>
               <p className="font-medium">{colaborador.nome_completo}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Salário atual</p>
+              <p className="text-xs text-muted-foreground mb-1">Valor contratual atual</p>
               <p className="font-medium tabular-nums">
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",
@@ -118,7 +118,7 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
 
           {valorReajuste && (
             <div className="border-t pt-3">
-              <p className="text-xs text-muted-foreground mb-1">Novo salário</p>
+              <p className="text-xs text-muted-foreground mb-1">Novo valor contratual</p>
               <p className="text-2xl font-semibold tabular-nums">
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",

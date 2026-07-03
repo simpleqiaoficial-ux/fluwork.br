@@ -92,11 +92,11 @@ export function EquipeDetailView({
     setLoading(true)
     try {
       await vincularColaboradorEquipe(colaboradorId, equipe.id)
-      toast.success("Colaborador adicionado a equipe")
+      toast.success("Prestador adicionado a equipe")
       setAddDialogOpen(false)
       router.refresh()
     } catch (err) {
-      toast.error("Erro ao adicionar colaborador")
+      toast.error("Erro ao adicionar prestador")
     } finally {
       setLoading(false)
     }
@@ -107,11 +107,11 @@ export function EquipeDetailView({
     setLoading(true)
     try {
       await removerColaboradorEquipe(removeId)
-      toast.success("Colaborador removido da equipe")
+      toast.success("Prestador removido da equipe")
       setRemoveId(null)
       router.refresh()
     } catch (err) {
-      toast.error("Erro ao remover colaborador")
+      toast.error("Erro ao remover prestador")
     } finally {
       setLoading(false)
     }
@@ -182,7 +182,7 @@ export function EquipeDetailView({
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div>
             <CardTitle className="text-base font-semibold">Membros</CardTitle>
-            <p className="text-sm text-muted-foreground mt-0.5">{membros.length} colaborador{membros.length !== 1 ? "es" : ""}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{membros.length} prestador{membros.length !== 1 ? "es" : ""}</p>
           </div>
           <Button size="sm" className="gap-2" onClick={() => { setSearchTerm(""); setAddDialogOpen(true) }}>
             <UserPlus className="h-4 w-4" />
@@ -259,7 +259,7 @@ export function EquipeDetailView({
             <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
               {filteredSemEquipe.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  {searchTerm ? "Nenhum colaborador encontrado" : "Todos os colaboradores ja pertencem a uma equipe"}
+                  {searchTerm ? "Nenhum prestador encontrado" : "Todos os prestadores ja pertencem a uma equipe"}
                 </p>
               ) : (
                 filteredSemEquipe.map((c) => (
@@ -353,7 +353,7 @@ export function EquipeDetailView({
           <AlertDialogHeader>
             <AlertDialogTitle>Remover membro?</AlertDialogTitle>
             <AlertDialogDescription>
-              O colaborador sera desvinculado desta equipe. Voce podera adiciona-lo novamente depois.
+              O prestador sera desvinculado desta equipe. Voce podera adiciona-lo novamente depois.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

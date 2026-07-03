@@ -87,7 +87,7 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Colaborador</TableHead>
+            <TableHead>Prestador</TableHead>
             <TableHead>Criado por</TableHead>
             <TableHead>Data</TableHead>
             <TableHead>Status</TableHead>
@@ -216,9 +216,9 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Salário Base (não editável) */}
+                          {/* Valor Contratual Base (não editável) */}
                           <div>
-                            <Label>Salário Base</Label>
+                            <Label>Valor Contratual Base</Label>
                             <Input value={formatCurrency(colaboradorSalario)} disabled className="bg-muted" />
                           </div>
 
@@ -462,7 +462,7 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
                             <span className="text-lg font-semibold tabular-nums">{formatCurrency(valorTotal)}</span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Salário: {formatCurrency(colaboradorSalario)} + HE: {formatCurrency(valorTotalHorasExtras)} + Condução:{" "}
+                            Valor Contratual: {formatCurrency(colaboradorSalario)} + HE: {formatCurrency(valorTotalHorasExtras)} + Condução:{" "}
                             {formatCurrency(valoresAtuais.conducao)} + KM: {formatCurrency(valoresAtuais.valor_km)} + Plantão:{" "}
                             {formatCurrency(valoresAtuais.valor_plantao)} + Comissão: {formatCurrency(valoresAtuais.comissao)} - Desconto: {formatCurrency(valoresAtuais.valor_desconto)}
                           </p>

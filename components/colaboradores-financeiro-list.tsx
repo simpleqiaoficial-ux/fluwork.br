@@ -52,7 +52,7 @@ export function ColaboradoresFinanceiroList() {
   })
 
   if (loading) {
-    return <div className="text-center py-8">Carregando colaboradores...</div>
+    return <div className="text-center py-8">Carregando prestadores...</div>
   }
 
   return (
@@ -83,7 +83,7 @@ export function ColaboradoresFinanceiroList() {
               <TableHead>Email</TableHead>
               <TableHead>CNPJ</TableHead>
               <TableHead>Equipe</TableHead>
-              <TableHead className="text-right">Salário</TableHead>
+              <TableHead className="text-right">Valor contratual</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -91,7 +91,7 @@ export function ColaboradoresFinanceiroList() {
             {colaboradoresFiltrados.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  {filtro ? "Nenhum colaborador encontrado" : "Nenhum colaborador cadastrado"}
+                  {filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
                 </TableCell>
               </TableRow>
             ) : (

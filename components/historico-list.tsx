@@ -47,7 +47,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Colaborador</TableHead>
+            <TableHead>Prestador</TableHead>
             <TableHead>Criado em</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Status</TableHead>
@@ -108,7 +108,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
                           ) : (
                             <>
                               <div>
-                                <p className="text-xs text-muted-foreground mb-1">Salário Base</p>
+                                <p className="text-xs text-muted-foreground mb-1">Valor Contratual Base</p>
                                 <p className="font-medium tabular-nums">{formatCurrency(colaboradorSalario)}</p>
                               </div>
                               <div>

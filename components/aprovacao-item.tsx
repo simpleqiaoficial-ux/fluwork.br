@@ -153,7 +153,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Salário Base</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Valor Contratual Base</p>
               <p className="font-medium tabular-nums">{fmtCurrency(colaboradorSalario)}</p>
             </div>
             <div>
@@ -235,7 +235,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">
-                Esta data será visível para o colaborador, supervisor e gerente
+                Esta data será visível para o prestador, supervisor e gerente
               </p>
             </div>
           )}

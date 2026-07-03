@@ -147,7 +147,7 @@ export async function redefinirSenha(senhaAtual: string, novaSenha: string) {
   if (!colaborador) {
     return {
       success: false,
-      error: "Colaborador não encontrado",
+      error: "Prestador não encontrado",
     }
   }
 

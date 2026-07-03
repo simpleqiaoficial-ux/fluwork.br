@@ -31,11 +31,11 @@ export function HistoricoReajustesList({ reajustes }: HistoricoReajustesListProp
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Colaborador</TableHead>
+            <TableHead>Prestador</TableHead>
             <TableHead>Data</TableHead>
-            <TableHead className="text-right">Salário anterior</TableHead>
+            <TableHead className="text-right">Valor contratual anterior</TableHead>
             <TableHead className="text-right">Reajuste</TableHead>
-            <TableHead className="text-right">Novo salário</TableHead>
+            <TableHead className="text-right">Novo valor contratual</TableHead>
             <TableHead className="w-8" />
           </TableRow>
         </TableHeader>

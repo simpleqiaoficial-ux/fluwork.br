@@ -39,7 +39,7 @@ export async function criarPedido(data: NovoPedido) {
     }
 
     if (pedidosExistentes && pedidosExistentes.length > 0) {
-      throw new Error("Este colaborador já recebeu condução este mês. Apenas uma condução por mês é permitida.")
+      throw new Error("Este prestador já recebeu condução este mês. Apenas uma condução por mês é permitida.")
     }
   }
 
@@ -58,12 +58,12 @@ export async function criarPedido(data: NovoPedido) {
         .where(eq(colaboradores.id, data.colaborador_id))
     } catch (error) {
       console.error("[v0] Erro ao buscar colaborador:", error)
-      throw new Error("Colaborador não encontrado")
+      throw new Error("Prestador não encontrado")
     }
 
     if (!colaborador) {
       console.error("[v0] Erro ao buscar colaborador:", "colaborador não encontrado")
-      throw new Error("Colaborador não encontrado")
+      throw new Error("Prestador não encontrado")
     }
 
     const salarioColaborador = Number(colaborador.salario)
@@ -322,7 +322,7 @@ export async function listarPedidosPendentes() {
         .where(inArray(colaboradores.equipeId, equipeIds))
     } catch (error) {
       console.error("[v0] Erro ao buscar colaboradores:", error)
-      throw new Error("Erro ao buscar colaboradores")
+      throw new Error("Erro ao buscar prestadores")
     }
 
     colaboradorIds = colaboradoresRows.map((c) => c.id)
@@ -428,7 +428,7 @@ export async function listarPedidosPorSupervisor(supervisorId: string) {
       .where(and(inArray(colaboradores.equipeId, equipeIds), inArray(colaboradores.tipoAcesso, ["Colaborador", "Supervisor"])))
   } catch (error) {
     console.error("[v0] Erro ao buscar colaboradores:", error)
-    throw new Error("Erro ao buscar colaboradores")
+    throw new Error("Erro ao buscar prestadores")
   }
 
   const colaboradorIds = colaboradoresRows.map((c) => c.id)
@@ -482,7 +482,7 @@ export async function listarPedidosPorGerente(gerenteId: string, filtros?: { dat
       .where(inArray(colaboradores.equipeId, equipeIds))
   } catch (error) {
     console.error("[v0] Erro ao buscar colaboradores:", error)
-    throw new Error("Erro ao buscar colaboradores")
+    throw new Error("Erro ao buscar prestadores")
   }
 
   const colaboradorIds = colaboradoresRows.map((c) => c.id)

@@ -152,9 +152,9 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
     const headers = [
       "Data de Criação",
       "Criado Por",
-      "Colaborador",
+      "Prestador",
       "Tipo de Pedido",
-      "Salário Base",
+      "Valor Contratual Base",
       "HE 50%",
       "HE 100%",
       "Valor HE",
@@ -232,7 +232,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `FluxoPay_Pedidos_${format(new Date(), "dd-MM-yyyy_HH-mm")}.csv`)
+    link.setAttribute("download", `FluXork_Pedidos_${format(new Date(), "dd-MM-yyyy_HH-mm")}.csv`)
     link.style.visibility = "hidden"
     document.body.appendChild(link)
     link.click()
@@ -280,7 +280,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por colaborador ou criador..."
+                  placeholder="Buscar por prestador ou criador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -391,7 +391,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30">
                       <TableHead className="text-xs">Data</TableHead>
-                      <TableHead className="text-xs">Colaborador</TableHead>
+                      <TableHead className="text-xs">Prestador</TableHead>
                       <TableHead className="text-xs">Tipo</TableHead>
                       <TableHead className="text-xs text-right">Valor</TableHead>
                       <TableHead className="text-xs">Status</TableHead>

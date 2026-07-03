@@ -170,7 +170,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="colaboradorNome" className="text-xs text-muted-foreground">Nome do Colaborador</Label>
+              <Label htmlFor="colaboradorNome" className="text-xs text-muted-foreground">Nome do Prestador</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -244,7 +244,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Colaborador</TableHead>
+                  <TableHead>Prestador</TableHead>
                   <TableHead>Criado em</TableHead>
                   <TableHead className="hidden md:table-cell">Criado por</TableHead>
                   <TableHead>Status</TableHead>
@@ -302,7 +302,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
                               {pedido.tipo_pedido === "completo" && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
                                   <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Salário Base</p>
+                                    <p className="text-xs text-muted-foreground mb-1">Valor Contratual Base</p>
                                     <p className="font-medium tabular-nums">{formatCurrency(pedido.colaborador?.salario || 0)}</p>
                                   </div>
                                   <div>

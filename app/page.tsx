@@ -1,4 +1,9 @@
-import { listarPedidosComFiltros, listarPedidosPorSupervisor, listarPedidosPorGerente } from "./actions/pedidos"
+import {
+  listarPedidosComFiltros,
+  listarPedidosPorSupervisor,
+  listarPedidosPorGerente,
+  listarSolicitacoesProrrogacao,
+} from "./actions/pedidos"
 import { listarEquipes, listarEquipesPorGerente } from "./actions/equipes"
 import { getSession } from "@/lib/session"
 import { redirect } from "next/navigation"
@@ -39,11 +44,20 @@ export default async function Home() {
 
   const isAdmin = session?.tipoAcesso === "Adm"
 
+  let prorrogacoesPendentes = 0
+  if (session?.tipoAcesso === "Adm" || session?.tipoAcesso === "Financeiro") {
+    try {
+      prorrogacoesPendentes = (await listarSolicitacoesProrrogacao()).length
+    } catch (error) {
+      console.error("[v0] Erro ao contar prorrogacoes pendentes:", error)
+    }
+  }
+
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Visao geral de pagamentos e pedidos</p>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Visão Geral</h1>
+        <p className="text-sm text-muted-foreground">Panorama de contratos, valores e aprovações de prestadores</p>
       </div>
 
       {isAdmin && (
@@ -52,7 +66,7 @@ export default async function Home() {
         </div>
       )}
 
-      <DashboardAnalytics pedidos={pedidos} equipes={equipes} />
+      <DashboardAnalytics pedidos={pedidos} equipes={equipes} prorrogacoesPendentes={prorrogacoesPendentes} />
     </div>
   )
 }

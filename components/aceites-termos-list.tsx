@@ -166,7 +166,7 @@ export function AceitesTermosList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Colaborador</TableHead>
+                  <TableHead>Prestador</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Versão</TableHead>
                   <TableHead>Data</TableHead>

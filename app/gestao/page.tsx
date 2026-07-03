@@ -52,13 +52,13 @@ export default async function GestaoPage() {
     {
       href: "/gestao/reajustes",
       title: "Aplicar Reajustes",
-      description: "Aplique reajustes salariais nos colaboradores e consulte o histórico.",
+      description: "Aplique reajustes contratuais aos prestadores e consulte o histórico.",
       icon: TrendingUp,
     },
     {
       href: "/gestao/aceites",
       title: "Aceites de Termos",
-      description: "Visualize e gerencie os aceites de termos de uso dos colaboradores.",
+      description: "Visualize e gerencie os aceites de termos de uso dos prestadores.",
       icon: FileCheck,
     },
   ]
@@ -66,9 +66,9 @@ export default async function GestaoPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Gestão de Pessoas</h1>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Gestão de Prestadores</h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie notas fiscais e aplique reajustes salariais
+          Gerencie notas fiscais, contratos e reajustes contratuais dos prestadores.
         </p>
       </div>
 

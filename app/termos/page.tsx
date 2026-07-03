@@ -23,7 +23,7 @@ export default function TermosPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
         <h1 className="text-2xl font-semibold tracking-tight">Termos de Uso</h1>
-        <p className="text-sm text-muted-foreground mt-2">FluxoPay - Plataforma de Gestao de Prestadores de Servico</p>
+        <p className="text-sm text-muted-foreground mt-2">FluXork - Plataforma de Gestao de Prestadores de Servico</p>
         <p className="text-xs text-muted-foreground mt-3">Ultima atualizacao: 02/04/2026 · Versao 2.1</p>
       </div>
 
@@ -31,13 +31,13 @@ export default function TermosPage() {
       <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
 
         <p className="text-sm text-muted-foreground italic border-l-2 border-border pl-4">
-          "Declaro que li, compreendi e concordo com os Termos de Uso e a Politica de Privacidade do FluxoPay."
+          "Declaro que li, compreendi e concordo com os Termos de Uso e a Politica de Privacidade do FluXork."
         </p>
 
         <section>
           <h2 className="text-base font-semibold mb-3">1. Identificacao</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O FluxoPay e uma plataforma digital operada por FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
+            O FluXork e uma plataforma digital operada por FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
             inscrita no CNPJ sob o n 26.344.386/0001-42, com nome fantasia KAFERRI TEC SERVICOS, com sede em
             Osasco/SP, responsavel pelo desenvolvimento, manutencao e gestao da plataforma.
           </p>
@@ -46,7 +46,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">2. Aceite dos Termos</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Ao acessar, utilizar ou se cadastrar na plataforma FluxoPay, o usuario declara que leu, compreendeu
+            Ao acessar, utilizar ou se cadastrar na plataforma FluXork, o usuario declara que leu, compreendeu
             e concorda integralmente com estes Termos de Uso e com a Politica de Privacidade aplicavel. O aceite
             e condicao indispensavel para utilizacao do sistema.
           </p>
@@ -62,7 +62,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">3. Objeto da Plataforma</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluxoPay consiste em uma plataforma digital voltada a gestao e organizacao de processos financeiros
+            O FluXork consiste em uma plataforma digital voltada a gestao e organizacao de processos financeiros
             corporativos, permitindo, entre outras funcionalidades:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
@@ -74,7 +74,7 @@ export default function TermosPage() {
           </ul>
           <div className="border-l-2 border-border pl-4 py-1">
             <p className="text-sm text-muted-foreground">
-              O FluxoPay nao realiza movimentacoes financeiras, nao sendo instituicao financeira, banco,
+              O FluXork nao realiza movimentacoes financeiras, nao sendo instituicao financeira, banco,
               intermediadora de pagamentos ou responsavel por execucoes de transferencias, limitando-se a
               gestao e organizacao de informacoes.
             </p>
@@ -123,7 +123,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">6. Limitacao de Responsabilidade</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Na maxima extensao permitida pela legislacao aplicavel, o FluxoPay nao se responsabiliza por:
+            Na maxima extensao permitida pela legislacao aplicavel, o FluXork nao se responsabiliza por:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Erros, inconsistencias ou omissoes nas informacoes inseridas pelos usuarios</li>
@@ -144,7 +144,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">7. Disponibilidade do Sistema</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluxoPay podera, a qualquer momento, realizar manutencoes programadas ou emergenciais,
+            O FluXork podera, a qualquer momento, realizar manutencoes programadas ou emergenciais,
             implementar atualizacoes, melhorias ou correcoes, e suspender temporariamente o acesso por
             motivos tecnicos ou de seguranca.
           </p>
@@ -159,7 +159,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">8. Seguranca da Informacao</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluxoPay adota medidas tecnicas e organizacionais compativeis com boas praticas de mercado
+            O FluXork adota medidas tecnicas e organizacionais compativeis com boas praticas de mercado
             para protecao dos dados. Entretanto, o usuario reconhece que:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4">
@@ -172,7 +172,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">9. Suspensao e Encerramento</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluxoPay podera, a seu exclusivo criterio, suspender, restringir ou encerrar o acesso do
+            O FluXork podera, a seu exclusivo criterio, suspender, restringir ou encerrar o acesso do
             usuario, a qualquer momento e sem aviso previo, em caso de:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4">
@@ -186,7 +186,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">10. Alteracoes dos Termos</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O FluxoPay podera alterar estes Termos de Uso a qualquer momento. Em caso de atualizacao,
+            O FluXork podera alterar estes Termos de Uso a qualquer momento. Em caso de atualizacao,
             a nova versao sera disponibilizada na plataforma e podera ser exigido novo aceite do usuario.
             A continuidade do uso podera ser condicionada a aceitacao dos novos termos.
           </p>
@@ -197,7 +197,7 @@ export default function TermosPage() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             O tratamento de dados pessoais sera realizado em conformidade com a legislacao aplicavel,
             especialmente a Lei Geral de Protecao de Dados (LGPD - Lei n 13.709/2018), conforme descrito
-            na Politica de Privacidade do FluxoPay.
+            na Politica de Privacidade do FluXork.
           </p>
         </section>
 
@@ -240,7 +240,7 @@ export default function TermosPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluxoPay - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluXork - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

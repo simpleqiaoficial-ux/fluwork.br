@@ -35,6 +35,7 @@ import {
 interface DashboardAnalyticsProps {
   pedidos: PedidoPagamento[]
   equipes: Array<{ id: string; nome: string }>
+  prorrogacoesPendentes?: number
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -60,7 +61,7 @@ const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "wa
 const PIE_COLORS = ["#171717", "#404040", "#737373", "#a3a3a3", "#d4d4d4"]
 
 const TIPO_LABELS: Record<string, string> = {
-  salario: "Salario",
+  salario: "Valor Contratual",
   horas_extras: "Horas Extras",
   reembolso_km: "Reembolso KM",
   plantao: "Plantao",
@@ -72,7 +73,7 @@ function formatDateBR(dateString: string) {
   return d.toLocaleDateString("pt-BR")
 }
 
-export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps) {
+export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0 }: DashboardAnalyticsProps) {
   const { formatValue, valoresVisiveis } = useMaskedCurrency()
 
   // Filters
@@ -196,12 +197,32 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
     const plantao = filteredPedidos.reduce((s, p) => s + (p.valor_plantao || 0), 0)
     const conducao = filteredPedidos.reduce((s, p) => s + (p.conducao || 0), 0)
     const comissao = filteredPedidos.reduce((s, p) => s + (p.comissao || 0), 0)
-    const pagos = filteredPedidos.filter((p) => p.status === "pago").length
-    const pendentes = filteredPedidos.filter((p) =>
+    const pagos = filteredPedidos.filter((p) => p.status === "pago")
+    const aguardandoAprovacao = filteredPedidos.filter((p) =>
       ["pendente_gerente", "pendente_financeiro"].includes(p.status),
-    ).length
+    )
+    const aprovados = filteredPedidos.filter((p) => p.status === "aprovado")
+    const temNota = (p: PedidoPagamento) => Boolean(p.notas_fiscais && (p.notas_fiscais as any).length > 0)
+    const notasRecebidas = filteredPedidos.filter((p) => p.tipo_pedido !== "reembolso_km" && temNota(p))
+    const prestadoresSemNota = filteredPedidos.filter(
+      (p) => p.tipo_pedido !== "reembolso_km" && ["aprovado", "pago"].includes(p.status) && !temNota(p),
+    )
 
-    return { total, salarios, horasExtras, reembolsoKm, plantao, conducao, comissao, pagos, pendentes, count: filteredPedidos.length }
+    return {
+      total,
+      salarios,
+      horasExtras,
+      reembolsoKm,
+      plantao,
+      conducao,
+      comissao,
+      count: filteredPedidos.length,
+      contasPagas: { count: pagos.length, valor: pagos.reduce((s, p) => s + p.valor_total, 0) },
+      valoresPendentes: { count: aguardandoAprovacao.length, valor: aguardandoAprovacao.reduce((s, p) => s + p.valor_total, 0) },
+      valoresAprovados: { count: aprovados.length, valor: aprovados.reduce((s, p) => s + p.valor_total, 0) },
+      notasRecebidas: notasRecebidas.length,
+      prestadoresSemNota: prestadoresSemNota.length,
+    }
   }, [filteredPedidos])
 
   // Monthly chart data
@@ -239,7 +260,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
   // Pie chart data
   const pieData = useMemo(() => {
     const items = [
-      { name: "Salario", value: kpis.salarios },
+      { name: "Valor Contratual", value: kpis.salarios },
       { name: "Horas Extras", value: kpis.horasExtras },
       { name: "Reembolso KM", value: kpis.reembolsoKm },
       { name: "Plantao", value: kpis.plantao },
@@ -277,12 +298,12 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
   const exportExcel = () => {
     const headers = [
       "Data",
-      "Colaborador",
+      "Prestador",
       "Equipe",
       "Centro de Custo",
       "Tipo",
       "Status",
-      "Salario Base",
+      "Valor Contratual Base",
       "HE 50% (h)",
       "HE 100% (h)",
       "Valor Horas Extras",
@@ -357,7 +378,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `fluxopay_relatorio_${new Date().toISOString().split("T")[0]}.xls`
+    a.download = `fluxork_relatorio_${new Date().toISOString().split("T")[0]}.xls`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -372,32 +393,31 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
       {/* Indicadores */}
       <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Total de pedidos</p>
-          <p className="text-2xl font-semibold tabular-nums">{kpis.count}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {kpis.pagos} pagos · {kpis.pendentes} pendentes
-          </p>
+          <p className="text-xs text-muted-foreground mb-1.5">Contas pagas</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.contasPagas.valor)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{kpis.contasPagas.count} solicitações · {diasComPagamento} dias com pagamento</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Valor total</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.total)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{diasComPagamento} dias com pagamento</p>
+          <p className="text-xs text-muted-foreground mb-1.5">Valores pendentes</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.valoresPendentes.valor)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{kpis.valoresPendentes.count} aguardando aprovação</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Salários</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.salarios)}</p>
+          <p className="text-xs text-muted-foreground mb-1.5">Valores aprovados</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.valoresAprovados.valor)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{kpis.valoresAprovados.count} solicitações</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Horas extras</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.horasExtras)}</p>
+          <p className="text-xs text-muted-foreground mb-1.5">Notas recebidas</p>
+          <p className="text-2xl font-semibold tabular-nums">{kpis.notasRecebidas}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Reembolso KM</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.reembolsoKm)}</p>
+          <p className="text-xs text-muted-foreground mb-1.5">Prestadores sem nota</p>
+          <p className="text-2xl font-semibold tabular-nums">{kpis.prestadoresSemNota}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Plantão + condução</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.plantao + kpis.conducao)}</p>
+          <p className="text-xs text-muted-foreground mb-1.5">Prorrogações pendentes</p>
+          <p className="text-2xl font-semibold tabular-nums">{prorrogacoesPendentes}</p>
         </div>
       </div>
 
@@ -407,7 +427,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              Gastos Mensais por Tipo
+              Resumo por competência
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -579,7 +599,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome do colaborador..."
+              placeholder="Buscar por nome do prestador..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="pl-9 h-9 text-sm"
@@ -674,7 +694,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                                   {p.tipo_pedido !== "reembolso_km" && (
                                     <div>
-                                      <span className="text-muted-foreground text-xs block">Salario Base</span>
+                                      <span className="text-muted-foreground text-xs block">Valor Contratual Base</span>
                                       <span className="font-medium">{formatValue(colab?.salario || 0)}</span>
                                     </div>
                                   )}

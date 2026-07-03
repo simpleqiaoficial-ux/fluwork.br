@@ -18,14 +18,14 @@ export default async function CadastrosPage() {
   const cadastros = [
     {
       href: "/cadastros/colaboradores",
-      title: "Colaboradores",
-      description: "Gerencie os colaboradores do sistema, incluindo dados pessoais, salarios e acessos.",
+      title: "Prestadores",
+      description: "Gerencie os prestadores do sistema, incluindo dados pessoais, valores contratuais e acessos.",
       icon: Users,
     },
     {
       href: "/cadastros/equipes",
       title: "Equipes",
-      description: "Organize colaboradores em equipes e defina supervisores responsaveis.",
+      description: "Organize prestadores em equipes e defina supervisores responsaveis.",
       icon: UsersRound,
     },
     {
@@ -41,7 +41,7 @@ export default async function CadastrosPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Cadastros</h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie colaboradores, equipes e centros de custo do sistema
+          Gerencie prestadores, equipes e centros de custo do sistema
         </p>
       </div>
 

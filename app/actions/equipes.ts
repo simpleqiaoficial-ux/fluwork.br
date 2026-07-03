@@ -112,7 +112,7 @@ export async function listarColaboradoresPorEquipe(equipeId: string) {
     }))
   } catch (error) {
     console.error("[v0] Erro ao listar colaboradores da equipe:", error)
-    throw new Error("Erro ao listar colaboradores da equipe")
+    throw new Error("Erro ao listar prestadores da equipe")
   }
 }
 
@@ -213,7 +213,7 @@ export async function listarColaboradoresSemEquipe(): Promise<
     }))
   } catch (error) {
     console.error("[v0] Erro ao listar colaboradores sem equipe:", error)
-    throw new Error("Erro ao listar colaboradores sem equipe")
+    throw new Error("Erro ao listar prestadores sem equipe")
   }
 }
 
@@ -222,7 +222,7 @@ export async function vincularColaboradorEquipe(colaboradorId: string, equipeId:
     await db.update(colaboradores).set({ equipeId }).where(eq(colaboradores.id, colaboradorId))
   } catch (error) {
     console.error("[v0] Erro ao vincular colaborador:", error)
-    throw new Error("Erro ao vincular colaborador a equipe")
+    throw new Error("Erro ao vincular prestador a equipe")
   }
 
   revalidatePath("/cadastros/equipes")
@@ -234,7 +234,7 @@ export async function removerColaboradorEquipe(colaboradorId: string): Promise<v
     await db.update(colaboradores).set({ equipeId: null }).where(eq(colaboradores.id, colaboradorId))
   } catch (error) {
     console.error("[v0] Erro ao remover colaborador da equipe:", error)
-    throw new Error("Erro ao remover colaborador da equipe")
+    throw new Error("Erro ao remover prestador da equipe")
   }
 
   revalidatePath("/cadastros/equipes")

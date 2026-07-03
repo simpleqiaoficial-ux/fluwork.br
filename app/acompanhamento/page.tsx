@@ -35,7 +35,7 @@ export default async function AcompanhamentoPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Acompanhamento de Pedidos</h1>
           <p className="text-muted-foreground">
-            Monitore colaboradores que ainda não emitiram ou anexaram a nota fiscal após aprovação
+            Monitore prestadores que ainda não emitiram ou anexaram a nota fiscal após aprovação
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export default async function AcompanhamentoPage() {
               <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-lg font-medium mb-2">Nenhuma pendência encontrada</p>
               <p className="text-sm text-muted-foreground">
-                Todos os colaboradores estão em dia com suas notas fiscais
+                Todos os prestadores estão em dia com suas notas fiscais
               </p>
             </CardContent>
           </Card>
@@ -59,7 +59,7 @@ export default async function AcompanhamentoPage() {
                 </div>
                 <CardDescription>
                   {pedidosPendentes.length}{" "}
-                  {pedidosPendentes.length === 1 ? "colaborador precisa" : "colaboradores precisam"} emitir e anexar
+                  {pedidosPendentes.length === 1 ? "prestador precisa" : "prestadores precisam"} emitir e anexar
                   nota fiscal
                 </CardDescription>
               </CardHeader>

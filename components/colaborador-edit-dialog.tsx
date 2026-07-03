@@ -104,11 +104,11 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
 
       await atualizarColaborador(colaborador.id, updateData)
 
-      toast.success("Colaborador atualizado!")
+      toast.success("Prestador atualizado!")
       onOpenChange(false)
       router.refresh()
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Erro ao atualizar colaborador"
+      const msg = error instanceof Error ? error.message : "Erro ao atualizar prestador"
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -119,7 +119,7 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Colaborador</DialogTitle>
+          <DialogTitle>Editar Prestador</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,7 +189,7 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit_tipo_acesso">Tipo de Acesso</Label>
+              <Label htmlFor="edit_tipo_acesso">Perfil de Acesso</Label>
               <Select
                 value={formData.tipo_acesso}
                 onValueChange={(value) => setFormData({ ...formData, tipo_acesso: value as TipoAcesso })}
@@ -198,7 +198,7 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Colaborador">Colaborador</SelectItem>
+                  <SelectItem value="Colaborador">Prestador</SelectItem>
                   <SelectItem value="Supervisor">Supervisor</SelectItem>
                   <SelectItem value="Gerente">Gerente</SelectItem>
                   <SelectItem value="Financeiro">Financeiro</SelectItem>
@@ -244,7 +244,7 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit_salario">Salario Base (R$)</Label>
+              <Label htmlFor="edit_salario">Valor Contratual Base (R$)</Label>
               <Input
                 id="edit_salario"
                 type="number"

@@ -14,7 +14,7 @@ const faqCategories = [
     icon: Key,
     questions: [
       {
-        question: "Como recebo meu acesso ao FluxoPay?",
+        question: "Como recebo meu acesso ao FluXork?",
         answer: "O acesso e provisionado pelo administrador da empresa contratante. Apos o cadastro, voce recebe um e-mail com credenciais temporarias e deve alterar a senha no primeiro login. Caso nao receba, verifique o spam ou contate simpleqia.oficial@gmail.com."
       },
       {
@@ -26,8 +26,8 @@ const faqCategories = [
         answer: "Por seguranca, a conta e bloqueada apos 5 tentativas incorretas consecutivas. O desbloqueio automatico ocorre apos 15 minutos. Para desbloqueio imediato, contate o suporte informando seu e-mail e empresa."
       },
       {
-        question: "Posso usar o FluxoPay no celular?",
-        answer: "Sim. O FluxoPay e responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi publicas sem VPN."
+        question: "Posso usar o FluXork no celular?",
+        answer: "Sim. O FluXork e responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi publicas sem VPN."
       }
     ]
   },
@@ -37,16 +37,16 @@ const faqCategories = [
     icon: CreditCard,
     questions: [
       {
-        question: "O que o FluxoPay gerencia exatamente?",
-        answer: "O FluxoPay e uma plataforma SaaS de gestao de prestadores de servico com foco em controle de fluxo de validacao, registro de contratos, status de aprovacao e controle de pagamentos. Ciclo completo: cadastro, validacao documental, aprovacao multinivel, ordem de pagamento, quitacao e arquivamento."
+        question: "O que o FluXork gerencia exatamente?",
+        answer: "O FluXork e uma plataforma SaaS de gestao de prestadores de servico com foco em controle de fluxo de validacao, registro de contratos, status de aprovacao e controle de pagamentos. Ciclo completo: cadastro, validacao documental, aprovacao multinivel, ordem de pagamento, quitacao e arquivamento."
       },
       {
         question: "Como funciona o fluxo de aprovacao?",
         answer: "O fluxo e configurado pelo administrador da empresa: (1) Cadastro do prestador com dados e documentos; (2) Triagem e validacao documental; (3) Aprovacao gerencial conforme hierarquia; (4) Liberacao da ordem de pagamento. Cada etapa registra responsavel, data e justificativa."
       },
       {
-        question: "Os dados de pagamento ficam armazenados no FluxoPay?",
-        answer: "O FluxoPay registra os dados necessarios para controle e auditoria (valores, datas, responsaveis, comprovantes). Dados bancarios sensiveis sao trafegados via canais criptografados com acesso restrito. A empresa nao acessa dados financeiros fora do escopo operacional contratado."
+        question: "Os dados de pagamento ficam armazenados no FluXork?",
+        answer: "O FluXork registra os dados necessarios para controle e auditoria (valores, datas, responsaveis, comprovantes). Dados bancarios sensiveis sao trafegados via canais criptografados com acesso restrito. A empresa nao acessa dados financeiros fora do escopo operacional contratado."
       },
       {
         question: "Como exportar relatorios de pagamento?",
@@ -69,7 +69,7 @@ const faqCategories = [
       },
       {
         question: "O sistema registra minhas acoes?",
-        answer: "Sim. Por razoes de seguranca e auditoria, o FluxoPay registra logs de acesso, acoes realizadas, alteracoes de dados e tentativas de login. Esses registros sao acessiveis apenas pelo time de TI e gestores autorizados, conforme a Politica de Privacidade."
+        answer: "Sim. Por razoes de seguranca e auditoria, o FluXork registra logs de acesso, acoes realizadas, alteracoes de dados e tentativas de login. Esses registros sao acessiveis apenas pelo time de TI e gestores autorizados, conforme a Politica de Privacidade."
       }
     ]
   },
@@ -134,7 +134,7 @@ export default function FAQPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Central de Ajuda</h1>
-        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas duvidas sobre o FluxoPay</p>
+        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas duvidas sobre o FluXork</p>
 
         {/* Search */}
         <div className="relative max-w-lg mx-auto mt-8">
@@ -252,7 +252,7 @@ export default function FAQPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluxoPay - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluXork - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

@@ -353,7 +353,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
         <CardContent className="pt-6 space-y-8">
           {/* Step 1: Colaborador Selection */}
           <section>
-            <h3 className="text-sm font-medium mb-4">1. Selecione o colaborador</h3>
+            <h3 className="text-sm font-medium mb-4">1. Selecione o prestador</h3>
 
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-2">
@@ -380,7 +380,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
               <Select value={selectedColaborador} onValueChange={(v) => { setSelectedColaborador(v); setItems([]) }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o colaborador" />
+                  <SelectValue placeholder="Selecione o prestador" />
                 </SelectTrigger>
                 <SelectContent>
                   {colaboradoresFiltrados.map((c) => (
@@ -394,7 +394,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
               {colaborador && (
                 <div className="flex flex-wrap gap-x-5 gap-y-1 pt-1 text-xs text-muted-foreground">
-                  <span>Salário <span className="font-medium text-foreground tabular-nums">{fmt(salario)}</span></span>
+                  <span>Valor contratual <span className="font-medium text-foreground tabular-nums">{fmt(salario)}</span></span>
                   <span>Valor hora <span className="font-medium text-foreground tabular-nums">{fmt(valorHoraNormal)}</span></span>
                   <span>Valor dia <span className="font-medium text-foreground tabular-nums">{fmt(valorDiario)}</span></span>
                   <span>Pagamento no dia <span className="font-medium text-foreground tabular-nums">{colaborador.dia_pagamento}</span></span>
@@ -574,7 +574,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
               <div className="space-y-2">
                 {tipoPedido === "completo" && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Salario Base</span>
+                    <span className="text-muted-foreground">Valor Contratual Base</span>
                     <span className="font-medium tabular-nums">{fmt(resumo.salario)}</span>
                   </div>
                 )}

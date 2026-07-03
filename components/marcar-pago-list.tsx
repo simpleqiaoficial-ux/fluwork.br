@@ -105,11 +105,11 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
       alert("Por favor, informe o motivo da recusa")
       return
     }
-    if (!confirm("Deseja recusar esta nota e solicitar correcao ao colaborador?")) return
+    if (!confirm("Deseja recusar esta nota e solicitar correcao ao prestador?")) return
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
-      alert("Nota fiscal recusada. O colaborador foi notificado.")
+      alert("Nota fiscal recusada. O prestador foi notificado.")
       setMotivoRecusa({ ...motivoRecusa, [pedidoId]: "" })
       router.refresh()
     } catch (error) {
@@ -162,7 +162,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="mpNome" className="text-xs text-muted-foreground">Colaborador</Label>
+            <Label htmlFor="mpNome" className="text-xs text-muted-foreground">Prestador</Label>
             <Input
               id="mpNome"
               type="text"
@@ -206,7 +206,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Colaborador</TableHead>
+                <TableHead>Prestador</TableHead>
                 <TableHead>Emitida em</TableHead>
                 <TableHead className="text-right">Valor NF</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -244,7 +244,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                       className="cursor-pointer"
                       onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
                     >
-                      <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Colaborador"}</TableCell>
+                      <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Prestador"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {pedido.data_emissao_nota
                           ? new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")
@@ -278,7 +278,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                             ) : (
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
                                 <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Salário</p>
+                                  <p className="text-xs text-muted-foreground mb-1">Valor contratual</p>
                                   <p className="font-medium tabular-nums">{formatValue(pedido.colaborador?.salario || 0)}</p>
                                 </div>
                                 <div>

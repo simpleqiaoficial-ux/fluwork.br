@@ -12,8 +12,8 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Criar Pedido</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para colaboradores</p>
+          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
         </div>
         <Alert>
           <LogIn className="h-4 w-4" />
@@ -33,8 +33,8 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Criar Pedido</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para colaboradores</p>
+          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
         </div>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -60,15 +60,15 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Criar Pedido</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para colaboradores</p>
+          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
         </div>
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Nenhum Colaborador Disponivel</AlertTitle>
+          <AlertTitle>Nenhum Prestador Disponivel</AlertTitle>
           <AlertDescription className="mt-2">
             {session.tipoAcesso === "Supervisor"
-              ? "Voce nao possui colaboradores na sua equipe."
+              ? "Voce nao possui prestadores na sua equipe."
               : "Voce nao possui equipes vinculadas. Entre em contato com o administrador."}
           </AlertDescription>
           <Button asChild className="mt-4" variant="outline">
@@ -82,10 +82,10 @@ export default async function PedidosPage() {
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Criar Pedido</h1>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
         <p className="text-sm text-muted-foreground">
           {["Gerente", "Financeiro", "Adm"].includes(session.tipoAcesso)
-            ? "Crie pedidos de pagamento para colaboradores"
+            ? "Crie pedidos de pagamento para prestadores"
             : "Crie pedidos de pagamento da sua equipe"}
         </p>
       </div>
