@@ -1,0 +1,18 @@
+-- ============================================
+-- INSTRUÇÕES IMPORTANTES
+-- ============================================
+-- Este script não pode ser executado diretamente no SQL Editor.
+-- Você precisa desabilitar a confirmação de email manualmente:
+--
+-- 1. Acesse o Dashboard do Supabase
+-- 2. Vá em Authentication > Settings
+-- 3. Em "Email Auth", desabilite "Enable email confirmations"
+-- 4. Clique em "Save"
+--
+-- Após fazer isso, os usuários poderão fazer login imediatamente após o cadastro.
+-- ============================================
+
+-- Como alternativa temporária, você pode confirmar usuários manualmente:
+-- Vá em Authentication > Users no dashboard do Supabase
+-- Clique no usuário que deseja confirmar
+-- Clique em "Confirm email"
