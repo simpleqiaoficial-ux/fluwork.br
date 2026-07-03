@@ -24,6 +24,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronDown,
+  Briefcase,
 } from "lucide-react"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
@@ -138,6 +139,8 @@ const SUPERVISOR_LINKS: NavItem[] = [
 ]
 
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"
+const ROOT_STORAGE_KEY = "fluwork_root_open"
+const ROOT_LABEL = "Gestão de Prestadores - Financeiro"
 
 function itemPath(href: string) {
   return href.split("?")[0]
@@ -150,12 +153,19 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState("")
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
+  const [rootOpen, setRootOpen] = useState(true)
   const [pendencias, setPendencias] = useState({ aprovacoes: 0, painelFinanceiro: 0, correcoes: 0 })
 
   useEffect(() => {
     const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY)
     if (stored === "1") setCollapsed(true)
+    const storedRoot = window.localStorage.getItem(ROOT_STORAGE_KEY)
+    if (storedRoot === "0") setRootOpen(false)
   }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(ROOT_STORAGE_KEY, rootOpen ? "1" : "0")
+  }, [rootOpen])
 
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-w", collapsed ? "4.5rem" : "16rem")
@@ -195,11 +205,14 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     })).filter((group) => group.items.length > 0)
   }, [tipoAcesso])
 
-  // Mantém aberta a categoria que contém a rota atual, sem fechar as demais.
+  // Mantém aberta a categoria (e o módulo-raiz) que contém a rota atual, sem fechar as demais.
   useEffect(() => {
     const activeGroup = baseGroups.find((group) => group.items.some((item) => itemPath(item.href) === pathname))
-    if (activeGroup && activeGroup.items.length > 1) {
-      setOpenGroups((prev) => (prev[activeGroup.label] ? prev : { ...prev, [activeGroup.label]: true }))
+    if (activeGroup) {
+      setRootOpen(true)
+      if (activeGroup.items.length > 1) {
+        setOpenGroups((prev) => (prev[activeGroup.label] ? prev : { ...prev, [activeGroup.label]: true }))
+      }
     }
   }, [pathname, baseGroups])
 
@@ -221,17 +234,18 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const NavLink = ({
     item,
     onClick,
-    indent,
+    level = 0,
     iconOnly,
   }: {
     item: NavItem
     onClick?: () => void
-    indent?: boolean
+    level?: 0 | 1 | 2
     iconOnly?: boolean
   }) => {
     const Icon = item.icon
     const isActive = isItemActive(item.href)
     const badge = item.badgeKey ? pendencias[item.badgeKey] : 0
+    const levelPadding = level === 2 ? "pl-14 pr-3" : level === 1 ? "pl-9 pr-3" : "px-3"
 
     return (
       <Link
@@ -240,7 +254,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         title={iconOnly ? item.label : undefined}
         className={cn(
           "group flex items-center gap-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
-          iconOnly ? "justify-center px-0" : indent ? "pl-9 pr-3" : "px-3",
+          iconOnly ? "justify-center px-0" : levelPadding,
           isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent",
         )}
       >
@@ -264,47 +278,74 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     </nav>
   )
 
-  // Sidebar expandida: categorias com 1 item viram link direto; com 2+ itens viram acordeão.
-  const NavGroups = ({ onLinkClick }: { onLinkClick?: () => void }) => (
-    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-      {groups.map((group, i) => {
-        if (!group.label || group.items.length === 1) {
-          return group.items.map((item) => <NavLink key={item.href} item={item} onClick={onLinkClick} />)
-        }
+  // Sidebar expandida: um único item-raiz (o módulo) que expande e revela todas as categorias.
+  // Categorias com 1 item viram link direto; com 2+ itens viram acordeão dentro do módulo.
+  const NavGroups = ({ onLinkClick }: { onLinkClick?: () => void }) => {
+    const isRootOpen = Boolean(q) || rootOpen
 
-        const isOpen = Boolean(q) || openGroups[group.label]
-        const GroupIcon = group.items[0].icon
-        const groupHasActiveItem = group.items.some((item) => isItemActive(item.href))
+    return (
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <div>
+          <button
+            type="button"
+            onClick={() => setRootOpen((prev) => !prev)}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-md transition-colors duration-150 text-foreground hover:bg-accent"
+          >
+            <Briefcase className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate text-left">{ROOT_LABEL}</span>
+            <ChevronDown
+              className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-150", isRootOpen && "rotate-180")}
+            />
+          </button>
 
-        return (
-          <div key={group.label}>
-            <button
-              type="button"
-              onClick={() => setOpenGroups((prev) => ({ ...prev, [group.label]: !prev[group.label] }))}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
-                groupHasActiveItem && !isOpen
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
-              )}
-            >
-              <GroupIcon className="h-4 w-4 shrink-0" />
-              <span className="flex-1 truncate text-left">{group.label}</span>
-              <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
-            </button>
-            {isOpen && (
-              <div className="mt-0.5 space-y-0.5">
-                {group.items.map((item) => (
-                  <NavLink key={item.href} item={item} onClick={onLinkClick} indent />
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
-      {groups.length === 0 && <p className="px-3 text-sm text-muted-foreground">Nada encontrado</p>}
-    </nav>
-  )
+          {isRootOpen && (
+            <div className="mt-0.5 space-y-1">
+              {groups.map((group) => {
+                if (!group.label || group.items.length === 1) {
+                  return group.items.map((item) => (
+                    <NavLink key={item.href} item={item} onClick={onLinkClick} level={1} />
+                  ))
+                }
+
+                const isOpen = Boolean(q) || openGroups[group.label]
+                const GroupIcon = group.items[0].icon
+                const groupHasActiveItem = group.items.some((item) => isItemActive(item.href))
+
+                return (
+                  <div key={group.label}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenGroups((prev) => ({ ...prev, [group.label]: !prev[group.label] }))}
+                      className={cn(
+                        "w-full flex items-center gap-3 pl-9 pr-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+                        groupHasActiveItem && !isOpen
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent",
+                      )}
+                    >
+                      <GroupIcon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 truncate text-left">{group.label}</span>
+                      <ChevronDown
+                        className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-150", isOpen && "rotate-180")}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="mt-0.5 space-y-0.5">
+                        {group.items.map((item) => (
+                          <NavLink key={item.href} item={item} onClick={onLinkClick} level={2} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              {groups.length === 0 && <p className="px-3 text-sm text-muted-foreground">Nada encontrado</p>}
+            </div>
+          )}
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <>
