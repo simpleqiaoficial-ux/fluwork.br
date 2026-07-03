@@ -1,6 +1,10 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { and, desc, eq, ne, or } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores, notasFiscais, pedidosPagamento } from "@/lib/db/schema"
+import { toNotaFiscalDTO } from "@/lib/db/mappers"
+import { getSession } from "@/lib/session"
 import type { DadosNotaFiscal, ResultadoValidacao } from "@/types/nota-fiscal"
 import { limparCpfCnpj } from "@/lib/nfse-parser"
 
@@ -10,7 +14,6 @@ export async function validarNotaFiscal(
   colaboradorId: string,
   dados: DadosNotaFiscal,
 ): Promise<ResultadoValidacao> {
-  const supabase = await createAdminClient()
   const mensagens: string[] = []
 
   console.log("[v0] ===== INICIANDO VALIDAÇÃO =====")
@@ -19,11 +22,10 @@ export async function validarNotaFiscal(
   console.log("[v0] Dados da nota:", JSON.stringify(dados, null, 2))
 
   // 1. VALIDAÇÃO DE IDENTIDADE
-  const { data: colaborador } = await supabase
-    .from("colaboradores")
-    .select("nome_completo, cnpj")
-    .eq("id", colaboradorId)
-    .single()
+  const [colaborador] = await db
+    .select({ nomeCompleto: colaboradores.nomeCompleto, cnpj: colaboradores.cnpj })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, colaboradorId))
 
   const cnpjColaboradorLimpo = limparCpfCnpj(colaborador?.cnpj || "")
   const cnpjNotaLimpo = limparCpfCnpj(dados.cpf_cnpj_prestador)
@@ -40,13 +42,12 @@ export async function validarNotaFiscal(
   }
 
   // 2. VALIDAÇÃO DE COMPETÊNCIA
-  const { data: pedido } = await supabase
-    .from("pedidos_pagamento")
-    .select("created_at, data_previsao_pagamento")
-    .eq("id", pedidoId)
-    .single()
+  const [pedido] = await db
+    .select({ createdAt: pedidosPagamento.createdAt, dataPrevisaoPagamento: pedidosPagamento.dataPrevisaoPagamento })
+    .from(pedidosPagamento)
+    .where(eq(pedidosPagamento.id, pedidoId))
 
-  const dataPedido = new Date(pedido?.created_at || "")
+  const dataPedido = new Date(pedido?.createdAt || "")
   const mesPedido = dataPedido.getMonth() + 1
   const anoPedido = dataPedido.getFullYear()
 
@@ -59,11 +60,7 @@ export async function validarNotaFiscal(
   }
 
   // 3. VALIDAÇÃO DE VALOR (FLEXÍVEL - PERMITE SEM KM E SEM DESCONTO)
-  const { data: pedidoCompleto, error: pedidoError } = await supabase
-    .from("pedidos_pagamento")
-    .select("*")
-    .eq("id", pedidoId)
-    .single()
+  const [pedidoCompleto] = await db.select().from(pedidosPagamento).where(eq(pedidosPagamento.id, pedidoId))
 
   if (!pedidoCompleto) {
     mensagens.push("Pedido não encontrado no sistema")
@@ -78,13 +75,13 @@ export async function validarNotaFiscal(
   }
 
   // Calcula o valor total do pedido
-  const valorTotalPedido = pedidoCompleto.valor_total || 0
+  const valorTotalPedido = Number(pedidoCompleto.valorTotal || 0)
 
   // Calcula o valor sem KM e sem desconto (salário + HE + condução + plantão)
-  const salarioBase = pedidoCompleto.tipo_pedido === "completo" ? pedidoCompleto.salario_base || 0 : 0
-  const horasExtras = pedidoCompleto.horas_extras || 0
-  const conducao = pedidoCompleto.conducao || 0
-  const plantao = pedidoCompleto.valor_plantao || 0
+  const salarioBase = pedidoCompleto.tipoPedido === "completo" ? Number(pedidoCompleto.salarioBase || 0) : 0
+  const horasExtras = Number(pedidoCompleto.horasExtras || 0)
+  const conducao = Number(pedidoCompleto.conducao || 0)
+  const plantao = Number(pedidoCompleto.valorPlantao || 0)
   const valorSemKmDesconto = salarioBase + horasExtras + conducao + plantao
 
   console.log("[v0] Valor total do pedido:", valorTotalPedido)
@@ -107,11 +104,15 @@ export async function validarNotaFiscal(
   }
 
   // 4. VALIDAÇÃO DE DUPLICIDADE
-  const { data: notasDuplicadas } = await supabase
-    .from("notas_fiscais")
-    .select("id, numero_nfse, pedido_id")
-    .or(`numero_nfse.eq.${dados.numero_nfse},chave_acesso.eq.${dados.chave_acesso || ""}`)
-    .neq("pedido_id", pedidoId)
+  const notasDuplicadas = await db
+    .select({ id: notasFiscais.id, numeroNfse: notasFiscais.numeroNfse, pedidoId: notasFiscais.pedidoId })
+    .from(notasFiscais)
+    .where(
+      and(
+        or(eq(notasFiscais.numeroNfse, dados.numero_nfse), eq(notasFiscais.chaveAcesso, dados.chave_acesso || "")),
+        ne(notasFiscais.pedidoId, pedidoId),
+      ),
+    )
     .limit(1)
 
   const notaExistente = notasDuplicadas && notasDuplicadas.length > 0 ? notasDuplicadas[0] : null
@@ -145,8 +146,6 @@ export async function anexarNotaFiscal(
   arquivoXmlUrl: string,
   arquivoPdfUrl?: string,
 ) {
-  const supabase = await createAdminClient()
-
   console.log("[v0] ===== ANEXANDO NOTA FISCAL =====")
   console.log("[v0] Pedido ID:", pedidoId)
   console.log("[v0] Colaborador ID:", colaboradorId)
@@ -167,32 +166,32 @@ export async function anexarNotaFiscal(
 
   console.log("[v0] Validação passou, inserindo nota fiscal na tabela...")
 
-  const { data, error } = await supabase
-    .from("notas_fiscais")
-    .insert({
-      pedido_id: pedidoId,
-      colaborador_id: colaboradorId,
-      numero_nfse: dados.numero_nfse,
-      chave_acesso: dados.chave_acesso,
-      competencia_mes: dados.competencia_mes,
-      competencia_ano: dados.competencia_ano,
-      valor_servico: dados.valor_servico,
-      cpf_cnpj_prestador: dados.cpf_cnpj_prestador,
-      arquivo_xml_url: arquivoXmlUrl,
-      arquivo_pdf_url: arquivoPdfUrl || null,
-      validacao_identidade: validacao.validacao_identidade,
-      validacao_competencia: validacao.validacao_competencia,
-      validacao_valor: validacao.validacao_valor,
-      validacao_duplicidade: validacao.validacao_duplicidade,
-      status: "aprovado",
-    })
-    .select()
-    .single()
-
-  if (error) {
+  let data
+  try {
+    ;[data] = await db
+      .insert(notasFiscais)
+      .values({
+        pedidoId: pedidoId,
+        colaboradorId: colaboradorId,
+        numeroNfse: dados.numero_nfse,
+        chaveAcesso: dados.chave_acesso,
+        competenciaMes: dados.competencia_mes,
+        competenciaAno: dados.competencia_ano,
+        valorServico: String(dados.valor_servico),
+        cpfCnpjPrestador: dados.cpf_cnpj_prestador,
+        arquivoXmlUrl: arquivoXmlUrl,
+        arquivoPdfUrl: arquivoPdfUrl || null,
+        validacaoIdentidade: validacao.validacao_identidade,
+        validacaoCompetencia: validacao.validacao_competencia,
+        validacaoValor: validacao.validacao_valor,
+        validacaoDuplicidade: validacao.validacao_duplicidade,
+        status: "aprovado",
+      })
+      .returning()
+  } catch (error) {
     console.error("[v0] ❌ ERRO ao inserir nota fiscal:", error)
     console.error("[v0] Detalhes do erro:", JSON.stringify(error, null, 2))
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   console.log("[v0] ✅ Nota fiscal inserida com sucesso!")
@@ -201,67 +200,75 @@ export async function anexarNotaFiscal(
   console.log("[v0] Atualizando pedido para marcar nota como anexada...")
 
   // Atualizar pedido para indicar que tem nota anexada
-  const { error: updateError } = await supabase
-    .from("pedidos_pagamento")
-    .update({
-      nota_fiscal_anexada: true,
-      nota_emitida: true,
-      data_emissao_nota: new Date().toISOString(),
-      nota_fiscal_url: arquivoXmlUrl,
-    })
-    .eq("id", pedidoId)
+  try {
+    await db
+      .update(pedidosPagamento)
+      .set({
+        notaFiscalAnexada: true,
+        notaEmitida: true,
+        dataEmissaoNota: new Date(),
+        notaFiscalUrl: arquivoXmlUrl,
+      })
+      .where(eq(pedidosPagamento.id, pedidoId))
 
-  if (updateError) {
-    console.error("[v0] ❌ ERRO ao atualizar pedido:", updateError)
-  } else {
     console.log("[v0] ✅ Pedido atualizado com sucesso!")
+  } catch (updateError) {
+    console.error("[v0] ❌ ERRO ao atualizar pedido:", updateError)
   }
 
-  return { success: true, data }
+  return { success: true, data: toNotaFiscalDTO(data) }
 }
 
 // Função para listar notas fiscais (para o financeiro)
 export async function listarNotasFiscais() {
-  const supabase = await createAdminClient()
+  try {
+    const rows = await db
+      .select({
+        nota: notasFiscais,
+        colaborador: colaboradores,
+        pedido: pedidosPagamento,
+      })
+      .from(notasFiscais)
+      .leftJoin(colaboradores, eq(notasFiscais.colaboradorId, colaboradores.id))
+      .leftJoin(pedidosPagamento, eq(notasFiscais.pedidoId, pedidosPagamento.id))
+      .orderBy(desc(notasFiscais.createdAt))
 
-  const { data, error } = await supabase
-    .from("notas_fiscais")
-    .select(
-      `
-      *,
-      colaboradores(nome_completo, cnpj),
-      pedidos_pagamento(valor_total, created_at, status)
-    `,
-    )
-    .order("created_at", { ascending: false })
-
-  if (error) {
+    return rows.map((row) => ({
+      ...toNotaFiscalDTO(row.nota),
+      colaboradores: row.colaborador
+        ? { nome_completo: row.colaborador.nomeCompleto, cnpj: row.colaborador.cnpj }
+        : null,
+      pedidos_pagamento: row.pedido
+        ? {
+            valor_total: row.pedido.valorTotal == null ? row.pedido.valorTotal : Number(row.pedido.valorTotal),
+            created_at: row.pedido.createdAt,
+            status: row.pedido.status,
+          }
+        : null,
+    }))
+  } catch (error) {
     console.error("Erro ao listar notas fiscais:", error)
     return []
   }
-
-  return data || []
 }
 
 // Função para aprovar/rejeitar nota manualmente (financeiro)
 export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "rejeitado", observacao?: string) {
-  const supabase = await createAdminClient()
+  const session = await getSession()
 
-  const { data: user } = await supabase.auth.getUser()
-
-  const { error } = await supabase
-    .from("notas_fiscais")
-    .update({
-      status,
-      aprovado_por: user.user?.id,
-      data_aprovacao: new Date().toISOString(),
-      observacao_financeiro: observacao,
-    })
-    .eq("id", notaId)
-
-  if (error) {
+  try {
+    await db
+      .update(notasFiscais)
+      .set({
+        status,
+        aprovadoPor: session?.colaboradorId ?? null,
+        dataAprovacao: new Date(),
+        ...(observacao !== undefined && { observacaoFinanceiro: observacao }),
+      })
+      .where(eq(notasFiscais.id, notaId))
+  } catch (error) {
     console.error("Erro ao atualizar nota fiscal:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   return { success: true }

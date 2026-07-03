@@ -1,51 +1,42 @@
 "use server"
 
-import { getSupabaseServerClient } from "@/lib/supabase-server"
+import { asc, eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { boletos } from "@/lib/db/schema"
+import { toBoletoDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
 import type { Boleto, CreateBoletoInput, UpdateBoletoInput } from "@/types/boleto"
 
 export async function listarBoletos() {
-  const supabase = await getSupabaseServerClient()
+  try {
+    const data = await db.query.boletos.findMany({
+      with: { centroCusto: true },
+      where: eq(boletos.ativo, true),
+      orderBy: asc(boletos.banco),
+    })
 
-  const { data, error } = await supabase
-    .from("boletos")
-    .select(`
-      *,
-      centro_custo:centros_custo(id, nome)
-    `)
-    .eq("ativo", true)
-    .order("banco", { ascending: true })
-
-  if (error) {
+    return data.map(toBoletoDTO) as Boleto[]
+  } catch (error) {
     console.error("[v0] Erro ao listar boletos:", error)
     return []
   }
-
-  return (data || []) as Boleto[]
 }
 
 export async function listarTodosBoletos() {
-  const supabase = await getSupabaseServerClient()
+  try {
+    const data = await db.query.boletos.findMany({
+      with: { centroCusto: true },
+      orderBy: asc(boletos.banco),
+    })
 
-  const { data, error } = await supabase
-    .from("boletos")
-    .select(`
-      *,
-      centro_custo:centros_custo(id, nome)
-    `)
-    .order("banco", { ascending: true })
-
-  if (error) {
+    return data.map(toBoletoDTO) as Boleto[]
+  } catch (error) {
     console.error("[v0] Erro ao listar todos os boletos:", error)
     return []
   }
-
-  return (data || []) as Boleto[]
 }
 
 export async function criarBoleto(input: CreateBoletoInput) {
-  const supabase = await getSupabaseServerClient()
-
   // Validar dados
   if (!input.numero_boleto?.trim()) {
     return { success: false, error: "Número do boleto é obrigatório" }
@@ -63,90 +54,80 @@ export async function criarBoleto(input: CreateBoletoInput) {
     return { success: false, error: "Conta é obrigatória" }
   }
 
-  // Verificar se o boleto já existe
-  const { data: existente } = await supabase
-    .from("boletos")
-    .select("id")
-    .eq("numero_boleto", input.numero_boleto)
-    .single()
+  try {
+    // Verificar se o boleto já existe
+    const [existente] = await db
+      .select({ id: boletos.id })
+      .from(boletos)
+      .where(eq(boletos.numeroBoleto, input.numero_boleto))
 
-  if (existente) {
-    return { success: false, error: "Este número de boleto já existe" }
-  }
+    if (existente) {
+      return { success: false, error: "Este número de boleto já existe" }
+    }
 
-  const { data: boleto, error } = await supabase
-    .from("boletos")
-    .insert({
-      numero_boleto: input.numero_boleto.trim(),
-      banco: input.banco.trim(),
-      agencia: input.agencia.trim(),
-      conta: input.conta.trim(),
-      tipo: input.tipo,
-      centro_custo_id: input.centro_custo_id || null,
-      ativo: true
+    const [novoBoleto] = await db
+      .insert(boletos)
+      .values({
+        numeroBoleto: input.numero_boleto.trim(),
+        banco: input.banco.trim(),
+        agencia: input.agencia.trim(),
+        conta: input.conta.trim(),
+        tipoBoleto: input.tipo,
+        centroCustoId: input.centro_custo_id || null,
+        ativo: true,
+      })
+      .returning()
+
+    const boletoComCentroCusto = await db.query.boletos.findFirst({
+      with: { centroCusto: true },
+      where: eq(boletos.id, novoBoleto.id),
     })
-    .select(
-      `
-        *,
-        centro_custo:centros_custo(id, nome)
-      `
-    )
-    .single()
 
-  if (error) {
+    revalidatePath("/cadastros")
+    return { success: true, boleto: toBoletoDTO(boletoComCentroCusto ?? novoBoleto) }
+  } catch (error) {
     console.error("[v0] Erro ao criar boleto:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
-
-  revalidatePath("/cadastros")
-  return { success: true, boleto }
 }
 
 export async function atualizarBoleto(id: string, input: UpdateBoletoInput) {
-  const supabase = await getSupabaseServerClient()
+  try {
+    const [boletoAtualizado] = await db
+      .update(boletos)
+      .set({
+        ...(input.numero_boleto && { numeroBoleto: input.numero_boleto.trim() }),
+        ...(input.banco && { banco: input.banco.trim() }),
+        ...(input.agencia && { agencia: input.agencia.trim() }),
+        ...(input.conta && { conta: input.conta.trim() }),
+        ...(input.tipo && { tipoBoleto: input.tipo }),
+        ...(input.centro_custo_id !== undefined && { centroCustoId: input.centro_custo_id }),
+        ...(input.ativo !== undefined && { ativo: input.ativo }),
+      })
+      .where(eq(boletos.id, id))
+      .returning()
 
-  const { data: boleto, error } = await supabase
-    .from("boletos")
-    .update({
-      ...(input.numero_boleto && { numero_boleto: input.numero_boleto.trim() }),
-      ...(input.banco && { banco: input.banco.trim() }),
-      ...(input.agencia && { agencia: input.agencia.trim() }),
-      ...(input.conta && { conta: input.conta.trim() }),
-      ...(input.tipo && { tipo: input.tipo }),
-      ...(input.centro_custo_id !== undefined && { centro_custo_id: input.centro_custo_id }),
-      ...(input.ativo !== undefined && { ativo: input.ativo })
+    const boletoComCentroCusto = await db.query.boletos.findFirst({
+      with: { centroCusto: true },
+      where: eq(boletos.id, boletoAtualizado.id),
     })
-    .eq("id", id)
-    .select(
-      `
-        *,
-        centro_custo:centros_custo(id, nome)
-      `
-    )
-    .single()
 
-  if (error) {
+    revalidatePath("/cadastros")
+    return { success: true, boleto: toBoletoDTO(boletoComCentroCusto ?? boletoAtualizado) }
+  } catch (error) {
     console.error("[v0] Erro ao atualizar boleto:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
-
-  revalidatePath("/cadastros")
-  return { success: true, boleto }
 }
 
 export async function deletarBoleto(id: string) {
-  const supabase = await getSupabaseServerClient()
+  try {
+    await db.delete(boletos).where(eq(boletos.id, id))
 
-  const { error } = await supabase
-    .from("boletos")
-    .delete()
-    .eq("id", id)
-
-  if (error) {
+    revalidatePath("/cadastros")
+    return { success: true }
+  } catch (error) {
     console.error("[v0] Erro ao deletar boleto:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
-
-  revalidatePath("/cadastros")
-  return { success: true }
 }

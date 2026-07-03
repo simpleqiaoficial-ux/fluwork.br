@@ -1,6 +1,9 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { desc, eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { systemStatus } from "@/lib/db/schema"
+import { toSystemStatusDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 
@@ -25,23 +28,16 @@ export async function getSystemStatus(): Promise<{
   error?: string
 }> {
   try {
-    const supabase = await createAdminClient()
-    
-    const { data, error } = await supabase
-      .from("system_status")
-      .select("*")
-      .order("created_at", { ascending: false })
+    const [data] = await db
+      .select()
+      .from(systemStatus)
+      .orderBy(desc(systemStatus.createdAt))
       .limit(1)
-      .maybeSingle()
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
 
     // Se nao existe registro, o sistema esta ativo por padrao
     if (!data) {
-      return { 
-        success: true, 
+      return {
+        success: true,
         data: {
           id: "",
           is_active: true,
@@ -56,7 +52,7 @@ export async function getSystemStatus(): Promise<{
       }
     }
 
-    return { success: true, data }
+    return { success: true, data: toSystemStatusDTO(data) as SystemStatus }
   } catch (error) {
     return { success: false, error: "Erro ao obter status do sistema" }
   }
@@ -84,46 +80,41 @@ export async function suspendSystem(reason: string): Promise<{
   }
 
   try {
-    const supabase = await createAdminClient()
-
     // Verifica se ja existe um registro
-    const { data: existing } = await supabase
-      .from("system_status")
-      .select("id")
+    const [existing] = await db
+      .select({ id: systemStatus.id })
+      .from(systemStatus)
       .limit(1)
-      .maybeSingle()
 
     if (existing) {
       // Atualiza o registro existente
-      const { error } = await supabase
-        .from("system_status")
-        .update({
-          is_active: false,
-          suspended_reason: reason.trim(),
-          suspended_at: new Date().toISOString(),
-          suspended_by: session.colaboradorId,
-          reactivated_at: null,
-          reactivated_by: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", existing.id)
-
-      if (error) {
-        return { success: false, error: error.message }
+      try {
+        await db
+          .update(systemStatus)
+          .set({
+            isActive: false,
+            suspendedReason: reason.trim(),
+            suspendedAt: new Date(),
+            suspendedBy: session.colaboradorId,
+            reactivatedAt: null,
+            reactivatedBy: null,
+            updatedAt: new Date()
+          })
+          .where(eq(systemStatus.id, existing.id))
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : String(error) }
       }
     } else {
       // Cria novo registro
-      const { error } = await supabase
-        .from("system_status")
-        .insert({
-          is_active: false,
-          suspended_reason: reason.trim(),
-          suspended_at: new Date().toISOString(),
-          suspended_by: session.colaboradorId
+      try {
+        await db.insert(systemStatus).values({
+          isActive: false,
+          suspendedReason: reason.trim(),
+          suspendedAt: new Date(),
+          suspendedBy: session.colaboradorId
         })
-
-      if (error) {
-        return { success: false, error: error.message }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : String(error) }
       }
     }
 
@@ -152,30 +143,27 @@ export async function reactivateSystem(): Promise<{
   }
 
   try {
-    const supabase = await createAdminClient()
-
-    const { data: existing } = await supabase
-      .from("system_status")
-      .select("id")
+    const [existing] = await db
+      .select({ id: systemStatus.id })
+      .from(systemStatus)
       .limit(1)
-      .maybeSingle()
 
     if (!existing) {
       return { success: false, error: "Nenhum registro de status encontrado" }
     }
 
-    const { error } = await supabase
-      .from("system_status")
-      .update({
-        is_active: true,
-        reactivated_at: new Date().toISOString(),
-        reactivated_by: session.colaboradorId,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", existing.id)
-
-    if (error) {
-      return { success: false, error: error.message }
+    try {
+      await db
+        .update(systemStatus)
+        .set({
+          isActive: true,
+          reactivatedAt: new Date(),
+          reactivatedBy: session.colaboradorId,
+          updatedAt: new Date()
+        })
+        .where(eq(systemStatus.id, existing.id))
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
 
     revalidatePath("/")

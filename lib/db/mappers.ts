@@ -1,0 +1,290 @@
+// Mapeia as linhas do Drizzle (camelCase, seguindo lib/db/schema.ts) para o formato
+// snake_case que os componentes e types/*.ts sempre esperaram (herdado do Supabase JS
+// client, que retornava as colunas Postgres cruas). Mantém o contrato de dados idêntico
+// ao anterior para não quebrar nenhum componente durante a migração para Drizzle.
+
+type AnyRow = Record<string, any>
+
+export function toColaboradorDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    nome_completo: row.nomeCompleto,
+    salario: row.salario == null ? row.salario : Number(row.salario),
+    cnpj: row.cnpj,
+    data_nascimento: row.dataNascimento,
+    data_aniversario_contrato: row.dataAniversarioContrato,
+    email: row.email,
+    user_id: row.userId,
+    tipo_acesso: row.tipoAcesso,
+    equipe_id: row.equipeId,
+    dia_pagamento: row.diaPagamento,
+    chave_pix: row.chavePix,
+    tipo_chave_pix: row.tipoChavePix,
+    centro_custo_id: row.centroCustoId,
+    senha_hash: row.senhaHash,
+    created_at: row.createdAt,
+    ...(row.equipe !== undefined && { equipe: row.equipe ? { id: row.equipe.id, nome: row.equipe.nome } : row.equipe }),
+    ...(row.centroCusto !== undefined && {
+      centro_custo: row.centroCusto
+        ? { id: row.centroCusto.id, numero: row.centroCusto.numero, nome: row.centroCusto.nome }
+        : row.centroCusto,
+    }),
+  }
+}
+
+export function toCentroCustoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    numero: row.numero,
+    nome: row.nome,
+    created_at: row.createdAt,
+  }
+}
+
+export function toEquipeDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    nome: row.nome,
+    supervisor_id: row.supervisorId,
+    created_at: row.createdAt,
+    ...(row.supervisor !== undefined && {
+      supervisor: row.supervisor
+        ? { id: row.supervisor.id, nome_completo: row.supervisor.nomeCompleto }
+        : row.supervisor,
+    }),
+    ...(row.gerentes !== undefined && { gerentes: row.gerentes }),
+  }
+}
+
+export function toPedidoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    colaborador_id: row.colaboradorId,
+    tipo_pedido: row.tipoPedido,
+    horas_extras: row.horasExtras == null ? row.horasExtras : Number(row.horasExtras),
+    horas_extras_50: row.horasExtras50 == null ? row.horasExtras50 : Number(row.horasExtras50),
+    horas_extras_100: row.horasExtras100 == null ? row.horasExtras100 : Number(row.horasExtras100),
+    motivo_horas_extras: row.motivoHorasExtras,
+    valor_km: row.valorKm == null ? row.valorKm : Number(row.valorKm),
+    conducao: row.conducao == null ? row.conducao : Number(row.conducao),
+    valor_plantao: row.valorPlantao == null ? row.valorPlantao : Number(row.valorPlantao),
+    motivo_plantao: row.motivoPlantao,
+    comissao: row.comissao == null ? row.comissao : Number(row.comissao),
+    motivo_comissao: row.motivoComissao,
+    valor_total: row.valorTotal == null ? row.valorTotal : Number(row.valorTotal),
+    valor_desconto: row.valorDesconto == null ? row.valorDesconto : Number(row.valorDesconto),
+    motivo_desconto: row.motivoDesconto,
+    created_at: row.createdAt,
+    status: row.status,
+    aprovado_gerente: row.aprovadoGerente,
+    aprovado_financeiro: row.aprovadoFinanceiro,
+    observacao_gerente: row.observacaoGerente,
+    observacao_financeiro: row.observacaoFinanceiro,
+    data_aprovacao_gerente: row.dataAprovacaoGerente,
+    data_aprovacao_financeiro: row.dataAprovacaoFinanceiro,
+    data_previsao_pagamento: row.dataPrevisaoPagamento,
+    criado_por_colaborador_id: row.criadoPorColaboradorId,
+    salario_base: row.salarioBase == null ? row.salarioBase : Number(row.salarioBase),
+    nota_emitida: row.notaEmitida,
+    data_emissao_nota: row.dataEmissaoNota,
+    nota_fiscal_url: row.notaFiscalUrl,
+    nota_fiscal_anexada: row.notaFiscalAnexada,
+    data_limite_anexo_nota: row.dataLimiteAnexoNota,
+    data_nota_recebida: row.dataNotaRecebida,
+    prorrogacao_solicitada: row.prorrogacaoSolicitada,
+    motivo_prorrogacao: row.motivoProrrogacao,
+    data_solicitacao_prorrogacao: row.dataSolicitacaoProrrogacao,
+    prorrogacao_aprovada: row.prorrogacaoAprovada,
+    observacao_prorrogacao: row.observacaoProrrogacao,
+    correcao_solicitada_por: row.correcaoSolicitadaPor,
+    aprovado_por_gerente_id: row.aprovadoPorGerenteId,
+    aprovado_por_financeiro_id: row.aprovadoPorFinanceiroId,
+    ...(row.criadoPor !== undefined && {
+      criado_por: row.criadoPor
+        ? { nome_completo: row.criadoPor.nomeCompleto, tipo_acesso: row.criadoPor.tipoAcesso }
+        : row.criadoPor,
+    }),
+    ...(row.aprovadoPorGerente !== undefined && {
+      aprovado_por_gerente: row.aprovadoPorGerente
+        ? { id: row.aprovadoPorGerente.id, nome_completo: row.aprovadoPorGerente.nomeCompleto }
+        : row.aprovadoPorGerente,
+    }),
+    ...(row.aprovadoPorFinanceiro !== undefined && {
+      aprovado_por_financeiro: row.aprovadoPorFinanceiro
+        ? { id: row.aprovadoPorFinanceiro.id, nome_completo: row.aprovadoPorFinanceiro.nomeCompleto }
+        : row.aprovadoPorFinanceiro,
+    }),
+    ...(row.notaFiscal !== undefined && {
+      // O Supabase/PostgREST sempre retornava o embedded select reverso (pedido -> notas_fiscais)
+      // como ARRAY (mesmo com no máximo 1 item, por causa da constraint UNIQUE(pedido_id)).
+      // Vários componentes (financeiro-list.tsx, etc.) fazem .length/.[0] em cima disso — manter
+      // como array preserva o contrato original.
+      notas_fiscais: row.notaFiscal
+        ? [
+            {
+              arquivo_url: row.notaFiscal.arquivoXmlUrl,
+              arquivo_xml_url: row.notaFiscal.arquivoXmlUrl,
+              arquivo_pdf_url: row.notaFiscal.arquivoPdfUrl,
+              created_at: row.notaFiscal.createdAt,
+            },
+          ]
+        : [],
+    }),
+    ...(row.colaborador !== undefined && {
+      colaborador: row.colaborador
+        ? {
+            nome_completo: row.colaborador.nomeCompleto,
+            salario: row.colaborador.salario == null ? row.colaborador.salario : Number(row.colaborador.salario),
+            tipo_acesso: row.colaborador.tipoAcesso,
+            equipe_id: row.colaborador.equipeId,
+            centro_custo_id: row.colaborador.centroCustoId,
+            cnpj: row.colaborador.cnpj,
+            ...(row.colaborador.equipe !== undefined && {
+              equipe: row.colaborador.equipe
+                ? { id: row.colaborador.equipe.id, nome: row.colaborador.equipe.nome }
+                : row.colaborador.equipe,
+            }),
+            ...(row.colaborador.centroCusto !== undefined && {
+              centro_custo: row.colaborador.centroCusto
+                ? {
+                    id: row.colaborador.centroCusto.id,
+                    numero: row.colaborador.centroCusto.numero,
+                    nome: row.colaborador.centroCusto.nome,
+                  }
+                : row.colaborador.centroCusto,
+            }),
+          }
+        : row.colaborador,
+    }),
+  }
+}
+
+export function toNotaFiscalDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    pedido_id: row.pedidoId,
+    colaborador_id: row.colaboradorId,
+    numero_nfse: row.numeroNfse,
+    chave_acesso: row.chaveAcesso,
+    competencia_mes: row.competenciaMes,
+    competencia_ano: row.competenciaAno,
+    valor_servico: row.valorServico == null ? row.valorServico : Number(row.valorServico),
+    cpf_cnpj_prestador: row.cpfCnpjPrestador,
+    arquivo_url: row.arquivoXmlUrl,
+    arquivo_xml_url: row.arquivoXmlUrl,
+    arquivo_pdf_url: row.arquivoPdfUrl,
+    validacao_identidade: row.validacaoIdentidade,
+    validacao_competencia: row.validacaoCompetencia,
+    validacao_valor: row.validacaoValor,
+    validacao_duplicidade: row.validacaoDuplicidade,
+    mensagem_validacao: row.mensagemValidacao,
+    status: row.status,
+    aprovado_por: row.aprovadoPor,
+    data_aprovacao: row.dataAprovacao,
+    observacao_financeiro: row.observacaoFinanceiro,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }
+}
+
+export function toFaturaDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    titulo: row.titulo,
+    descricao: row.descricao,
+    valor: row.valor == null ? row.valor : Number(row.valor),
+    data_vencimento: row.dataVencimento,
+    status: row.status,
+    arquivo_pdf_url: row.arquivoPdfUrl,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.criador !== undefined && {
+      criador: row.criador ? { nome: row.criador.nomeCompleto } : row.criador,
+    }),
+    ...(row.colaboradoresPermitidos !== undefined && { colaboradores_permitidos: row.colaboradoresPermitidos }),
+  }
+}
+
+export function toHistoricoReajusteDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    colaborador_id: row.colaboradorId,
+    salario_anterior: row.salarioAnterior == null ? row.salarioAnterior : Number(row.salarioAnterior),
+    salario_novo: row.salarioNovo == null ? row.salarioNovo : Number(row.salarioNovo),
+    tipo_reajuste: row.tipoReajuste,
+    valor_reajuste: row.valorReajuste == null ? row.valorReajuste : Number(row.valorReajuste),
+    motivo: row.motivo,
+    aplicado_por: row.aplicadoPor,
+    created_at: row.createdAt,
+    ...(row.colaborador !== undefined && {
+      colaborador: row.colaborador ? { nome_completo: row.colaborador.nomeCompleto } : row.colaborador,
+    }),
+    ...(row.aplicadoPorColaborador !== undefined && {
+      aplicador: row.aplicadoPorColaborador
+        ? { nome_completo: row.aplicadoPorColaborador.nomeCompleto }
+        : row.aplicadoPorColaborador,
+    }),
+  }
+}
+
+export function toTermsAcceptanceDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    user_id: row.userId,
+    version: row.version,
+    accepted: row.accepted,
+    accepted_at: row.acceptedAt,
+    ip_address: row.ipAddress,
+    device_info: row.deviceInfo,
+    user_agent: row.userAgent,
+    created_at: row.createdAt,
+    ...(row.colaborador !== undefined && {
+      colaborador: row.colaborador
+        ? { nome_completo: row.colaborador.nomeCompleto, email: row.colaborador.email }
+        : row.colaborador,
+    }),
+  }
+}
+
+export function toBoletoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    numero_boleto: row.numeroBoleto,
+    banco: row.banco,
+    agencia: row.agencia,
+    conta: row.conta,
+    tipo: row.tipoBoleto,
+    centro_custo_id: row.centroCustoId,
+    ativo: row.ativo,
+    criado_em: row.createdAt,
+    atualizado_em: row.updatedAt,
+    ...(row.centroCusto !== undefined && {
+      centro_custo: row.centroCusto ? { id: row.centroCusto.id, nome: row.centroCusto.nome } : row.centroCusto,
+    }),
+  }
+}
+
+export function toSystemStatusDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    is_active: row.isActive,
+    suspended_reason: row.suspendedReason,
+    suspended_at: row.suspendedAt,
+    suspended_by: row.suspendedBy,
+    reactivated_at: row.reactivatedAt,
+    reactivated_by: row.reactivatedBy,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }
+}

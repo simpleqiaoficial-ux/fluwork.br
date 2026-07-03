@@ -1,119 +1,122 @@
 "use server"
 
-import { createClient, createAdminClient } from "@/lib/supabase-server"
+import { desc, eq, inArray } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { faturas, faturasColaboradores } from "@/lib/db/schema"
+import { toFaturaDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
 import type { Fatura, StatusFatura, FaturaFormData } from "@/types/fatura"
 
 export async function getFaturas(colaboradorId?: string, isAdmin?: boolean) {
-  const supabase = await createClient()
-
   if (isAdmin) {
     // Admin vê todas as faturas
-    const { data, error } = await supabase
-      .from("faturas")
-      .select(`
-        *,
-        colaboradores_permitidos:faturas_colaboradores(
-          colaborador_id,
-          colaborador:colaboradores(id, nome_completo, email)
-        )
-      `)
-      .order("created_at", { ascending: false })
+    try {
+      const rows = await db.query.faturas.findMany({
+        with: {
+          colaboradores: {
+            with: { colaborador: true },
+          },
+        },
+        orderBy: [desc(faturas.createdAt)],
+      })
 
-    if (error) {
+      // Mapear para o formato esperado
+      return rows.map((f) =>
+        toFaturaDTO({
+          ...f,
+          colaboradoresPermitidos: f.colaboradores?.map((cp) => ({
+            colaborador_id: cp.colaboradorId,
+            colaborador: cp.colaborador
+              ? {
+                  id: cp.colaborador.id,
+                  nome: cp.colaborador.nomeCompleto,
+                  email: cp.colaborador.email,
+                }
+              : undefined,
+          })),
+        }),
+      ) as Fatura[]
+    } catch (error) {
       console.error("[v0] Erro ao buscar faturas:", error)
       return []
     }
-
-    // Mapear para o formato esperado
-    return (data || []).map(f => ({
-      ...f,
-      colaboradores_permitidos: f.colaboradores_permitidos?.map((cp: { colaborador_id: string; colaborador: { id: string; nome_completo: string; email: string } }) => ({
-        colaborador_id: cp.colaborador_id,
-        colaborador: cp.colaborador ? {
-          id: cp.colaborador.id,
-          nome: cp.colaborador.nome_completo,
-          email: cp.colaborador.email
-        } : undefined
-      }))
-    })) as Fatura[]
   } else if (colaboradorId) {
     // Colaborador vê apenas faturas onde está permitido
-    const { data: faturaIds, error: permError } = await supabase
-      .from("faturas_colaboradores")
-      .select("fatura_id")
-      .eq("colaborador_id", colaboradorId)
-
-    if (permError) {
+    let faturaIdsRows
+    try {
+      faturaIdsRows = await db
+        .select({ fatura_id: faturasColaboradores.faturaId })
+        .from(faturasColaboradores)
+        .where(eq(faturasColaboradores.colaboradorId, colaboradorId))
+    } catch (permError) {
       console.error("Erro ao buscar permissões:", permError)
       return []
     }
 
-    if (!faturaIds || faturaIds.length === 0) {
+    if (!faturaIdsRows || faturaIdsRows.length === 0) {
       return []
     }
 
-    const ids = faturaIds.map(f => f.fatura_id)
+    const ids = faturaIdsRows.map((f) => f.fatura_id)
 
-    const { data, error } = await supabase
-      .from("faturas")
-      .select("*")
-      .in("id", ids)
-      .order("created_at", { ascending: false })
+    try {
+      const rows = await db
+        .select()
+        .from(faturas)
+        .where(inArray(faturas.id, ids))
+        .orderBy(desc(faturas.createdAt))
 
-    if (error) {
+      return (rows || []).map((f) => toFaturaDTO(f)) as Fatura[]
+    } catch (error) {
       console.error("[v0] Erro ao buscar faturas colaborador:", error)
       return []
     }
-
-    return (data || []) as Fatura[]
   }
 
   return []
 }
 
 export async function getFaturaById(id: string) {
-  const supabase = await createClient()
+  try {
+    const row = await db.query.faturas.findFirst({
+      where: eq(faturas.id, id),
+      with: {
+        colaboradores: {
+          with: { colaborador: true },
+        },
+      },
+    })
 
-  const { data, error } = await supabase
-    .from("faturas")
-    .select(`
-      *,
-      colaboradores_permitidos:faturas_colaboradores(
-        colaborador_id,
-        colaborador:colaboradores(id, nome_completo, email)
-      )
-    `)
-    .eq("id", id)
-    .single()
+    if (!row) {
+      throw new Error("Fatura não encontrada")
+    }
 
-  if (error) {
+    // Mapear para o formato esperado
+    return toFaturaDTO({
+      ...row,
+      colaboradoresPermitidos: row.colaboradores?.map((cp) => ({
+        colaborador_id: cp.colaboradorId,
+        colaborador: cp.colaborador
+          ? {
+              id: cp.colaborador.id,
+              nome: cp.colaborador.nomeCompleto,
+              email: cp.colaborador.email,
+            }
+          : undefined,
+      })),
+    }) as Fatura
+  } catch (error) {
     console.error("[v0] Erro ao buscar fatura:", error)
     return null
   }
-
-  // Mapear para o formato esperado
-  return {
-    ...data,
-    colaboradores_permitidos: data.colaboradores_permitidos?.map((cp: { colaborador_id: string; colaborador: { id: string; nome_completo: string; email: string } }) => ({
-      colaborador_id: cp.colaborador_id,
-      colaborador: cp.colaborador ? {
-        id: cp.colaborador.id,
-        nome: cp.colaborador.nome_completo,
-        email: cp.colaborador.email
-      } : undefined
-    }))
-  } as Fatura
 }
 
 export async function createFatura(formData: FaturaFormData, pdfUrl: string, criadorId: string) {
-  const supabase = await createAdminClient()
-
-  console.log("[v0] createFatura chamada com:", { 
-    formData, 
-    pdfUrl, 
+  console.log("[v0] createFatura chamada com:", {
+    formData,
+    pdfUrl,
     criadorId,
-    colaboradoresCount: formData.colaboradores_ids.length 
+    colaboradoresCount: formData.colaboradores_ids.length,
   })
 
   // Verificar se criadorId é um UUID válido
@@ -123,38 +126,40 @@ export async function createFatura(formData: FaturaFormData, pdfUrl: string, cri
   console.log("[v0] criadorIdFinal:", criadorIdFinal)
 
   // Criar a fatura
-  const { data: fatura, error: faturaError } = await supabase
-    .from("faturas")
-    .insert({
-      titulo: formData.titulo,
-      descricao: formData.descricao,
-      valor: formData.valor,
-      data_vencimento: formData.data_vencimento,
-      arquivo_pdf_url: pdfUrl,
-      criado_por: criadorIdFinal,
-      status: "pendente"
-    })
-    .select()
-    .single()
-
-  console.log("[v0] Resultado insert fatura:", { 
-    fatura: fatura ? { 
-      id: fatura.id, 
-      titulo: fatura.titulo, 
-      valor: fatura.valor,
-      status: fatura.status 
-    } : null, 
-    faturaError 
-  })
-
-  if (faturaError) {
+  let fatura
+  try {
+    ;[fatura] = await db
+      .insert(faturas)
+      .values({
+        titulo: formData.titulo,
+        descricao: formData.descricao,
+        valor: formData.valor != null ? String(formData.valor) : formData.valor,
+        dataVencimento: formData.data_vencimento,
+        arquivoPdfUrl: pdfUrl,
+        criadoPor: criadorIdFinal,
+        status: "pendente",
+      })
+      .returning()
+  } catch (faturaError: any) {
     console.error("[v0] Erro ao criar fatura:", {
-      message: faturaError.message,
-      details: faturaError.details,
-      hint: faturaError.hint
+      message: faturaError?.message,
+      details: faturaError?.detail,
+      hint: faturaError?.hint,
     })
-    return { success: false, error: faturaError.message }
+    return { success: false, error: faturaError instanceof Error ? faturaError.message : String(faturaError) }
   }
+
+  console.log("[v0] Resultado insert fatura:", {
+    fatura: fatura
+      ? {
+          id: fatura.id,
+          titulo: fatura.titulo,
+          valor: fatura.valor,
+          status: fatura.status,
+        }
+      : null,
+    faturaError: null,
+  })
 
   if (!fatura) {
     console.error("[v0] Nenhuma fatura retornada após insert")
@@ -165,45 +170,40 @@ export async function createFatura(formData: FaturaFormData, pdfUrl: string, cri
 
   // Adicionar colaboradores permitidos
   if (formData.colaboradores_ids.length > 0) {
-    const colaboradoresData = formData.colaboradores_ids.map(colabId => ({
-      fatura_id: fatura.id,
-      colaborador_id: colabId
+    const colaboradoresData = formData.colaboradores_ids.map((colabId) => ({
+      faturaId: fatura.id,
+      colaboradorId: colabId,
     }))
 
     console.log("[v0] Adicionando colaboradores:", colaboradoresData)
 
-    const { error: permError } = await supabase
-      .from("faturas_colaboradores")
-      .insert(colaboradoresData)
-
-    if (permError) {
-      console.error("[v0] Erro ao adicionar colaboradores:", {
-        message: permError.message,
-        details: permError.details
-      })
-    } else {
+    try {
+      await db.insert(faturasColaboradores).values(colaboradoresData)
       console.log("[v0] Colaboradores adicionados com sucesso")
+    } catch (permError: any) {
+      console.error("[v0] Erro ao adicionar colaboradores:", {
+        message: permError?.message,
+        details: permError?.detail,
+      })
     }
   }
 
   console.log("[v0] Revalidando paths...")
   revalidatePath("/faturas")
-  
+
   console.log("[v0] Retornando fatura criada:", { id: fatura.id, titulo: fatura.titulo })
-  return { success: true, fatura }
+  return { success: true, fatura: toFaturaDTO(fatura) }
 }
 
 export async function updateFaturaStatus(id: string, status: StatusFatura) {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from("faturas")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id)
-
-  if (error) {
+  try {
+    await db
+      .update(faturas)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(faturas.id, id))
+  } catch (error) {
     console.error("Erro ao atualizar status:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   revalidatePath("/faturas")
@@ -211,46 +211,41 @@ export async function updateFaturaStatus(id: string, status: StatusFatura) {
 }
 
 export async function updateFatura(id: string, formData: Partial<FaturaFormData>) {
-  const supabase = await createClient()
-
   const updateData: Record<string, unknown> = {
-    updated_at: new Date().toISOString()
+    updatedAt: new Date(),
   }
 
   if (formData.titulo) updateData.titulo = formData.titulo
   if (formData.descricao !== undefined) updateData.descricao = formData.descricao
-  if (formData.valor) updateData.valor = formData.valor
-  if (formData.data_vencimento) updateData.data_vencimento = formData.data_vencimento
+  if (formData.valor) updateData.valor = String(formData.valor)
+  if (formData.data_vencimento) updateData.dataVencimento = formData.data_vencimento
 
-  const { error } = await supabase
-    .from("faturas")
-    .update(updateData)
-    .eq("id", id)
+  try {
+    // Transação: garante que a atualização da fatura e a substituição dos
+    // colaboradores permitidos ocorram de forma atômica (o código original
+    // fazia delete-then-insert sequencial e não-atômico aqui).
+    await db.transaction(async (tx) => {
+      await tx.update(faturas).set(updateData).where(eq(faturas.id, id))
 
-  if (error) {
+      // Atualizar colaboradores se fornecidos
+      if (formData.colaboradores_ids) {
+        // Remover todos os colaboradores atuais
+        await tx.delete(faturasColaboradores).where(eq(faturasColaboradores.faturaId, id))
+
+        // Adicionar novos colaboradores
+        if (formData.colaboradores_ids.length > 0) {
+          const colaboradoresData = formData.colaboradores_ids.map((colabId) => ({
+            faturaId: id,
+            colaboradorId: colabId,
+          }))
+
+          await tx.insert(faturasColaboradores).values(colaboradoresData)
+        }
+      }
+    })
+  } catch (error) {
     console.error("Erro ao atualizar fatura:", error)
-    return { success: false, error: error.message }
-  }
-
-  // Atualizar colaboradores se fornecidos
-  if (formData.colaboradores_ids) {
-    // Remover todos os colaboradores atuais
-    await supabase
-      .from("faturas_colaboradores")
-      .delete()
-      .eq("fatura_id", id)
-
-    // Adicionar novos colaboradores
-    if (formData.colaboradores_ids.length > 0) {
-      const colaboradoresData = formData.colaboradores_ids.map(colabId => ({
-        fatura_id: id,
-        colaborador_id: colabId
-      }))
-
-      await supabase
-        .from("faturas_colaboradores")
-        .insert(colaboradoresData)
-    }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   revalidatePath("/faturas")
@@ -258,23 +253,20 @@ export async function updateFatura(id: string, formData: Partial<FaturaFormData>
 }
 
 export async function deleteFatura(id: string) {
-  const supabase = await createClient()
+  try {
+    // Transação: garante que a remoção das permissões e da fatura ocorram de
+    // forma atômica (o código original fazia dois deletes sequenciais e
+    // não-atômicos aqui).
+    await db.transaction(async (tx) => {
+      // Primeiro deletar as permissões
+      await tx.delete(faturasColaboradores).where(eq(faturasColaboradores.faturaId, id))
 
-  // Primeiro deletar as permissões
-  await supabase
-    .from("faturas_colaboradores")
-    .delete()
-    .eq("fatura_id", id)
-
-  // Depois deletar a fatura
-  const { error } = await supabase
-    .from("faturas")
-    .delete()
-    .eq("id", id)
-
-  if (error) {
+      // Depois deletar a fatura
+      await tx.delete(faturas).where(eq(faturas.id, id))
+    })
+  } catch (error) {
     console.error("Erro ao deletar fatura:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   revalidatePath("/faturas")
@@ -282,16 +274,14 @@ export async function deleteFatura(id: string) {
 }
 
 export async function updateFaturaPdf(id: string, pdfUrl: string) {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from("faturas")
-    .update({ arquivo_pdf_url: pdfUrl, updated_at: new Date().toISOString() })
-    .eq("id", id)
-
-  if (error) {
+  try {
+    await db
+      .update(faturas)
+      .set({ arquivoPdfUrl: pdfUrl, updatedAt: new Date() })
+      .where(eq(faturas.id, id))
+  } catch (error) {
     console.error("Erro ao atualizar PDF:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
   revalidatePath("/faturas")

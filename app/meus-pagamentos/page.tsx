@@ -1,10 +1,13 @@
-import { createAdminClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { MeusPagamentosList } from "@/components/meus-pagamentos-list"
 import { getSession } from "@/lib/session"
 import { listarHistoricoReajustes } from "@/app/actions/reajustes"
 import { HistoricoReajustesList } from "@/components/historico-reajustes-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { and, desc, eq, inArray } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores, pedidosPagamento } from "@/lib/db/schema"
+import { toColaboradorDTO, toPedidoDTO } from "@/lib/db/mappers"
 
 export default async function MeusPagamentosPage() {
   const session = await getSession()
@@ -13,32 +16,46 @@ export default async function MeusPagamentosPage() {
     redirect("/login")
   }
 
-  const supabase = await createAdminClient()
+  const [colaboradorRow] = await db
+    .select()
+    .from(colaboradores)
+    .where(eq(colaboradores.id, session.colaboradorId))
 
-  const { data: colaborador } = await supabase
-    .from("colaboradores")
-    .select("*")
-    .eq("id", session.colaboradorId)
-    .single()
+  const colaborador = toColaboradorDTO(colaboradorRow)
 
   // Pedidos em andamento (todos os status exceto pago e nota_recebida)
-  const queryEmAndamento = supabase
-    .from("pedidos_pagamento")
-    .select("*")
-    .eq("colaborador_id", session.colaboradorId)
-    .in("status", ["pendente_gerente", "pendente_financeiro", "aprovado", "correcao", "aguardando_prorrogacao", "prorrogacao_negada"])
-    .order("created_at", { ascending: false })
+  const pedidosEmAndamentoRows = await db
+    .select()
+    .from(pedidosPagamento)
+    .where(
+      and(
+        eq(pedidosPagamento.colaboradorId, session.colaboradorId),
+        inArray(pedidosPagamento.status, [
+          "pendente_gerente",
+          "pendente_financeiro",
+          "aprovado",
+          "correcao",
+          "aguardando_prorrogacao",
+          "prorrogacao_negada",
+        ]),
+      ),
+    )
+    .orderBy(desc(pedidosPagamento.createdAt))
 
   // Pedidos concluídos (pago ou nota_recebida)
-  const queryConcluidos = supabase
-    .from("pedidos_pagamento")
-    .select("*")
-    .eq("colaborador_id", session.colaboradorId)
-    .in("status", ["pago", "nota_recebida"])
-    .order("created_at", { ascending: false })
+  const pedidosConcluidosRows = await db
+    .select()
+    .from(pedidosPagamento)
+    .where(
+      and(
+        eq(pedidosPagamento.colaboradorId, session.colaboradorId),
+        inArray(pedidosPagamento.status, ["pago", "nota_recebida"]),
+      ),
+    )
+    .orderBy(desc(pedidosPagamento.createdAt))
 
-  const { data: pedidosEmAndamento } = await queryEmAndamento
-  const { data: pedidosConcluidos } = await queryConcluidos
+  const pedidosEmAndamento = pedidosEmAndamentoRows.map(toPedidoDTO)
+  const pedidosConcluidos = pedidosConcluidosRows.map(toPedidoDTO)
 
   let reajustes: any[] = []
   try {

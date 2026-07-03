@@ -1,4 +1,7 @@
-import { getSupabaseServerClient } from "./supabase-server"
+import { eq } from "drizzle-orm"
+import { db } from "./db"
+import { colaboradores } from "./db/schema"
+import { toColaboradorDTO } from "./db/mappers"
 import { getSession } from "./session"
 
 export async function getUsuarioLogado() {
@@ -6,14 +9,9 @@ export async function getUsuarioLogado() {
 
   if (!session) return null
 
-  const supabase = await getSupabaseServerClient()
-  const { data: colaborador } = await supabase
-    .from("colaboradores")
-    .select("*")
-    .eq("id", session.colaboradorId)
-    .single()
+  const [colaborador] = await db.select().from(colaboradores).where(eq(colaboradores.id, session.colaboradorId))
 
-  return colaborador
+  return colaborador ? toColaboradorDTO(colaborador) : null
 }
 
 export function podeAcessarRota(tipoAcesso: string, rota: string): boolean {

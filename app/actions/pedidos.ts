@@ -1,14 +1,15 @@
 "use server"
 
-import { getSupabaseServerClient } from "@/lib/supabase-server"
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores, equipes, gerentesEquipes, pedidosPagamento } from "@/lib/db/schema"
+import { toPedidoDTO } from "@/lib/db/mappers"
 import type { NovoPedido, AcaoPedido } from "@/types/pedido"
 import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
 import { put } from "@vercel/blob"
 
 export async function criarPedido(data: NovoPedido) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session || !["Supervisor", "Adm", "Gerente", "Financeiro"].includes(session.tipoAcesso)) {
     throw new Error("Voce nao tem permissao para criar pedidos")
@@ -19,16 +20,21 @@ export async function criarPedido(data: NovoPedido) {
     const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
     const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59)
 
-    const { data: pedidosExistentes, error: pedidosError } = await supabase
-      .from("pedidos_pagamento")
-      .select("id, conducao, created_at")
-      .eq("colaborador_id", data.colaborador_id)
-      .gt("conducao", 0)
-      .gte("created_at", primeiroDiaMes.toISOString())
-      .lte("created_at", ultimoDiaMes.toISOString())
-
-    if (pedidosError) {
-      console.error("[v0] Erro ao verificar pedidos existentes:", pedidosError)
+    let pedidosExistentes
+    try {
+      pedidosExistentes = await db
+        .select({ id: pedidosPagamento.id })
+        .from(pedidosPagamento)
+        .where(
+          and(
+            eq(pedidosPagamento.colaboradorId, data.colaborador_id),
+            gt(pedidosPagamento.conducao, "0"),
+            gte(pedidosPagamento.createdAt, primeiroDiaMes),
+            lte(pedidosPagamento.createdAt, ultimoDiaMes),
+          ),
+        )
+    } catch (error) {
+      console.error("[v0] Erro ao verificar pedidos existentes:", error)
       throw new Error("Erro ao verificar pedidos existentes")
     }
 
@@ -44,18 +50,24 @@ export async function criarPedido(data: NovoPedido) {
     valorTotal = data.valor_km
     valorTotalHorasExtras = 0
   } else {
-    const { data: colaborador, error: colaboradorError } = await supabase
-      .from("colaboradores")
-      .select("salario")
-      .eq("id", data.colaborador_id)
-      .single()
-
-    if (colaboradorError || !colaborador) {
-      console.error("[v0] Erro ao buscar colaborador:", colaboradorError)
+    let colaborador
+    try {
+      ;[colaborador] = await db
+        .select({ salario: colaboradores.salario })
+        .from(colaboradores)
+        .where(eq(colaboradores.id, data.colaborador_id))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar colaborador:", error)
       throw new Error("Colaborador não encontrado")
     }
 
-    const valorHoraNormal = colaborador.salario / 220
+    if (!colaborador) {
+      console.error("[v0] Erro ao buscar colaborador:", "colaborador não encontrado")
+      throw new Error("Colaborador não encontrado")
+    }
+
+    const salarioColaborador = Number(colaborador.salario)
+    const valorHoraNormal = salarioColaborador / 220
     const valorHora50 = valorHoraNormal * 1.5
     const valorHora100 = valorHoraNormal * 2
 
@@ -65,7 +77,7 @@ export async function criarPedido(data: NovoPedido) {
 
     // Condução e KM ficam fora do valor da nota (aparecem mas não calculam)
     valorTotal =
-      colaborador.salario +
+      salarioColaborador +
       valorTotalHorasExtras +
       data.valor_plantao +
       (data.comissao || 0) -
@@ -78,84 +90,83 @@ export async function criarPedido(data: NovoPedido) {
   const dadosPedido =
     data.tipo_pedido === "reembolso_km"
       ? {
-          colaborador_id: data.colaborador_id,
-          tipo_pedido: data.tipo_pedido,
-          horas_extras: 0,
-          horas_extras_50: 0,
-          horas_extras_100: 0,
-          motivo_horas_extras: null,
-          valor_km: data.valor_km,
-          conducao: 0,
-          valor_plantao: 0,
-          motivo_plantao: null,
-          comissao: 0,
-          motivo_comissao: null,
-          valor_desconto: 0,
-          motivo_desconto: null,
-          valor_total: valorTotal,
+          colaboradorId: data.colaborador_id,
+          tipoPedido: data.tipo_pedido,
+          horasExtras: "0",
+          horasExtras50: "0",
+          horasExtras100: "0",
+          motivoHorasExtras: null,
+          valorKm: data.valor_km.toString(),
+          conducao: "0",
+          valorPlantao: "0",
+          motivoPlantao: null,
+          comissao: "0",
+          motivoComissao: null,
+          valorDesconto: "0",
+          motivoDesconto: null,
+          valorTotal: valorTotal.toString(),
           status: statusInicial,
-          criado_por_colaborador_id: session.colaboradorId,
+          criadoPorColaboradorId: session.colaboradorId,
         }
       : {
-          colaborador_id: data.colaborador_id,
-          tipo_pedido: data.tipo_pedido,
-          horas_extras: valorTotalHorasExtras,
-          horas_extras_50: data.horas_extras_50,
-          horas_extras_100: data.horas_extras_100,
-          motivo_horas_extras: data.motivo_horas_extras || null,
-          valor_km: data.valor_km,
-          conducao: data.conducao,
-          valor_plantao: data.valor_plantao,
-          motivo_plantao: data.motivo_plantao || null,
-          comissao: data.comissao || 0,
-          motivo_comissao: data.motivo_comissao || null,
-          valor_desconto: data.valor_desconto || 0,
-          motivo_desconto: data.motivo_desconto || null,
-          valor_total: valorTotal,
+          colaboradorId: data.colaborador_id,
+          tipoPedido: data.tipo_pedido,
+          horasExtras: valorTotalHorasExtras.toString(),
+          horasExtras50: data.horas_extras_50.toString(),
+          horasExtras100: data.horas_extras_100.toString(),
+          motivoHorasExtras: data.motivo_horas_extras || null,
+          valorKm: data.valor_km.toString(),
+          conducao: data.conducao.toString(),
+          valorPlantao: data.valor_plantao.toString(),
+          motivoPlantao: data.motivo_plantao || null,
+          comissao: (data.comissao || 0).toString(),
+          motivoComissao: data.motivo_comissao || null,
+          valorDesconto: (data.valor_desconto || 0).toString(),
+          motivoDesconto: data.motivo_desconto || null,
+          valorTotal: valorTotal.toString(),
           status: statusInicial,
-          criado_por_colaborador_id: session.colaboradorId,
+          criadoPorColaboradorId: session.colaboradorId,
         }
 
-  const { data: pedido, error } = await supabase.from("pedidos_pagamento").insert(dadosPedido).select().single()
-
-  if (error) {
+  let pedido
+  try {
+    ;[pedido] = await db.insert(pedidosPagamento).values(dadosPedido).returning()
+  } catch (error) {
     console.error("[v0] Erro ao criar pedido:", error)
     throw new Error("Erro ao criar pedido de pagamento")
   }
 
   revalidatePath("/pedidos")
-  return pedido
+  return toPedidoDTO(pedido)
 }
 
 export async function acaoGerente(data: AcaoPedido) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session || (session.tipoAcesso !== "Gerente" && session.tipoAcesso !== "Adm")) {
     throw new Error("Apenas gerentes podem realizar esta ação")
   }
 
   const updates: any = {
-    observacao_gerente: data.observacao,
-    data_aprovacao_gerente: new Date().toISOString(),
-    aprovado_por_gerente_id: session.colaboradorId,
+    observacaoGerente: data.observacao,
+    dataAprovacaoGerente: new Date(),
+    aprovadoPorGerenteId: session.colaboradorId,
   }
 
   if (data.acao === "aprovar") {
-    updates.aprovado_gerente = true
+    updates.aprovadoGerente = true
     updates.status = "pendente_financeiro"
   } else if (data.acao === "recusar") {
-    updates.aprovado_gerente = false
+    updates.aprovadoGerente = false
     updates.status = "recusado"
   } else if (data.acao === "corrigir") {
-    updates.aprovado_gerente = null
+    updates.aprovadoGerente = null
     updates.status = "correcao"
-    updates.correcao_solicitada_por = "gerente"
+    updates.correcaoSolicitadaPor = "gerente"
   }
 
-  const { error } = await supabase.from("pedidos_pagamento").update(updates).eq("id", data.pedido_id)
-
-  if (error) {
+  try {
+    await db.update(pedidosPagamento).set(updates).where(eq(pedidosPagamento.id, data.pedido_id))
+  } catch (error) {
     console.error("[v0] Erro ao atualizar pedido:", error)
     throw new Error("Erro ao processar ação")
   }
@@ -165,8 +176,6 @@ export async function acaoGerente(data: AcaoPedido) {
 }
 
 export async function acaoFinanceiro(data: AcaoPedido) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session) {
     throw new Error("Usuário não autenticado")
@@ -177,35 +186,35 @@ export async function acaoFinanceiro(data: AcaoPedido) {
   }
 
   const updates: any = {
-    observacao_financeiro: data.observacao,
-    data_aprovacao_financeiro: new Date().toISOString(),
-    aprovado_por_financeiro_id: session.colaboradorId,
+    observacaoFinanceiro: data.observacao,
+    dataAprovacaoFinanceiro: new Date(),
+    aprovadoPorFinanceiroId: session.colaboradorId,
   }
 
   if (data.acao === "aprovar") {
     if (!data.data_previsao_pagamento) {
       throw new Error("Data de previsão de pagamento é obrigatória")
     }
-    updates.aprovado_financeiro = true
+    updates.aprovadoFinanceiro = true
     updates.status = "aprovado"
     const [ano, mes, dia] = data.data_previsao_pagamento.split("-")
     const dataPrevisao = new Date(Number(ano), Number(mes) - 1, Number(dia), 12, 0, 0)
-    updates.data_previsao_pagamento = dataPrevisao.toISOString().split("T")[0]
+    updates.dataPrevisaoPagamento = dataPrevisao.toISOString().split("T")[0]
     const dataLimite = new Date()
     dataLimite.setDate(dataLimite.getDate() + 2)
-    updates.data_limite_anexo_nota = dataLimite.toISOString()
+    updates.dataLimiteAnexoNota = dataLimite
   } else if (data.acao === "recusar") {
-    updates.aprovado_financeiro = false
+    updates.aprovadoFinanceiro = false
     updates.status = "recusado"
   } else if (data.acao === "corrigir") {
-    updates.aprovado_financeiro = null
+    updates.aprovadoFinanceiro = null
     updates.status = "correcao"
-    updates.correcao_solicitada_por = "financeiro"
+    updates.correcaoSolicitadaPor = "financeiro"
   }
 
-  const { error } = await supabase.from("pedidos_pagamento").update(updates).eq("id", data.pedido_id)
-
-  if (error) {
+  try {
+    await db.update(pedidosPagamento).set(updates).where(eq(pedidosPagamento.id, data.pedido_id))
+  } catch (error) {
     console.error("[v0] Erro ao atualizar pedido:", error)
     throw new Error("Erro ao processar ação")
   }
@@ -216,89 +225,53 @@ export async function acaoFinanceiro(data: AcaoPedido) {
 }
 
 export async function listarPedidos() {
-  const supabase = await getSupabaseServerClient()
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  const { data, error } = await supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .order("created_at", { ascending: false })
-
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos:", error)
     throw new Error("Erro ao listar pedidos")
   }
-
-  return data
 }
 
 export async function listarPedidosComFiltros(filtros?: { dataInicio?: string; dataFim?: string }) {
-  const supabase = await getSupabaseServerClient()
+  try {
+    const conditions = []
 
-  let query = supabase.from("pedidos_pagamento").select(
-    `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id,
-        centro_custo_id,
-        equipe:equipes!colaboradores_equipe_id_fkey (
-          id,
-          nome
-        ),
-        centro_custo:centros_custo!colaboradores_centro_custo_id_fkey (
-          id,
-          numero,
-          nome
-        )
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-  )
+    if (filtros?.dataInicio) {
+      conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    }
+    if (filtros?.dataFim) {
+      // Adicionar 1 dia para incluir todo o dia final
+      const dataFimAjustada = new Date(filtros.dataFim)
+      dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, dataFimAjustada))
+    }
 
-  // Aplicar filtros de data se fornecidos
-  if (filtros?.dataInicio) {
-    query = query.gte("created_at", filtros.dataInicio)
-  }
-  if (filtros?.dataFim) {
-    // Adicionar 1 dia para incluir todo o dia final
-    const dataFimAjustada = new Date(filtros.dataFim)
-    dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
-    query = query.lt("created_at", dataFimAjustada.toISOString())
-  }
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: { with: { equipe: true, centroCusto: true } },
+        criadoPorColaborador: true,
+      },
+    })
 
-  query = query.order("created_at", { ascending: false })
-
-  const { data, error } = await query
-
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos com filtros:", error)
     throw new Error("Erro ao listar pedidos")
   }
-
-  return data
 }
 
 export async function listarPedidosPendentes() {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -323,34 +296,36 @@ export async function listarPedidosPendentes() {
 
   if (session.tipoAcesso === "Gerente") {
     // Buscar equipes do gerente
-    const { data: gerenteEquipes, error: gerenteEquipesError } = await supabase
-      .from("gerentes_equipes")
-      .select("equipe_id")
-      .eq("gerente_id", session.colaboradorId)
-
-    if (gerenteEquipesError) {
-      console.error("[v0] Erro ao buscar equipes do gerente:", gerenteEquipesError)
+    let gerenteEquipes
+    try {
+      gerenteEquipes = await db
+        .select({ equipeId: gerentesEquipes.equipeId })
+        .from(gerentesEquipes)
+        .where(eq(gerentesEquipes.gerenteId, session.colaboradorId))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar equipes do gerente:", error)
       throw new Error("Erro ao buscar equipes do gerente")
     }
 
-    const equipeIds = gerenteEquipes.map((e) => e.equipe_id)
+    const equipeIds = gerenteEquipes.map((e) => e.equipeId)
 
     if (equipeIds.length === 0) {
       return []
     }
 
     // Buscar colaboradores das equipes do gerente
-    const { data: colaboradores, error: colaboradoresError } = await supabase
-      .from("colaboradores")
-      .select("id")
-      .in("equipe_id", equipeIds)
-
-    if (colaboradoresError) {
-      console.error("[v0] Erro ao buscar colaboradores:", colaboradoresError)
+    let colaboradoresRows
+    try {
+      colaboradoresRows = await db
+        .select({ id: colaboradores.id })
+        .from(colaboradores)
+        .where(inArray(colaboradores.equipeId, equipeIds))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar colaboradores:", error)
       throw new Error("Erro ao buscar colaboradores")
     }
 
-    colaboradorIds = colaboradores.map((c) => c.id)
+    colaboradorIds = colaboradoresRows.map((c) => c.id)
 
     if (colaboradorIds.length === 0) {
       return []
@@ -359,47 +334,35 @@ export async function listarPedidosPendentes() {
     console.log("[v0] Gerente filtrando por colaboradores das suas equipes:", colaboradorIds.length)
   }
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .in("status", statusFiltro)
-    .or("nota_emitida.is.null,nota_emitida.eq.false") // Apenas pedidos sem nota anexada
+  try {
+    const conditions = [
+      inArray(pedidosPagamento.status, statusFiltro),
+      or(isNull(pedidosPagamento.notaEmitida), eq(pedidosPagamento.notaEmitida, false)),
+    ]
 
-  if (session.tipoAcesso === "Gerente" && colaboradorIds.length > 0) {
-    query = query.in("colaborador_id", colaboradorIds)
-  }
+    if (session.tipoAcesso === "Gerente" && colaboradorIds.length > 0) {
+      conditions.push(inArray(pedidosPagamento.colaboradorId, colaboradorIds))
+    }
 
-  query = query.order("created_at", { ascending: false })
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  const { data, error } = await query
+    console.log("[v0] Pedidos encontrados:", rows.length)
 
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos pendentes:", error)
     throw new Error("Erro ao listar pedidos pendentes")
   }
-
-  console.log("[v0] Pedidos encontrados:", data?.length || 0)
-
-  return data
 }
 
 export async function listarPedidosParaCorrecao() {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -408,43 +371,32 @@ export async function listarPedidosParaCorrecao() {
 
   console.log("[v0] Listando pedidos para correção do supervisor:", session.colaboradorId)
 
-  const { data, error } = await supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(
+        eq(pedidosPagamento.criadoPorColaboradorId, session.colaboradorId),
+        eq(pedidosPagamento.status, "correcao"),
       ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .eq("criado_por_colaborador_id", session.colaboradorId)
-    .eq("status", "correcao")
-    .order("created_at", { ascending: false })
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  if (error) {
+    console.log("[v0] Pedidos para correção encontrados:", rows.length)
+
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos para correção:", error)
     throw new Error("Erro ao listar pedidos para correção")
   }
-
-  console.log("[v0] Pedidos para correção encontrados:", data?.length || 0)
-
-  return data || []
 }
 
 export async function deletarPedido(id: string) {
-  const supabase = await getSupabaseServerClient()
-
-  const { error } = await supabase.from("pedidos_pagamento").delete().eq("id", id)
-
-  if (error) {
+  try {
+    await db.delete(pedidosPagamento).where(eq(pedidosPagamento.id, id))
+  } catch (error) {
     console.error("[v0] Erro ao deletar pedido:", error)
     throw new Error("Erro ao deletar pedido")
   }
@@ -453,147 +405,119 @@ export async function deletarPedido(id: string) {
 }
 
 export async function listarPedidosPorSupervisor(supervisorId: string) {
-  const supabase = await getSupabaseServerClient()
-
   // Buscar equipes onde o usuário é supervisor
-  const { data: equipes, error: equipesError } = await supabase
-    .from("equipes")
-    .select("id")
-    .eq("supervisor_id", supervisorId)
-
-  if (equipesError) {
-    console.error("[v0] Erro ao buscar equipes do supervisor:", equipesError)
+  let equipesRows
+  try {
+    equipesRows = await db.select({ id: equipes.id }).from(equipes).where(eq(equipes.supervisorId, supervisorId))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar equipes do supervisor:", error)
     throw new Error("Erro ao buscar equipes")
   }
 
-  const equipeIds = equipes.map((e) => e.id)
+  const equipeIds = equipesRows.map((e) => e.id)
 
   if (equipeIds.length === 0) {
     return []
   }
 
-  const { data: colaboradores, error: colaboradoresError } = await supabase
-    .from("colaboradores")
-    .select("id")
-    .in("equipe_id", equipeIds)
-    .in("tipo_acesso", ["Colaborador", "Supervisor"])
-
-  if (colaboradoresError) {
-    console.error("[v0] Erro ao buscar colaboradores:", colaboradoresError)
+  let colaboradoresRows
+  try {
+    colaboradoresRows = await db
+      .select({ id: colaboradores.id })
+      .from(colaboradores)
+      .where(and(inArray(colaboradores.equipeId, equipeIds), inArray(colaboradores.tipoAcesso, ["Colaborador", "Supervisor"])))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar colaboradores:", error)
     throw new Error("Erro ao buscar colaboradores")
   }
 
-  const colaboradorIds = colaboradores.map((c) => c.id)
+  const colaboradorIds = colaboradoresRows.map((c) => c.id)
 
   if (colaboradorIds.length === 0) {
     return []
   }
 
   // Buscar pedidos dos colaboradores da equipe
-  const { data, error } = await supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .in("colaborador_id", colaboradorIds)
-    .order("created_at", { ascending: false })
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: inArray(pedidosPagamento.colaboradorId, colaboradorIds),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos do supervisor:", error)
     throw new Error("Erro ao listar pedidos")
   }
-
-  return data
 }
 
 export async function listarPedidosPorGerente(gerenteId: string, filtros?: { dataInicio?: string; dataFim?: string }) {
-  const supabase = await getSupabaseServerClient()
-
   // Buscar equipes onde o gerente está vinculado
-  const { data: gerenteEquipes, error: gerenteEquipesError } = await supabase
-    .from("gerentes_equipes")
-    .select("equipe_id")
-    .eq("gerente_id", gerenteId)
-
-  if (gerenteEquipesError) {
-    console.error("[v0] Erro ao buscar equipes do gerente:", gerenteEquipesError)
+  let gerenteEquipesRows
+  try {
+    gerenteEquipesRows = await db
+      .select({ equipeId: gerentesEquipes.equipeId })
+      .from(gerentesEquipes)
+      .where(eq(gerentesEquipes.gerenteId, gerenteId))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar equipes do gerente:", error)
     throw new Error("Erro ao buscar equipes do gerente")
   }
 
-  const equipeIds = gerenteEquipes.map((e) => e.equipe_id)
+  const equipeIds = gerenteEquipesRows.map((e) => e.equipeId)
 
   if (equipeIds.length === 0) {
     return []
   }
 
-  const { data: colaboradores, error: colaboradoresError } = await supabase
-    .from("colaboradores")
-    .select("id")
-    .in("equipe_id", equipeIds)
-
-  if (colaboradoresError) {
-    console.error("[v0] Erro ao buscar colaboradores:", colaboradoresError)
+  let colaboradoresRows
+  try {
+    colaboradoresRows = await db
+      .select({ id: colaboradores.id })
+      .from(colaboradores)
+      .where(inArray(colaboradores.equipeId, equipeIds))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar colaboradores:", error)
     throw new Error("Erro ao buscar colaboradores")
   }
 
-  const colaboradorIds = colaboradores.map((c) => c.id)
+  const colaboradorIds = colaboradoresRows.map((c) => c.id)
 
   if (colaboradorIds.length === 0) {
     return []
   }
 
   // Buscar pedidos dos colaboradores das equipes
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .in("colaborador_id", colaboradorIds)
+  try {
+    const conditions = [inArray(pedidosPagamento.colaboradorId, colaboradorIds)]
 
-  // Aplicar filtros de data se fornecidos
-  if (filtros?.dataInicio) {
-    query = query.gte("created_at", filtros.dataInicio)
-  }
-  if (filtros?.dataFim) {
-    const dataFimAjustada = new Date(filtros.dataFim)
-    dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
-    query = query.lt("created_at", dataFimAjustada.toISOString())
-  }
+    if (filtros?.dataInicio) {
+      conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    }
+    if (filtros?.dataFim) {
+      const dataFimAjustada = new Date(filtros.dataFim)
+      dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, dataFimAjustada))
+    }
 
-  query = query.order("created_at", { ascending: false })
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  const { data, error } = await query
-
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos do gerente:", error)
     throw new Error("Erro ao listar pedidos")
   }
-
-  return data
 }
 
 export async function corrigirPedido(
@@ -611,38 +535,42 @@ export async function corrigirPedido(
     motivo_desconto?: string
   },
 ) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session || (session.tipoAcesso !== "Supervisor" && session.tipoAcesso !== "Adm" && session.tipoAcesso !== "Gerente")) {
     throw new Error("Sem permissão para corrigir pedidos")
   }
 
   // Buscar o pedido atual para saber qual era o status anterior
-  const { data: pedidoAtual, error: pedidoError } = await supabase
-    .from("pedidos_pagamento")
-    .select("*, colaborador:colaboradores!colaborador_id(salario)")
-    .eq("id", pedidoId)
-    .single()
+  let pedidoAtual
+  try {
+    pedidoAtual = await db.query.pedidosPagamento.findFirst({
+      where: eq(pedidosPagamento.id, pedidoId),
+      with: { colaborador: true },
+    })
+  } catch (error) {
+    console.error("[v0] Erro ao buscar pedido:", error)
+    throw new Error("Pedido não encontrado")
+  }
 
-  if (pedidoError || !pedidoAtual) {
-    console.error("[v0] Erro ao buscar pedido:", pedidoError)
+  if (!pedidoAtual) {
+    console.error("[v0] Erro ao buscar pedido:", "pedido não encontrado")
     throw new Error("Pedido não encontrado")
   }
 
   // Gerentes só podem corrigir pedidos que eles mesmos criaram
-  if (session.tipoAcesso === "Gerente" && pedidoAtual.criado_por_colaborador_id !== session.colaboradorId) {
+  if (session.tipoAcesso === "Gerente" && pedidoAtual.criadoPorColaboradorId !== session.colaboradorId) {
     throw new Error("Você só pode corrigir pedidos que você criou")
   }
 
-  const valorHoraNormal = pedidoAtual.colaborador.salario / 220
+  const salarioColaborador = Number((pedidoAtual as any).colaborador.salario)
+  const valorHoraNormal = salarioColaborador / 220
   const valorHorasExtras50 = data.horas_extras_50 * valorHoraNormal * 1.5
   const valorHorasExtras100 = data.horas_extras_100 * valorHoraNormal * 2
   const valorTotalHorasExtras = valorHorasExtras50 + valorHorasExtras100
 
   // Condução e KM ficam fora do valor da nota (aparecem mas não calculam)
   const valorTotal =
-    pedidoAtual.colaborador.salario +
+    salarioColaborador +
     valorTotalHorasExtras +
     data.valor_plantao +
     (data.comissao || 0) -
@@ -650,41 +578,41 @@ export async function corrigirPedido(
 
   // Determinar para qual status enviar baseado em quem solicitou a correção
   let novoStatus = "pendente_gerente"
-  if (pedidoAtual.correcao_solicitada_por === "financeiro") {
+  if (pedidoAtual.correcaoSolicitadaPor === "financeiro") {
     // Se o financeiro solicitou correção, volta para o financeiro
     novoStatus = "pendente_financeiro"
-  } else if (pedidoAtual.correcao_solicitada_por === "gerente") {
+  } else if (pedidoAtual.correcaoSolicitadaPor === "gerente") {
     // Se o gerente solicitou correção, volta para o gerente
     novoStatus = "pendente_gerente"
-  } else if (pedidoAtual.observacao_financeiro) {
+  } else if (pedidoAtual.observacaoFinanceiro) {
     // Fallback: se o financeiro tem observação, provavelmente foi ele
     novoStatus = "pendente_financeiro"
   }
 
-  const { error } = await supabase
-    .from("pedidos_pagamento")
-    .update({
-      horas_extras_50: data.horas_extras_50,
-      horas_extras_100: data.horas_extras_100,
-      horas_extras: valorTotalHorasExtras,
-      valor_km: data.valor_km,
-      conducao: data.conducao,
-      valor_plantao: data.valor_plantao,
-      motivo_plantao: data.motivo_plantao || null,
-      comissao: data.comissao || 0,
-      motivo_comissao: data.motivo_comissao || null,
-      valor_desconto: data.valor_desconto,
-      motivo_desconto: data.motivo_desconto || null,
-      valor_total: valorTotal,
-      status: novoStatus,
-      // Limpar observações anteriores e campo de quem solicitou
-      observacao_gerente: null,
-      observacao_financeiro: null,
-      correcao_solicitada_por: null,
-    })
-    .eq("id", pedidoId)
-
-  if (error) {
+  try {
+    await db
+      .update(pedidosPagamento)
+      .set({
+        horasExtras50: data.horas_extras_50.toString(),
+        horasExtras100: data.horas_extras_100.toString(),
+        horasExtras: valorTotalHorasExtras.toString(),
+        valorKm: data.valor_km.toString(),
+        conducao: data.conducao.toString(),
+        valorPlantao: data.valor_plantao.toString(),
+        motivoPlantao: data.motivo_plantao || null,
+        comissao: (data.comissao || 0).toString(),
+        motivoComissao: data.motivo_comissao || null,
+        valorDesconto: data.valor_desconto.toString(),
+        motivoDesconto: data.motivo_desconto || null,
+        valorTotal: valorTotal.toString(),
+        status: novoStatus,
+        // Limpar observações anteriores e campo de quem solicitou
+        observacaoGerente: null,
+        observacaoFinanceiro: null,
+        correcaoSolicitadaPor: null,
+      })
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
     console.error("[v0] Erro ao corrigir pedido:", error)
     throw new Error("Erro ao corrigir pedido")
   }
@@ -694,26 +622,29 @@ export async function corrigirPedido(
 }
 
 export async function marcarNotaEmitida(pedidoId: string, notaFiscalUrl: string) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session) {
     throw new Error("Usuário não autenticado")
   }
 
   // Verificar se o pedido pertence ao colaborador logado
-  const { data: pedido, error: pedidoError } = await supabase
-    .from("pedidos_pagamento")
-    .select("colaborador_id, status")
-    .eq("id", pedidoId)
-    .single()
-
-  if (pedidoError || !pedido) {
-    console.error("[v0] Erro ao buscar pedido:", pedidoError)
+  let pedido
+  try {
+    ;[pedido] = await db
+      .select({ colaboradorId: pedidosPagamento.colaboradorId, status: pedidosPagamento.status })
+      .from(pedidosPagamento)
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar pedido:", error)
     throw new Error("Pedido não encontrado")
   }
 
-  if (pedido.colaborador_id !== session.colaboradorId) {
+  if (!pedido) {
+    console.error("[v0] Erro ao buscar pedido:", "pedido não encontrado")
+    throw new Error("Pedido não encontrado")
+  }
+
+  if (pedido.colaboradorId !== session.colaboradorId) {
     throw new Error("Você não tem permissão para marcar esta nota")
   }
 
@@ -725,17 +656,17 @@ export async function marcarNotaEmitida(pedidoId: string, notaFiscalUrl: string)
     throw new Error("É necessário anexar o PDF da nota fiscal")
   }
 
-  const { error } = await supabase
-    .from("pedidos_pagamento")
-    .update({
-      nota_emitida: true,
-      data_emissao_nota: new Date().toISOString(),
-      nota_fiscal_url: notaFiscalUrl,
-      status: "pendente_financeiro", // Envia de volta pro financeiro
-    })
-    .eq("id", pedidoId)
-
-  if (error) {
+  try {
+    await db
+      .update(pedidosPagamento)
+      .set({
+        notaEmitida: true,
+        dataEmissaoNota: new Date(),
+        notaFiscalUrl: notaFiscalUrl,
+        status: "pendente_financeiro", // Envia de volta pro financeiro
+      })
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
     console.error("[v0] Erro ao marcar nota como emitida:", error)
     throw new Error("Erro ao marcar nota como emitida")
   }
@@ -797,8 +728,6 @@ export async function listarPedidosParaFinanceiro(filtros?: {
   dataFim?: string
   colaboradorNome?: string
 }) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -811,81 +740,57 @@ export async function listarPedidosParaFinanceiro(filtros?: {
 
   console.log("[v0] Listando pedidos para financeiro com filtros:", filtros)
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      ),
-      notas_fiscais (
-        id,
-        numero_nfse,
-        chave_acesso,
-        valor_servico,
-        cpf_cnpj_prestador,
-        arquivo_xml_url,
-        arquivo_pdf_url,
-        created_at
-      )
-    `,
+  try {
+    const conditions = [eq(pedidosPagamento.status, "pendente_financeiro"), eq(pedidosPagamento.notaEmitida, true)]
+
+    if (filtros?.dataInicio) {
+      conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    }
+    if (filtros?.dataFim) {
+      conditions.push(lte(pedidosPagamento.createdAt, new Date(filtros.dataFim)))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    console.log("[v0] Query executada. Dados retornados:", rows.length)
+
+    let pedidosFiltrados = rows.filter(
+      (pedido: any) => pedido.tipoPedido === "reembolso_km" || !!pedido.notaFiscal,
     )
-    .eq("status", "pendente_financeiro")
-    .eq("nota_emitida", true)
 
-  // Aplicar filtro de data
-  if (filtros?.dataInicio) {
-    query = query.gte("created_at", filtros.dataInicio)
-  }
-  if (filtros?.dataFim) {
-    query = query.lte("created_at", filtros.dataFim)
-  }
+    // Filtrar por nome do colaborador se fornecido
+    if (filtros?.colaboradorNome) {
+      const nomeNormalizado = filtros.colaboradorNome.toLowerCase()
+      pedidosFiltrados = pedidosFiltrados.filter((pedido: any) =>
+        pedido.colaborador?.nomeCompleto?.toLowerCase().includes(nomeNormalizado),
+      )
+    }
 
-  const { data, error } = await query
+    console.log("[v0] Pedidos para financeiro encontrados:", pedidosFiltrados.length)
+    console.log(
+      "[v0] Pedidos com notas_fiscais:",
+      pedidosFiltrados.map((p: any) => ({
+        id: p.id,
+        nota_emitida: p.notaEmitida,
+        notas_count: p.notaFiscal ? 1 : 0,
+      })),
+    )
 
-  console.log("[v0] Query executada. Erro:", error)
-  console.log("[v0] Dados retornados:", data?.length || 0)
-
-  if (error) {
+    return pedidosFiltrados.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos para financeiro:", error)
     throw new Error("Erro ao listar pedidos para financeiro")
   }
-
-  let pedidosFiltrados = (data || []).filter(
-    (pedido) => pedido.tipo_pedido === "reembolso_km" || (pedido.notas_fiscais && pedido.notas_fiscais.length > 0),
-  )
-
-  // Filtrar por nome do colaborador se fornecido
-  if (filtros?.colaboradorNome) {
-    const nomeNormalizado = filtros.colaboradorNome.toLowerCase()
-    pedidosFiltrados = pedidosFiltrados.filter((pedido) =>
-      pedido.colaborador?.nome_completo?.toLowerCase().includes(nomeNormalizado),
-    )
-  }
-
-  console.log("[v0] Pedidos para financeiro encontrados:", pedidosFiltrados.length)
-  console.log(
-    "[v0] Pedidos com notas_fiscais:",
-    pedidosFiltrados.map((p) => ({
-      id: p.id,
-      nota_emitida: p.nota_emitida,
-      notas_count: p.notas_fiscais?.length || 0,
-    })),
-  )
-
-  return pedidosFiltrados
 }
 
 export async function listarPedidosComNotaPendente() {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -894,132 +799,130 @@ export async function listarPedidosComNotaPendente() {
 
   console.log("[v0] Listando pedidos com nota pendente para:", session.tipoAcesso)
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      )
-    `,
-    )
-    .eq("tipo_pedido", "completo")
-    .eq("status", "aprovado")
-    .or("nota_emitida.is.null,nota_emitida.eq.false")
+  const conditions = [
+    eq(pedidosPagamento.tipoPedido, "completo"),
+    eq(pedidosPagamento.status, "aprovado"),
+    or(isNull(pedidosPagamento.notaEmitida), eq(pedidosPagamento.notaEmitida, false)),
+  ]
 
   if (session.tipoAcesso === "Supervisor") {
-    const { data: equipes, error: equipesError } = await supabase
-      .from("equipes")
-      .select("id")
-      .eq("supervisor_id", session.colaboradorId)
-
-    if (equipesError) {
-      console.error("[v0] Erro ao buscar equipes do supervisor:", equipesError)
+    let equipesRows
+    try {
+      equipesRows = await db.select({ id: equipes.id }).from(equipes).where(eq(equipes.supervisorId, session.colaboradorId))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar equipes do supervisor:", error)
       return []
     }
 
-    const equipeIds = equipes.map((e) => e.id)
+    const equipeIds = equipesRows.map((e) => e.id)
 
     if (equipeIds.length === 0) {
       return []
     }
 
-    const { data: colaboradores, error: colaboradoresError } = await supabase
-      .from("colaboradores")
-      .select("id")
-      .in("equipe_id", equipeIds)
-
-    if (colaboradoresError) {
-      console.error("[v0] Erro ao buscar colaboradores:", colaboradoresError)
+    let colaboradoresRows
+    try {
+      colaboradoresRows = await db
+        .select({ id: colaboradores.id })
+        .from(colaboradores)
+        .where(inArray(colaboradores.equipeId, equipeIds))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar colaboradores:", error)
       return []
     }
 
-    const colaboradorIds = colaboradores.map((c) => c.id)
+    const colaboradorIds = colaboradoresRows.map((c) => c.id)
 
     if (colaboradorIds.length === 0) {
       return []
     }
 
-    query = query.in("colaborador_id", colaboradorIds)
+    conditions.push(inArray(pedidosPagamento.colaboradorId, colaboradorIds))
   } else if (session.tipoAcesso === "Gerente") {
-    const { data: gerenteEquipes, error: gerenteEquipesError } = await supabase
-      .from("gerentes_equipes")
-      .select("equipe_id")
-      .eq("gerente_id", session.colaboradorId)
-
-    if (gerenteEquipesError) {
-      console.error("[v0] Erro ao buscar equipes do gerente:", gerenteEquipesError)
+    let gerenteEquipesRows
+    try {
+      gerenteEquipesRows = await db
+        .select({ equipeId: gerentesEquipes.equipeId })
+        .from(gerentesEquipes)
+        .where(eq(gerentesEquipes.gerenteId, session.colaboradorId))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar equipes do gerente:", error)
       return []
     }
 
-    const equipeIds = gerenteEquipes.map((e) => e.equipe_id)
+    const equipeIds = gerenteEquipesRows.map((e) => e.equipeId)
 
     if (equipeIds.length === 0) {
       return []
     }
 
-    const { data: colaboradores, error: colaboradoresError } = await supabase
-      .from("colaboradores")
-      .select("id")
-      .in("equipe_id", equipeIds)
-
-    if (colaboradoresError) {
-      console.error("[v0] Erro ao buscar colaboradores:", colaboradoresError)
+    let colaboradoresRows
+    try {
+      colaboradoresRows = await db
+        .select({ id: colaboradores.id })
+        .from(colaboradores)
+        .where(inArray(colaboradores.equipeId, equipeIds))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar colaboradores:", error)
       return []
     }
 
-    const colaboradorIds = colaboradores.map((c) => c.id)
+    const colaboradorIds = colaboradoresRows.map((c) => c.id)
 
     if (colaboradorIds.length === 0) {
       return []
     }
 
-    query = query.in("colaborador_id", colaboradorIds)
+    conditions.push(inArray(pedidosPagamento.colaboradorId, colaboradorIds))
   }
   // Financeiro e Adm veem todos os pedidos
 
-  query = query.order("data_aprovacao_financeiro", { ascending: true })
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: asc(pedidosPagamento.dataAprovacaoFinanceiro),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
 
-  const { data, error } = await query
+    console.log("[v0] Pedidos com nota pendente encontrados:", rows.length)
 
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar pedidos com nota pendente:", error)
     throw new Error("Erro ao listar pedidos com nota pendente")
   }
-
-  console.log("[v0] Pedidos com nota pendente encontrados:", data?.length || 0)
-
-  return data || []
 }
 
 export async function solicitarProrrogacaoPrazo(pedidoId: string, motivo: string) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session) {
     throw new Error("Usuário não autenticado")
   }
 
-  const { data: pedido, error: pedidoError } = await supabase
-    .from("pedidos_pagamento")
-    .select("colaborador_id, status, data_limite_anexo_nota")
-    .eq("id", pedidoId)
-    .single()
-
-  if (pedidoError || !pedido) {
-    console.error("[v0] Erro ao buscar pedido:", pedidoError)
+  let pedido
+  try {
+    ;[pedido] = await db
+      .select({
+        colaboradorId: pedidosPagamento.colaboradorId,
+        status: pedidosPagamento.status,
+        dataLimiteAnexoNota: pedidosPagamento.dataLimiteAnexoNota,
+      })
+      .from(pedidosPagamento)
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
+    console.error("[v0] Erro ao buscar pedido:", error)
     throw new Error("Pedido não encontrado")
   }
 
-  if (pedido.colaborador_id !== session.colaboradorId) {
+  if (!pedido) {
+    console.error("[v0] Erro ao buscar pedido:", "pedido não encontrado")
+    throw new Error("Pedido não encontrado")
+  }
+
+  if (pedido.colaboradorId !== session.colaboradorId) {
     throw new Error("Você não tem permissão para solicitar prorrogação deste pedido")
   }
 
@@ -1027,18 +930,18 @@ export async function solicitarProrrogacaoPrazo(pedidoId: string, motivo: string
     throw new Error("Apenas pedidos aprovados podem ter prorrogação solicitada")
   }
 
-  const { error } = await supabase
-    .from("pedidos_pagamento")
-    .update({
-      prorrogacao_solicitada: true,
-      motivo_prorrogacao: motivo,
-      data_solicitacao_prorrogacao: new Date().toISOString(),
-      prorrogacao_aprovada: null,
-      status: "aguardando_prorrogacao",
-    })
-    .eq("id", pedidoId)
-
-  if (error) {
+  try {
+    await db
+      .update(pedidosPagamento)
+      .set({
+        prorrogacaoSolicitada: true,
+        motivoProrrogacao: motivo,
+        dataSolicitacaoProrrogacao: new Date(),
+        prorrogacaoAprovada: null,
+        status: "aguardando_prorrogacao",
+      })
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
     console.error("[v0] Erro ao solicitar prorrogação:", error)
     throw new Error("Erro ao solicitar prorrogação de prazo")
   }
@@ -1050,8 +953,6 @@ export async function solicitarProrrogacaoPrazo(pedidoId: string, motivo: string
 }
 
 export async function listarSolicitacoesProrrogacao() {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -1062,29 +963,24 @@ export async function listarSolicitacoesProrrogacao() {
     throw new Error("Apenas financeiro pode acessar esta página")
   }
 
-  const { data, error } = await supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso
-      )
-    `,
-    )
-    .eq("status", "aguardando_prorrogacao")
-    .eq("prorrogacao_solicitada", true)
-    .is("prorrogacao_aprovada", null)
-    .order("data_solicitacao_prorrogacao", { ascending: true })
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(
+        eq(pedidosPagamento.status, "aguardando_prorrogacao"),
+        eq(pedidosPagamento.prorrogacaoSolicitada, true),
+        isNull(pedidosPagamento.prorrogacaoAprovada),
+      ),
+      orderBy: asc(pedidosPagamento.dataSolicitacaoProrrogacao),
+      with: {
+        colaborador: true,
+      },
+    })
 
-  if (error) {
+    return rows.map((row: any) => toPedidoDTO(row))
+  } catch (error) {
     console.error("[v0] Erro ao listar solicitações de prorrogação:", error)
     throw new Error("Erro ao listar solicitações")
   }
-
-  return data || []
 }
 
 export async function responderSolicitacaoProrrogacao(
@@ -1093,8 +989,6 @@ export async function responderSolicitacaoProrrogacao(
   observacao?: string,
   diasExtensao?: number,
 ) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -1106,26 +1000,26 @@ export async function responderSolicitacaoProrrogacao(
   }
 
   const updates: any = {
-    observacao_prorrogacao: observacao || null,
+    observacaoProrrogacao: observacao || null,
   }
 
   if (aprovado) {
     // Renovar o prazo
     const novaDataLimite = new Date()
     novaDataLimite.setDate(novaDataLimite.getDate() + (diasExtensao || 2))
-    updates.data_limite_anexo_nota = novaDataLimite.toISOString()
+    updates.dataLimiteAnexoNota = novaDataLimite
     updates.status = "aprovado"
-    updates.prorrogacao_solicitada = false
-    updates.prorrogacao_aprovada = true
+    updates.prorrogacaoSolicitada = false
+    updates.prorrogacaoAprovada = true
   } else {
     // Manter status aguardando_prorrogacao se negado
     updates.status = "prorrogacao_negada"
-    updates.prorrogacao_aprovada = false
+    updates.prorrogacaoAprovada = false
   }
 
-  const { error } = await supabase.from("pedidos_pagamento").update(updates).eq("id", pedidoId)
-
-  if (error) {
+  try {
+    await db.update(pedidosPagamento).set(updates).where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
     console.error("[v0] Erro ao responder solicitação:", error)
     throw new Error("Erro ao responder solicitação de prorrogação")
   }
@@ -1143,8 +1037,6 @@ export async function listarTodosPedidos(filtros?: {
   equipeId?: string
   status?: string
 }) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -1161,17 +1053,18 @@ export async function listarTodosPedidos(filtros?: {
 
   if (session.tipoAcesso === "Gerente") {
     // Buscar equipes gerenciadas por este gerente
-    const { data: equipesGerente, error: equipesError } = await supabase
-      .from("gerentes_equipes")
-      .select("equipe_id")
-      .eq("gerente_id", session.colaboradorId)
-
-    if (equipesError) {
-      console.error("[v0] Erro ao buscar equipes do gerente:", equipesError)
+    let equipesGerente
+    try {
+      equipesGerente = await db
+        .select({ equipeId: gerentesEquipes.equipeId })
+        .from(gerentesEquipes)
+        .where(eq(gerentesEquipes.gerenteId, session.colaboradorId))
+    } catch (error) {
+      console.error("[v0] Erro ao buscar equipes do gerente:", error)
       throw new Error("Erro ao buscar equipes")
     }
 
-    equipesPermitidas = equipesGerente?.map((eq) => eq.equipe_id) || []
+    equipesPermitidas = equipesGerente?.map((e) => e.equipeId) || []
 
     if (equipesPermitidas.length === 0) {
       console.log("[v0] Gerente não possui equipes vinculadas")
@@ -1179,89 +1072,66 @@ export async function listarTodosPedidos(filtros?: {
     }
   }
 
-  let query = supabase.from("pedidos_pagamento").select(
-    `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      ),
-      notas_fiscais (
-        id,
-        numero_nfse,
-        chave_acesso,
-        valor_servico,
-        cpf_cnpj_prestador,
-        arquivo_xml_url,
-        arquivo_pdf_url,
-        created_at
+  try {
+    const conditions = []
+
+    if (filtros?.dataInicio) {
+      conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    }
+    if (filtros?.dataFim) {
+      const dataFimAjustada = new Date(filtros.dataFim)
+      dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, dataFimAjustada))
+    }
+    if (filtros?.status && filtros.status !== "todos") {
+      conditions.push(eq(pedidosPagamento.status, filtros.status))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    let pedidosFiltrados: any[] = rows
+
+    if (session.tipoAcesso === "Gerente" && equipesPermitidas.length > 0) {
+      pedidosFiltrados = pedidosFiltrados.filter(
+        (pedido) => pedido.colaborador?.equipeId && equipesPermitidas.includes(pedido.colaborador.equipeId),
       )
-    `,
-  )
+    }
 
-  // Aplicar filtro de data
-  if (filtros?.dataInicio) {
-    query = query.gte("created_at", filtros.dataInicio)
-  }
-  if (filtros?.dataFim) {
-    const dataFimAjustada = new Date(filtros.dataFim)
-    dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
-    query = query.lt("created_at", dataFimAjustada.toISOString())
-  }
+    // Filtrar por equipe se fornecido
+    if (filtros?.equipeId && filtros.equipeId !== "todas") {
+      if (filtros.equipeId === "sem-equipe") {
+        pedidosFiltrados = pedidosFiltrados.filter((pedido) => !pedido.colaborador?.equipeId)
+      } else {
+        pedidosFiltrados = pedidosFiltrados.filter((pedido) => pedido.colaborador?.equipeId === filtros.equipeId)
+      }
+    }
 
-  // Aplicar filtro de status
-  if (filtros?.status && filtros.status !== "todos") {
-    query = query.eq("status", filtros.status)
-  }
+    // Filtrar por nome do colaborador se fornecido
+    if (filtros?.colaboradorNome) {
+      const nomeNormalizado = filtros.colaboradorNome.toLowerCase()
+      pedidosFiltrados = pedidosFiltrados.filter((pedido) =>
+        pedido.colaborador?.nomeCompleto?.toLowerCase().includes(nomeNormalizado),
+      )
+    }
 
-  query = query.order("created_at", { ascending: false })
+    console.log("[v0] Total de pedidos encontrados:", pedidosFiltrados.length)
 
-  const { data, error } = await query
-
-  if (error) {
+    return pedidosFiltrados.map((row) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar todos os pedidos:", error)
     throw new Error("Erro ao listar todos os pedidos")
   }
-
-  let pedidosFiltrados = data || []
-
-  if (session.tipoAcesso === "Gerente" && equipesPermitidas.length > 0) {
-    pedidosFiltrados = pedidosFiltrados.filter(
-      (pedido) => pedido.colaborador?.equipe_id && equipesPermitidas.includes(pedido.colaborador.equipe_id),
-    )
-  }
-
-  // Filtrar por equipe se fornecido
-  if (filtros?.equipeId && filtros.equipeId !== "todas") {
-    if (filtros.equipeId === "sem-equipe") {
-      pedidosFiltrados = pedidosFiltrados.filter((pedido) => !pedido.colaborador?.equipe_id)
-    } else {
-      pedidosFiltrados = pedidosFiltrados.filter((pedido) => pedido.colaborador?.equipe_id === filtros.equipeId)
-    }
-  }
-
-  // Filtrar por nome do colaborador se fornecido
-  if (filtros?.colaboradorNome) {
-    const nomeNormalizado = filtros.colaboradorNome.toLowerCase()
-    pedidosFiltrados = pedidosFiltrados.filter((pedido) =>
-      pedido.colaborador?.nome_completo?.toLowerCase().includes(nomeNormalizado),
-    )
-  }
-
-  console.log("[v0] Total de pedidos encontrados:", pedidosFiltrados.length)
-
-  return pedidosFiltrados
 }
 
 export async function aprovarNotaFiscal(pedidoId: string) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session) {
     throw new Error("Usuário não autenticado")
@@ -1272,21 +1142,18 @@ export async function aprovarNotaFiscal(pedidoId: string) {
   }
 
   try {
-    const { error } = await supabase
-      .from("pedidos_pagamento")
-      .update({
+    await db
+      .update(pedidosPagamento)
+      .set({
         status: "nota_recebida",
-        data_nota_recebida: new Date().toISOString(),
+        dataNotaRecebida: new Date(),
       })
-      .eq("id", pedidoId)
-
-    if (error) {
-      console.error("[v0] Erro ao aprovar nota fiscal:", error)
-      throw new Error(`Erro ao aprovar nota fiscal: ${error.message}`)
-    }
-  } catch (err) {
-    console.error("[v0] Exceção ao aprovar nota fiscal:", err)
-    throw err instanceof Error ? err : new Error("Erro ao aprovar nota fiscal")
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
+    console.error("[v0] Erro ao aprovar nota fiscal:", error)
+    console.error("[v0] Exceção ao aprovar nota fiscal:", error)
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Erro ao aprovar nota fiscal: ${message}`)
   }
 
   revalidatePath("/financeiro")
@@ -1296,8 +1163,6 @@ export async function aprovarNotaFiscal(pedidoId: string) {
 }
 
 export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
   if (!session) {
     throw new Error("Usuário não autenticado")
@@ -1308,23 +1173,20 @@ export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
   }
 
   try {
-    const { error } = await supabase
-      .from("pedidos_pagamento")
-      .update({
+    await db
+      .update(pedidosPagamento)
+      .set({
         status: "aprovado",
-        nota_emitida: false,
-        nota_fiscal_url: null,
-        observacao_financeiro: motivo,
+        notaEmitida: false,
+        notaFiscalUrl: null,
+        observacaoFinanceiro: motivo,
       })
-      .eq("id", pedidoId)
-
-    if (error) {
-      console.error("[v0] Erro ao recusar nota fiscal:", error)
-      throw new Error(`Erro ao recusar nota fiscal: ${error.message}`)
-    }
-  } catch (err) {
-    console.error("[v0] Exceção ao recusar nota fiscal:", err)
-    throw err instanceof Error ? err : new Error("Erro ao recusar nota fiscal")
+      .where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
+    console.error("[v0] Erro ao recusar nota fiscal:", error)
+    console.error("[v0] Exceção ao recusar nota fiscal:", error)
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Erro ao recusar nota fiscal: ${message}`)
   }
 
   revalidatePath("/financeiro")
@@ -1339,50 +1201,52 @@ export async function listarPedidosSemNota(filtros?: {
   colaboradorNome?: string
   equipeId?: string
 }) {
-  const supabase = await getSupabaseServerClient()
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
   if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(`
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo, salario, tipo_acesso, equipe_id, cnpj, email
-      ),
-      notas_fiscais ( id )
-    `)
-    .in("status", ["pendente_financeiro", "aprovado"])
-    .is("nota_fiscal_url", null)
-    .order("created_at", { ascending: false })
+  try {
+    const conditions = [
+      inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado"]),
+      isNull(pedidosPagamento.notaFiscalUrl),
+    ]
 
-  if (filtros?.dataInicio) query = query.gte("created_at", filtros.dataInicio)
-  if (filtros?.dataFim) {
-    const d = new Date(filtros.dataFim)
-    d.setDate(d.getDate() + 1)
-    query = query.lt("created_at", d.toISOString())
+    if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    if (filtros?.dataFim) {
+      const d = new Date(filtros.dataFim)
+      d.setDate(d.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, d))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    let result = rows.filter((p: any) => {
+      const hasNota = !!p.notaFiscal
+      const isReembolsoKm = p.tipoPedido === "reembolso_km"
+      return !hasNota && !isReembolsoKm
+    })
+
+    if (filtros?.equipeId && filtros.equipeId !== "todas") {
+      result = result.filter((p: any) => p.colaborador?.equipeId === filtros.equipeId)
+    }
+    if (filtros?.colaboradorNome) {
+      const nome = filtros.colaboradorNome.toLowerCase()
+      result = result.filter((p: any) => p.colaborador?.nomeCompleto?.toLowerCase().includes(nome))
+    }
+
+    return result.map((row: any) => toPedidoDTO(row))
+  } catch (error) {
+    console.error("[v0] Erro ao listar pedidos sem nota:", error)
+    throw new Error("Erro ao listar")
   }
-
-  const { data, error } = await query
-  if (error) { console.error("[v0] Erro ao listar pedidos sem nota:", error); throw new Error("Erro ao listar") }
-
-  let result = (data || []).filter((p: any) => {
-    const hasNota = p.notas_fiscais && ((Array.isArray(p.notas_fiscais) && p.notas_fiscais.length > 0) || (!Array.isArray(p.notas_fiscais) && p.notas_fiscais))
-    const isReembolsoKm = p.tipo_pedido === "reembolso_km"
-    return !hasNota && !isReembolsoKm
-  })
-
-  if (filtros?.equipeId && filtros.equipeId !== "todas") {
-    result = result.filter((p: any) => p.colaborador?.equipe_id === filtros.equipeId)
-  }
-  if (filtros?.colaboradorNome) {
-    const nome = filtros.colaboradorNome.toLowerCase()
-    result = result.filter((p: any) => p.colaborador?.nome_completo?.toLowerCase().includes(nome))
-  }
-
-  return result
 }
 
 export async function listarPedidosComNota(filtros?: {
@@ -1391,55 +1255,50 @@ export async function listarPedidosComNota(filtros?: {
   colaboradorNome?: string
   equipeId?: string
 }) {
-  const supabase = await getSupabaseServerClient()
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
   if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(`
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo, salario, tipo_acesso, equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo, tipo_acesso
-      ),
-      notas_fiscais (
-        id, numero_nfse, chave_acesso, valor_servico, cpf_cnpj_prestador,
-arquivo_xml_url, arquivo_pdf_url, created_at
-  )
-  `)
-  .in("status", ["pendente_financeiro", "aprovado", "nota_recebida"])
-  .order("created_at", { ascending: false })
+  try {
+    const conditions = [inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "nota_recebida"])]
 
-  if (filtros?.dataInicio) query = query.gte("created_at", filtros.dataInicio)
-  if (filtros?.dataFim) {
-    const d = new Date(filtros.dataFim)
-    d.setDate(d.getDate() + 1)
-    query = query.lt("created_at", d.toISOString())
+    if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    if (filtros?.dataFim) {
+      const d = new Date(filtros.dataFim)
+      d.setDate(d.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, d))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    let result = rows.filter((p: any) => {
+      const hasNota = !!p.notaFiscalUrl || !!p.notaFiscal
+      const isReembolsoKm = p.tipoPedido === "reembolso_km"
+      return hasNota || isReembolsoKm
+    })
+
+    if (filtros?.equipeId && filtros.equipeId !== "todas") {
+      result = result.filter((p: any) => p.colaborador?.equipeId === filtros.equipeId)
+    }
+    if (filtros?.colaboradorNome) {
+      const nome = filtros.colaboradorNome.toLowerCase()
+      result = result.filter((p: any) => p.colaborador?.nomeCompleto?.toLowerCase().includes(nome))
+    }
+
+    return result.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
+    console.error("[v0] Erro ao listar pedidos com nota:", error)
+    throw new Error("Erro ao listar")
   }
-
-  const { data, error } = await query
-  if (error) { console.error("[v0] Erro ao listar pedidos com nota:", error); throw new Error("Erro ao listar") }
-
-  let result = (data || []).filter((p: any) => {
-    const hasNota = p.nota_fiscal_url || (p.notas_fiscais && ((Array.isArray(p.notas_fiscais) && p.notas_fiscais.length > 0) || (!Array.isArray(p.notas_fiscais) && p.notas_fiscais)))
-    const isReembolsoKm = p.tipo_pedido === "reembolso_km"
-    return hasNota || isReembolsoKm
-  })
-
-  if (filtros?.equipeId && filtros.equipeId !== "todas") {
-    result = result.filter((p: any) => p.colaborador?.equipe_id === filtros.equipeId)
-  }
-  if (filtros?.colaboradorNome) {
-    const nome = filtros.colaboradorNome.toLowerCase()
-    result = result.filter((p: any) => p.colaborador?.nome_completo?.toLowerCase().includes(nome))
-  }
-
-  return result
 }
 
 export async function listarNotasEnviadas(filtros?: {
@@ -1448,8 +1307,6 @@ export async function listarNotasEnviadas(filtros?: {
   colaboradorNome?: string
   equipeId?: string
 }) {
-  const supabase = await getSupabaseServerClient()
-
   const session = await getSession()
 
   if (!session) {
@@ -1462,72 +1319,50 @@ export async function listarNotasEnviadas(filtros?: {
 
   console.log("[v0] Listando notas enviadas com filtros:", filtros)
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(
-      `
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo,
-        salario,
-        tipo_acesso,
-        equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo,
-        tipo_acesso
-      ),
-      notas_fiscais (
-        id,
-        numero_nfse,
-        chave_acesso,
-        valor_servico,
-        cpf_cnpj_prestador,
-        arquivo_xml_url,
-        arquivo_pdf_url,
-        created_at
+  try {
+    const conditions = [inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "pago", "nota_recebida"])]
+
+    if (filtros?.dataInicio) {
+      conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    }
+    if (filtros?.dataFim) {
+      const dataFimAjustada = new Date(filtros.dataFim)
+      dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, dataFimAjustada))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    let pedidosFiltrados: any[] = rows
+
+    // Filtrar por equipe se fornecido
+    if (filtros?.equipeId && filtros.equipeId !== "todas") {
+      pedidosFiltrados = pedidosFiltrados.filter((pedido) => pedido.colaborador?.equipeId === filtros.equipeId)
+    }
+
+    // Filtrar por nome do colaborador se fornecido
+    if (filtros?.colaboradorNome) {
+      const nomeMinusculo = filtros.colaboradorNome.toLowerCase()
+      pedidosFiltrados = pedidosFiltrados.filter((pedido) =>
+        pedido.colaborador?.nomeCompleto.toLowerCase().includes(nomeMinusculo),
       )
-    `,
-    )
-    .in("status", ["pendente_financeiro", "aprovado", "pago", "nota_recebida"])
+    }
 
-  // Aplicar filtro de data
-  if (filtros?.dataInicio) {
-    query = query.gte("created_at", filtros.dataInicio)
-  }
-  if (filtros?.dataFim) {
-    const dataFimAjustada = new Date(filtros.dataFim)
-    dataFimAjustada.setDate(dataFimAjustada.getDate() + 1)
-    query = query.lt("created_at", dataFimAjustada.toISOString())
-  }
+    console.log("[v0] Notas enviadas encontradas:", pedidosFiltrados.length)
 
-  query = query.order("created_at", { ascending: false })
-
-  const { data, error } = await query
-
-  if (error) {
+    return pedidosFiltrados.map((row) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
     console.error("[v0] Erro ao listar notas enviadas:", error)
     throw new Error("Erro ao listar notas enviadas")
   }
-
-  let pedidosFiltrados = data || []
-
-  // Filtrar por equipe se fornecido
-  if (filtros?.equipeId && filtros.equipeId !== "todas") {
-    pedidosFiltrados = pedidosFiltrados.filter((pedido) => pedido.colaborador?.equipe_id === filtros.equipeId)
-  }
-
-  // Filtrar por nome do colaborador se fornecido
-  if (filtros?.colaboradorNome) {
-    const nomeMinusculo = filtros.colaboradorNome.toLowerCase()
-    pedidosFiltrados = pedidosFiltrados.filter((pedido) =>
-      pedido.colaborador?.nome_completo.toLowerCase().includes(nomeMinusculo),
-    )
-  }
-
-  console.log("[v0] Notas enviadas encontradas:", pedidosFiltrados.length)
-
-  return pedidosFiltrados
 }
 
 export async function listarPedidosPagos(filtros?: {
@@ -1536,51 +1371,46 @@ export async function listarPedidosPagos(filtros?: {
   colaboradorNome?: string
   equipeId?: string
 }) {
-  const supabase = await getSupabaseServerClient()
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
   if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
-  let query = supabase
-    .from("pedidos_pagamento")
-    .select(`
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo, salario, tipo_acesso, equipe_id
-      ),
-      criado_por:colaboradores!criado_por_colaborador_id (
-        nome_completo, tipo_acesso
-      ),
-      notas_fiscais (
-        id, numero_nfse, chave_acesso, valor_servico, cpf_cnpj_prestador,
-        arquivo_xml_url, arquivo_pdf_url, created_at
-      )
-    `)
-    .eq("status", "pago")
-    .order("created_at", { ascending: false })
+  try {
+    const conditions = [eq(pedidosPagamento.status, "pago")]
 
-  if (filtros?.dataInicio) query = query.gte("created_at", filtros.dataInicio)
-  if (filtros?.dataFim) {
-    const d = new Date(filtros.dataFim)
-    d.setDate(d.getDate() + 1)
-    query = query.lt("created_at", d.toISOString())
+    if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
+    if (filtros?.dataFim) {
+      const d = new Date(filtros.dataFim)
+      d.setDate(d.getDate() + 1)
+      conditions.push(lt(pedidosPagamento.createdAt, d))
+    }
+
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(...conditions),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+        notaFiscal: true,
+      },
+    })
+
+    let result: any[] = rows
+
+    if (filtros?.equipeId && filtros.equipeId !== "todas") {
+      result = result.filter((p) => p.colaborador?.equipeId === filtros.equipeId)
+    }
+    if (filtros?.colaboradorNome) {
+      const nome = filtros.colaboradorNome.toLowerCase()
+      result = result.filter((p) => p.colaborador?.nomeCompleto?.toLowerCase().includes(nome))
+    }
+
+    console.log("[v0] Pedidos pagos encontrados:", result.length)
+
+    return result.map((row) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
+    console.error("[v0] Erro ao listar pedidos pagos:", error)
+    throw new Error("Erro ao listar")
   }
-
-  const { data, error } = await query
-  if (error) { console.error("[v0] Erro ao listar pedidos pagos:", error); throw new Error("Erro ao listar") }
-
-  let result = data || []
-
-  if (filtros?.equipeId && filtros.equipeId !== "todas") {
-    result = result.filter((p: any) => p.colaborador?.equipe_id === filtros.equipeId)
-  }
-  if (filtros?.colaboradorNome) {
-    const nome = filtros.colaboradorNome.toLowerCase()
-    result = result.filter((p: any) => p.colaborador?.nome_completo?.toLowerCase().includes(nome))
-  }
-
-  console.log("[v0] Pedidos pagos encontrados:", result.length)
-
-  return result
 }

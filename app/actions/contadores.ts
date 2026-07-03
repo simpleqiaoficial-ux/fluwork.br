@@ -1,13 +1,14 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { and, count, eq, inArray } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores, gerentesEquipes, pedidosPagamento } from "@/lib/db/schema"
 import { getSession } from "@/lib/session"
 
 export async function contarPendencias() {
   const session = await getSession()
   if (!session) return { aprovacoes: 0, painelFinanceiro: 0, correcoes: 0 }
 
-  const supabase = await createAdminClient()
   const tipoAcesso = session.tipoAcesso
 
   let aprovacoes = 0
@@ -17,73 +18,72 @@ export async function contarPendencias() {
   try {
     if (tipoAcesso === "Gerente") {
       // Gerente: conta pedidos pendentes das suas equipes
-      const { data: equipesData } = await supabase
-        .from("gerentes_equipes")
-        .select("equipe_id")
-        .eq("gerente_id", session.colaboradorId)
+      const equipesData = await db
+        .select({ equipeId: gerentesEquipes.equipeId })
+        .from(gerentesEquipes)
+        .where(eq(gerentesEquipes.gerenteId, session.colaboradorId))
 
-      const equipeIds = equipesData?.map((e) => e.equipe_id) || []
+      const equipeIds = equipesData?.map((e) => e.equipeId).filter((id): id is string => !!id) || []
 
       if (equipeIds.length > 0) {
-        const { count } = await supabase
-          .from("pedidos_pagamento")
-          .select("colaborador_id, colaboradores!colaborador_id(equipe_id)", {
-            count: "exact",
-            head: true,
-          })
-          .eq("status", "pendente_gerente")
-          .in("colaboradores.equipe_id", equipeIds)
+        const [{ value }] = await db
+          .select({ value: count() })
+          .from(pedidosPagamento)
+          .innerJoin(colaboradores, eq(pedidosPagamento.colaboradorId, colaboradores.id))
+          .where(and(eq(pedidosPagamento.status, "pendente_gerente"), inArray(colaboradores.equipeId, equipeIds)))
 
-        aprovacoes = count || 0
+        aprovacoes = value || 0
       }
 
       // Contar correções pendentes para pedidos que o gerente criou
-      const { count: correcoesGerenteCount } = await supabase
-        .from("pedidos_pagamento")
-        .select("*", { count: "exact", head: true })
-        .eq("criado_por_colaborador_id", session.colaboradorId)
-        .eq("status", "correcao")
+      const [{ value: correcoesGerenteCount }] = await db
+        .select({ value: count() })
+        .from(pedidosPagamento)
+        .where(
+          and(
+            eq(pedidosPagamento.criadoPorColaboradorId, session.colaboradorId),
+            eq(pedidosPagamento.status, "correcao"),
+          ),
+        )
 
       correcoes = correcoesGerenteCount || 0
     } else if (tipoAcesso === "Supervisor") {
       // Supervisor: conta pedidos pendentes da sua equipe
-      const { data: colaborador } = await supabase
-        .from("colaboradores")
-        .select("equipe_id")
-        .eq("id", session.colaboradorId)
-        .single()
+      const [colaborador] = await db
+        .select({ equipeId: colaboradores.equipeId })
+        .from(colaboradores)
+        .where(eq(colaboradores.id, session.colaboradorId))
 
-      if (colaborador?.equipe_id) {
-        const { count } = await supabase
-          .from("pedidos_pagamento")
-          .select("colaborador_id, colaboradores!colaborador_id(equipe_id)", {
-            count: "exact",
-            head: true,
-          })
-          .eq("status", "pendente_gerente")
-          .eq("colaboradores.equipe_id", colaborador.equipe_id)
+      if (colaborador?.equipeId) {
+        const [{ value }] = await db
+          .select({ value: count() })
+          .from(pedidosPagamento)
+          .innerJoin(colaboradores, eq(pedidosPagamento.colaboradorId, colaboradores.id))
+          .where(
+            and(eq(pedidosPagamento.status, "pendente_gerente"), eq(colaboradores.equipeId, colaborador.equipeId)),
+          )
 
-        aprovacoes = count || 0
+        aprovacoes = value || 0
       }
     } else if (tipoAcesso === "Financeiro" || tipoAcesso === "Adm") {
-      const { count: pendentesCount } = await supabase
-        .from("pedidos_pagamento")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pendente_financeiro")
+      const [{ value: pendentesCount }] = await db
+        .select({ value: count() })
+        .from(pedidosPagamento)
+        .where(eq(pedidosPagamento.status, "pendente_financeiro"))
 
-      const { count: aprovadosCount } = await supabase
-        .from("pedidos_pagamento")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "aprovado")
+      const [{ value: aprovadosCount }] = await db
+        .select({ value: count() })
+        .from(pedidosPagamento)
+        .where(eq(pedidosPagamento.status, "aprovado"))
 
       // Aprovações pendentes no painel financeiro (aguardando aprovação ou pagamento)
       aprovacoes = (pendentesCount || 0) + (aprovadosCount || 0)
       painelFinanceiro = aprovacoes
 
-      const { count: correcoesCount } = await supabase
-        .from("pedidos_pagamento")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "correcao_solicitada")
+      const [{ value: correcoesCount }] = await db
+        .select({ value: count() })
+        .from(pedidosPagamento)
+        .where(eq(pedidosPagamento.status, "correcao_solicitada"))
 
       correcoes = correcoesCount || 0
     }

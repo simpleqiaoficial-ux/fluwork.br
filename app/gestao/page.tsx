@@ -3,8 +3,10 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, TrendingUp, ChevronRight, FileCheck } from "lucide-react"
-import { createClient } from "@/lib/supabase-server"
 import { AniversariosContratoDashboard } from "@/components/aniversarios-contrato-dashboard"
+import { db } from "@/lib/db"
+import { colaboradores } from "@/lib/db/schema"
+import { toColaboradorDTO } from "@/lib/db/mappers"
 
 export default async function GestaoPage() {
   const usuario = await getUsuarioLogado()
@@ -17,13 +19,28 @@ export default async function GestaoPage() {
     redirect("/")
   }
 
-  const supabase = await createClient()
-
   // Buscar todos colaboradores para verificar aniversários de contrato
-  const { data: colaboradores } = await supabase
-    .from("colaboradores")
-    .select("id, nome_completo, salario, data_aniversario_contrato, email, tipo_acesso, cnpj, data_nascimento, equipe_id, dia_pagamento, chave_pix, tipo_chave_pix, centro_custo_id, created_at")
-    .order("nome_completo")
+  const colaboradoresRows = await db
+    .select({
+      id: colaboradores.id,
+      nomeCompleto: colaboradores.nomeCompleto,
+      salario: colaboradores.salario,
+      dataAniversarioContrato: colaboradores.dataAniversarioContrato,
+      email: colaboradores.email,
+      tipoAcesso: colaboradores.tipoAcesso,
+      cnpj: colaboradores.cnpj,
+      dataNascimento: colaboradores.dataNascimento,
+      equipeId: colaboradores.equipeId,
+      diaPagamento: colaboradores.diaPagamento,
+      chavePix: colaboradores.chavePix,
+      tipoChavePix: colaboradores.tipoChavePix,
+      centroCustoId: colaboradores.centroCustoId,
+      createdAt: colaboradores.createdAt,
+    })
+    .from(colaboradores)
+    .orderBy(colaboradores.nomeCompleto)
+
+  const listaColaboradores = colaboradoresRows.map(toColaboradorDTO)
 
   const items = [
     {
@@ -60,7 +77,7 @@ export default async function GestaoPage() {
 
       {/* Dashboard de Aniversários de Contrato */}
       <div className="mb-8">
-        <AniversariosContratoDashboard colaboradores={colaboradores || []} />
+        <AniversariosContratoDashboard colaboradores={listaColaboradores || []} />
       </div>
 
       {/* Cards de navegação */}

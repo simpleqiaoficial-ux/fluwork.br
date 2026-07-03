@@ -1,10 +1,13 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
-import { getSupabaseServerClient } from "@/lib/supabase-server"
 import { NotasPeriodoList } from "@/components/notas-periodo-list"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import { db } from "@/lib/db"
+import { pedidosPagamento } from "@/lib/db/schema"
+import { and, desc, gte, inArray, lt } from "drizzle-orm"
+import { toPedidoDTO } from "@/lib/db/mappers"
 
 const MESES_NOMES = [
   "Janeiro",
@@ -22,44 +25,36 @@ const MESES_NOMES = [
 ]
 
 async function listarNotasDoPeriodo(ano: number, mes: number) {
-  const supabase = await getSupabaseServerClient()
-
   // Define o range de datas para o mes
   const dataInicio = new Date(ano, mes - 1, 1)
   const dataFim = new Date(ano, mes, 1)
 
-  const { data, error } = await supabase
-    .from("pedidos_pagamento")
-    .select(`
-      *,
-      colaborador:colaboradores!colaborador_id (
-        nome_completo, salario, tipo_acesso, equipe_id, cnpj
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: and(
+        inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "nota_recebida", "pago"]),
+        gte(pedidosPagamento.createdAt, dataInicio),
+        lt(pedidosPagamento.createdAt, dataFim),
       ),
-      notas_fiscais (
-        id, numero_nfse, chave_acesso, valor_servico, cpf_cnpj_prestador,
-        arquivo_xml_url, arquivo_pdf_url, created_at
-      )
-    `)
-    .in("status", ["pendente_financeiro", "aprovado", "nota_recebida", "pago"])
-    .gte("created_at", dataInicio.toISOString())
-    .lt("created_at", dataFim.toISOString())
-    .order("created_at", { ascending: false })
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        notaFiscal: true,
+      },
+    })
 
-  if (error) {
+    // Filtra apenas pedidos com nota fiscal ou reembolso KM
+    const filtrados = rows.filter((p) => {
+      const hasNota = Boolean(p.notaFiscalUrl) || Boolean(p.notaFiscal)
+      const isReembolsoKm = p.tipoPedido === "reembolso_km"
+      return hasNota || isReembolsoKm
+    })
+
+    return filtrados.map((row) => toPedidoDTO(row))
+  } catch (error) {
     console.error("[v0] Erro ao buscar notas do periodo:", error)
     return []
   }
-
-  // Filtra apenas pedidos com nota fiscal ou reembolso KM
-  return (data || []).filter((p) => {
-    const hasNota =
-      p.nota_fiscal_url ||
-      (p.notas_fiscais &&
-        ((Array.isArray(p.notas_fiscais) && p.notas_fiscais.length > 0) ||
-          (!Array.isArray(p.notas_fiscais) && p.notas_fiscais)))
-    const isReembolsoKm = p.tipo_pedido === "reembolso_km"
-    return hasNota || isReembolsoKm
-  })
 }
 
 export default async function NotasPeriodoPage({

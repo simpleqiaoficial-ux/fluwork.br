@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm"
 import {
+  type AnyPgColumn,
   boolean,
   check,
   date,
@@ -33,7 +34,7 @@ export const centrosCusto = pgTable("centros_custo", {
 export const equipes = pgTable("equipes", {
   id: uuid("id").primaryKey().defaultRandom(),
   nome: text("nome").notNull().unique(),
-  supervisorId: uuid("supervisor_id").references(() => colaboradores.id, { onDelete: "set null" }),
+  supervisorId: uuid("supervisor_id").references((): AnyPgColumn => colaboradores.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 
@@ -50,7 +51,7 @@ export const colaboradores = pgTable("colaboradores", {
   userId: uuid("user_id"),
   tipoAcesso: tipoAcessoEnum("tipo_acesso").default("Colaborador"),
   senhaHash: text("senha_hash"),
-  equipeId: uuid("equipe_id").references(() => equipes.id, { onDelete: "set null" }),
+  equipeId: uuid("equipe_id").references((): AnyPgColumn => equipes.id, { onDelete: "set null" }),
   historicoReajustes: jsonb("historico_reajustes").default([]),
   diaPagamento: integer("dia_pagamento").default(1),
   chavePix: text("chave_pix"),
@@ -113,9 +114,13 @@ export const pedidosPagamento = pgTable("pedidos_pagamento", {
   aprovadoPorFinanceiroId: uuid("aprovado_por_financeiro_id").references(() => colaboradores.id),
   dataNotaRecebida: timestamp("data_nota_recebida", { withTimezone: true }),
 }, (table) => [
+  // 'nota_recebida' não existe em nenhum dos 59 scripts SQL legados (o CHECK constraint mais
+  // recente rastreado, 040_add_status_prorrogacao.sql, não o inclui), mas o valor é usado
+  // ativamente em app/actions/pedidos.ts e em várias páginas — o banco real do Supabase foi
+  // alterado manualmente fora dos scripts (mesmo padrão do caso boletos.tipo_boleto).
   check(
     "pedidos_pagamento_status_check",
-    sql`${table.status} IN ('pendente_gerente', 'pendente_financeiro', 'aprovado', 'recusado', 'correcao', 'pago', 'aguardando_prorrogacao', 'prorrogacao_negada')`,
+    sql`${table.status} IN ('pendente_gerente', 'pendente_financeiro', 'aprovado', 'recusado', 'correcao', 'pago', 'aguardando_prorrogacao', 'prorrogacao_negada', 'nota_recebida')`,
   ),
   check("pedidos_pagamento_tipo_pedido_check", sql`${table.tipoPedido} IN ('completo', 'reembolso_km')`),
 ])

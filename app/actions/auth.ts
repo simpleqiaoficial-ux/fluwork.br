@@ -1,6 +1,8 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores } from "@/lib/db/schema"
 import { createSession, destroySession, getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
@@ -46,15 +48,10 @@ export async function login(email: string, password: string) {
     }
   }
 
-  const supabaseAdmin = await createAdminClient()
-
-  const { data: colaborador, error: dbError } = await supabaseAdmin
-    .from("colaboradores")
-    .select("*")
-    .eq("email", sanitizedEmail)
-    .maybeSingle()
-
-  if (dbError) {
+  let colaborador
+  try {
+    ;[colaborador] = await db.select().from(colaboradores).where(eq(colaboradores.email, sanitizedEmail))
+  } catch (dbError) {
     console.error("[v0] Database error during login:", dbError)
     return { error: "Erro ao processar login. Tente novamente." }
   }
@@ -64,19 +61,19 @@ export async function login(email: string, password: string) {
   }
 
   let senhaValida = false
-  const isBcryptHash = colaborador.senha_hash.startsWith("$2a$") || colaborador.senha_hash.startsWith("$2b$")
+  const isBcryptHash = colaborador.senhaHash?.startsWith("$2a$") || colaborador.senhaHash?.startsWith("$2b$")
 
   if (isBcryptHash) {
     // Password is already hashed with bcrypt
-    senhaValida = await bcrypt.compare(password, colaborador.senha_hash)
+    senhaValida = await bcrypt.compare(password, colaborador.senhaHash!)
   } else {
     // Password is in plain text - compare directly and migrate
-    senhaValida = colaborador.senha_hash === password
+    senhaValida = colaborador.senhaHash === password
 
     if (senhaValida) {
       // Migrate to bcrypt hash
       const hashedPassword = await bcrypt.hash(password, 10)
-      await supabaseAdmin.from("colaboradores").update({ senha_hash: hashedPassword }).eq("id", colaborador.id)
+      await db.update(colaboradores).set({ senhaHash: hashedPassword }).where(eq(colaboradores.id, colaborador.id))
 
       console.log("[v0] Migrated password to bcrypt for user:", sanitizedEmail)
     }
@@ -91,16 +88,16 @@ export async function login(email: string, password: string) {
 
   await createSession({
     colaboradorId: colaborador.id,
-    email: colaborador.email,
-    nomeCompleto: colaborador.nome_completo,
-    tipoAcesso: colaborador.tipo_acesso,
-    cnpj: colaborador.cnpj,
-    salario: colaborador.salario,
+    email: colaborador.email!,
+    nomeCompleto: colaborador.nomeCompleto,
+    tipoAcesso: colaborador.tipoAcesso!,
+    cnpj: colaborador.cnpj ?? undefined,
+    salario: Number(colaborador.salario),
   })
 
   revalidatePath("/", "layout")
 
-  if (colaborador.tipo_acesso === "Colaborador") {
+  if (colaborador.tipoAcesso === "Colaborador") {
     redirect("/meus-pagamentos")
   } else {
     redirect("/")
@@ -141,16 +138,13 @@ export async function redefinirSenha(senhaAtual: string, novaSenha: string) {
     }
   }
 
-  const supabaseAdmin = await createAdminClient()
-
   // Verificar senha atual
-  const { data: colaborador, error: dbError } = await supabaseAdmin
-    .from("colaboradores")
-    .select("senha_hash")
-    .eq("id", session.colaboradorId)
-    .single()
+  const [colaborador] = await db
+    .select({ senhaHash: colaboradores.senhaHash })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, session.colaboradorId))
 
-  if (dbError || !colaborador) {
+  if (!colaborador) {
     return {
       success: false,
       error: "Colaborador não encontrado",
@@ -158,13 +152,13 @@ export async function redefinirSenha(senhaAtual: string, novaSenha: string) {
   }
 
   let senhaAtualValida = false
-  const isBcryptHash = colaborador.senha_hash.startsWith("$2a$") || colaborador.senha_hash.startsWith("$2b$")
+  const isBcryptHash = colaborador.senhaHash?.startsWith("$2a$") || colaborador.senhaHash?.startsWith("$2b$")
 
   if (isBcryptHash) {
-    senhaAtualValida = await bcrypt.compare(senhaAtual, colaborador.senha_hash)
+    senhaAtualValida = await bcrypt.compare(senhaAtual, colaborador.senhaHash!)
   } else {
     // Legacy plain text password
-    senhaAtualValida = colaborador.senha_hash === senhaAtual
+    senhaAtualValida = colaborador.senhaHash === senhaAtual
   }
 
   if (!senhaAtualValida) {
@@ -178,15 +172,12 @@ export async function redefinirSenha(senhaAtual: string, novaSenha: string) {
   const hashedPassword = await bcrypt.hash(novaSenha, 10)
 
   // Atualizar senha
-  const { error } = await supabaseAdmin
-    .from("colaboradores")
-    .update({ senha_hash: hashedPassword })
-    .eq("id", session.colaboradorId)
-
-  if (error) {
+  try {
+    await db.update(colaboradores).set({ senhaHash: hashedPassword }).where(eq(colaboradores.id, session.colaboradorId))
+  } catch (error) {
     return {
       success: false,
-      error: "Erro ao atualizar senha: " + error.message,
+      error: "Erro ao atualizar senha: " + (error instanceof Error ? error.message : String(error)),
     }
   }
 

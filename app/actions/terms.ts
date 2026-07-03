@@ -1,6 +1,9 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { and, count, desc, eq, inArray } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { colaboradores, userTermsAcceptance } from "@/lib/db/schema"
+import { toTermsAcceptanceDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
 import { headers } from "next/headers"
 import { CURRENT_TERMS_VERSION } from "@/types/terms"
@@ -21,25 +24,26 @@ export async function checkTermsAcceptance(userId?: string): Promise<{
     return { accepted: false, version: CURRENT_TERMS_VERSION, acceptedAt: null }
   }
 
-  const supabase = await createAdminClient()
+  try {
+    const [data] = await db
+      .select()
+      .from(userTermsAcceptance)
+      .where(
+        and(
+          eq(userTermsAcceptance.userId, targetUserId),
+          eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION),
+          eq(userTermsAcceptance.accepted, true),
+        ),
+      )
 
-  const { data, error } = await supabase
-    .from("user_terms_acceptance")
-    .select("*")
-    .eq("user_id", targetUserId)
-    .eq("version", CURRENT_TERMS_VERSION)
-    .eq("accepted", true)
-    .maybeSingle()
-
-  if (error) {
+    return {
+      accepted: !!data,
+      version: CURRENT_TERMS_VERSION,
+      acceptedAt: (data?.acceptedAt as unknown as string) || null,
+    }
+  } catch (error) {
     console.error("[v0] Error checking terms acceptance:", error)
     return { accepted: false, version: CURRENT_TERMS_VERSION, acceptedAt: null }
-  }
-
-  return {
-    accepted: !!data,
-    version: CURRENT_TERMS_VERSION,
-    acceptedAt: data?.accepted_at || null,
   }
 }
 
@@ -54,7 +58,6 @@ export async function acceptTerms(userId: string): Promise<{
     return { success: false, error: "Usuário não identificado" }
   }
 
-  const supabase = await createAdminClient()
   const headersList = await headers()
 
   // Captura informações do request
@@ -70,7 +73,7 @@ export async function acceptTerms(userId: string): Promise<{
     const isWindows = /windows/i.test(userAgent)
     const isMac = /macintosh|mac os/i.test(userAgent)
     const isLinux = /linux/i.test(userAgent)
-    
+
     let os = "Unknown"
     if (isWindows) os = "Windows"
     else if (isMac) os = "macOS"
@@ -85,43 +88,41 @@ export async function acceptTerms(userId: string): Promise<{
   }
 
   // Verifica se já existe um registro para esta versão
-  const { data: existing } = await supabase
-    .from("user_terms_acceptance")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("version", CURRENT_TERMS_VERSION)
-    .maybeSingle()
+  const [existing] = await db
+    .select({ id: userTermsAcceptance.id })
+    .from(userTermsAcceptance)
+    .where(and(eq(userTermsAcceptance.userId, userId), eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION)))
 
   if (existing) {
     // Atualiza o registro existente
-    const { error } = await supabase
-      .from("user_terms_acceptance")
-      .update({
-        accepted: true,
-        accepted_at: new Date().toISOString(),
-        ip_address: ipAddress,
-        device_info: deviceInfo,
-        user_agent: userAgent,
-      })
-      .eq("id", existing.id)
-
-    if (error) {
+    try {
+      await db
+        .update(userTermsAcceptance)
+        .set({
+          accepted: true,
+          acceptedAt: new Date(),
+          ipAddress,
+          deviceInfo,
+          userAgent,
+        })
+        .where(eq(userTermsAcceptance.id, existing.id))
+    } catch (error) {
       console.error("[v0] Error updating terms acceptance:", error)
       return { success: false, error: "Erro ao registrar aceite dos termos" }
     }
   } else {
     // Cria novo registro
-    const { error } = await supabase.from("user_terms_acceptance").insert({
-      user_id: userId,
-      version: CURRENT_TERMS_VERSION,
-      accepted: true,
-      accepted_at: new Date().toISOString(),
-      ip_address: ipAddress,
-      device_info: deviceInfo,
-      user_agent: userAgent,
-    })
-
-    if (error) {
+    try {
+      await db.insert(userTermsAcceptance).values({
+        userId,
+        version: CURRENT_TERMS_VERSION,
+        accepted: true,
+        acceptedAt: new Date(),
+        ipAddress,
+        deviceInfo,
+        userAgent,
+      })
+    } catch (error) {
       console.error("[v0] Error inserting terms acceptance:", error)
       return { success: false, error: "Erro ao registrar aceite dos termos" }
     }
@@ -141,7 +142,6 @@ export async function declineTerms(userId: string): Promise<{
     return { success: false, error: "Usuário não identificado" }
   }
 
-  const supabase = await createAdminClient()
   const headersList = await headers()
 
   const userAgent = headersList.get("user-agent") || null
@@ -150,19 +150,21 @@ export async function declineTerms(userId: string): Promise<{
   const ipAddress = forwardedFor?.split(",")[0].trim() || realIp || null
 
   // Registra a recusa para auditoria
-  const { error } = await supabase.from("user_terms_acceptance").insert({
-    user_id: userId,
-    version: CURRENT_TERMS_VERSION,
-    accepted: false,
-    accepted_at: null,
-    ip_address: ipAddress,
-    device_info: null,
-    user_agent: userAgent,
-  })
-
-  if (error && error.code !== "23505") {
-    // Ignora erro de duplicata
-    console.error("[v0] Error recording terms decline:", error)
+  try {
+    await db.insert(userTermsAcceptance).values({
+      userId,
+      version: CURRENT_TERMS_VERSION,
+      accepted: false,
+      acceptedAt: null,
+      ipAddress,
+      deviceInfo: null,
+      userAgent,
+    })
+  } catch (error: any) {
+    if (error?.code !== "23505") {
+      // Ignora erro de duplicata
+      console.error("[v0] Error recording terms decline:", error)
+    }
   }
 
   return { success: true }
@@ -185,44 +187,43 @@ export async function listTermsAcceptances(filters?: {
     return { data: [], error: "Sem permissão para visualizar aceites" }
   }
 
-  const supabase = await createAdminClient()
+  let acceptances
+  try {
+    const conditions = []
+    if (filters?.version) {
+      conditions.push(eq(userTermsAcceptance.version, filters.version))
+    }
+    if (filters?.accepted !== undefined) {
+      conditions.push(eq(userTermsAcceptance.accepted, filters.accepted))
+    }
 
-  let query = supabase
-    .from("user_terms_acceptance")
-    .select("*")
-    .order("created_at", { ascending: false })
-
-  if (filters?.version) {
-    query = query.eq("version", filters.version)
-  }
-
-  if (filters?.accepted !== undefined) {
-    query = query.eq("accepted", filters.accepted)
-  }
-
-  const { data: acceptances, error } = await query
-
-  if (error) {
+    acceptances = await db
+      .select()
+      .from(userTermsAcceptance)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(userTermsAcceptance.createdAt))
+  } catch (error) {
     console.error("[v0] Error listing terms acceptances:", error)
     return { data: [], error: "Erro ao listar aceites" }
   }
 
   // Busca informações dos usuários
-  const userIds = [...new Set(acceptances?.map((a) => a.user_id) || [])]
-  
-  const { data: colaboradores } = await supabase
-    .from("colaboradores")
-    .select("id, nome_completo, email")
-    .in("id", userIds)
+  const userIds = [...new Set(acceptances?.map((a) => a.userId) || [])]
+
+  const colaboradoresRows = userIds.length
+    ? await db
+        .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
+        .from(colaboradores)
+        .where(inArray(colaboradores.id, userIds))
+    : []
 
   const colaboradoresMap = new Map(
-    colaboradores?.map((c) => [c.id, { nome_completo: c.nome_completo, email: c.email }]) || []
+    colaboradoresRows.map((c) => [c.id, { nomeCompleto: c.nomeCompleto, email: c.email }]),
   )
 
-  const result: TermsAcceptanceWithUser[] = (acceptances || []).map((acceptance) => ({
-    ...acceptance,
-    colaborador: colaboradoresMap.get(acceptance.user_id),
-  }))
+  const result: TermsAcceptanceWithUser[] = (acceptances || []).map((acceptance) =>
+    toTermsAcceptanceDTO({ ...acceptance, colaborador: colaboradoresMap.get(acceptance.userId) }),
+  )
 
   // Filtra por busca se necessário
   if (filters?.search) {
@@ -231,7 +232,7 @@ export async function listTermsAcceptances(filters?: {
       data: result.filter(
         (item) =>
           item.colaborador?.nome_completo.toLowerCase().includes(searchLower) ||
-          item.colaborador?.email.toLowerCase().includes(searchLower)
+          item.colaborador?.email.toLowerCase().includes(searchLower),
       ),
     }
   }
@@ -259,27 +260,25 @@ export async function getTermsAcceptanceStats(): Promise<{
     }
   }
 
-  const supabase = await createAdminClient()
-
   // Total de usuários ativos
-  const { count: totalUsers } = await supabase
-    .from("colaboradores")
-    .select("*", { count: "exact", head: true })
-    .eq("ativo", true)
+  // NOTA: a tabela `colaboradores` não possui coluna `ativo` (ver lib/db/schema.ts) — o filtro
+  // .eq("ativo", true) do código Supabase original era inválido e, na prática, sempre falhava
+  // silenciosamente no cliente Supabase (count vinha undefined -> 0), zerando totalUsers e
+  // pendingAcceptance em produção. Para não perpetuar esse bug e ainda preservar o "shape" da
+  // função, contamos todos os colaboradores aqui.
+  const [{ value: totalUsers }] = await db.select({ value: count() }).from(colaboradores)
 
   // Aceites da versão atual
-  const { count: acceptedCurrentVersion } = await supabase
-    .from("user_terms_acceptance")
-    .select("*", { count: "exact", head: true })
-    .eq("version", CURRENT_TERMS_VERSION)
-    .eq("accepted", true)
+  const [{ value: acceptedCurrentVersion }] = await db
+    .select({ value: count() })
+    .from(userTermsAcceptance)
+    .where(and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, true)))
 
   // Recusas da versão atual
-  const { count: declinedCurrentVersion } = await supabase
-    .from("user_terms_acceptance")
-    .select("*", { count: "exact", head: true })
-    .eq("version", CURRENT_TERMS_VERSION)
-    .eq("accepted", false)
+  const [{ value: declinedCurrentVersion }] = await db
+    .select({ value: count() })
+    .from(userTermsAcceptance)
+    .where(and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, false)))
 
   return {
     totalUsers: totalUsers || 0,

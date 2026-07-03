@@ -1,23 +1,22 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase-server"
+import { asc, eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { centrosCusto, colaboradores } from "@/lib/db/schema"
+import { toCentroCustoDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 import type { CentroCusto } from "@/types/colaborador"
 
 export async function listarCentrosCusto(): Promise<CentroCusto[]> {
-  const supabase = await createAdminClient()
-  const { data, error } = await supabase
-    .from("centros_custo")
-    .select("*")
-    .order("numero", { ascending: true })
+  try {
+    const data = await db.select().from(centrosCusto).orderBy(asc(centrosCusto.numero))
 
-  if (error) {
+    return (data || []).map(toCentroCustoDTO) as CentroCusto[]
+  } catch (error) {
     console.error("[v0] Erro ao listar centros de custo:", error)
     throw new Error("Erro ao listar centros de custo")
   }
-
-  return data || []
 }
 
 export async function criarCentroCusto(dados: { numero: string; nome: string }): Promise<void> {
@@ -26,15 +25,13 @@ export async function criarCentroCusto(dados: { numero: string; nome: string }):
     throw new Error("Sem permissão")
   }
 
-  const supabase = await createAdminClient()
-
-  const { error } = await supabase.from("centros_custo").insert({
-    numero: dados.numero.trim(),
-    nome: dados.nome.trim(),
-  })
-
-  if (error) {
-    if (error.code === "23505") {
+  try {
+    await db.insert(centrosCusto).values({
+      numero: dados.numero.trim(),
+      nome: dados.nome.trim(),
+    })
+  } catch (error: any) {
+    if (error?.code === "23505") {
       throw new Error("Ja existe um centro de custo com esse numero")
     }
     console.error("[v0] Erro ao criar centro de custo:", error)
@@ -51,18 +48,16 @@ export async function editarCentroCusto(id: string, dados: { numero: string; nom
     throw new Error("Sem permissao")
   }
 
-  const supabase = await createAdminClient()
-
-  const { error } = await supabase
-    .from("centros_custo")
-    .update({
-      numero: dados.numero.trim(),
-      nome: dados.nome.trim(),
-    })
-    .eq("id", id)
-
-  if (error) {
-    if (error.code === "23505") {
+  try {
+    await db
+      .update(centrosCusto)
+      .set({
+        numero: dados.numero.trim(),
+        nome: dados.nome.trim(),
+      })
+      .where(eq(centrosCusto.id, id))
+  } catch (error: any) {
+    if (error?.code === "23505") {
       throw new Error("Ja existe um centro de custo com esse numero")
     }
     console.error("[v0] Erro ao editar centro de custo:", error)
@@ -79,22 +74,20 @@ export async function excluirCentroCusto(id: string): Promise<void> {
     throw new Error("Sem permissao")
   }
 
-  const supabase = await createAdminClient()
-
   // Check if any collaborators are using this centro de custo
-  const { data: colaboradores } = await supabase
-    .from("colaboradores")
-    .select("id")
-    .eq("centro_custo_id", id)
+  const colaboradoresVinculados = await db
+    .select({ id: colaboradores.id })
+    .from(colaboradores)
+    .where(eq(colaboradores.centroCustoId, id))
     .limit(1)
 
-  if (colaboradores && colaboradores.length > 0) {
+  if (colaboradoresVinculados && colaboradoresVinculados.length > 0) {
     throw new Error("Nao e possivel excluir: existem colaboradores vinculados a este centro de custo")
   }
 
-  const { error } = await supabase.from("centros_custo").delete().eq("id", id)
-
-  if (error) {
+  try {
+    await db.delete(centrosCusto).where(eq(centrosCusto.id, id))
+  } catch (error) {
     console.error("[v0] Erro ao excluir centro de custo:", error)
     throw new Error("Erro ao excluir centro de custo")
   }
