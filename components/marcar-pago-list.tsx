@@ -105,7 +105,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
       alert("Por favor, informe o motivo da recusa")
       return
     }
-    if (!confirm("Deseja recusar esta nota e solicitar correcao ao prestador?")) return
+    if (!confirm("Deseja recusar esta nota e solicitar correção ao prestador?")) return
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
@@ -327,7 +327,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                                       onClick={(e) => {
                                         if (!pdfUrl || pdfUrl.includes("undefined")) {
                                           e.preventDefault()
-                                          alert("PDF nao disponivel.")
+                                          alert("PDF não disponível.")
                                         }
                                       }}
                                     >

@@ -60,7 +60,7 @@ export default async function FinanceiroPage({
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Painel Financeiro</h1>
-        <p className="text-sm text-muted-foreground">Gerencie pagamentos, notas fiscais e prorrogacoes</p>
+        <p className="text-sm text-muted-foreground">Gerencie pagamentos, notas fiscais e prorrogações</p>
       </div>
 
       <Tabs defaultValue={defaultTab} className="w-full">
@@ -87,7 +87,7 @@ export default async function FinanceiroPage({
           </TabsTrigger>
           <TabsTrigger value="prorrogacoes" className="flex items-center gap-2 text-sm">
             <Clock className="w-4 h-4" />
-            <span className="hidden sm:inline">Prorrogacoes</span>
+            <span className="hidden sm:inline">Prorrogações</span>
             <span className="sm:hidden">Prorrog.</span>
             {solicitacoes.length > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded bg-foreground text-xs font-semibold text-background px-1.5">

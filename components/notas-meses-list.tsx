@@ -21,7 +21,7 @@ interface NotasMesesListProps {
 const MESES_NOMES = [
   "Janeiro",
   "Fevereiro",
-  "Marco",
+  "Março",
   "Abril",
   "Maio",
   "Junho",

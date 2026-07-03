@@ -212,7 +212,7 @@ export function EquipeDetailView({
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead className="hidden sm:table-cell">Email</TableHead>
-                  <TableHead>Funcao</TableHead>
+                  <TableHead>Função</TableHead>
                   <TableHead className="w-[60px]" />
                 </TableRow>
               </TableHeader>
@@ -259,7 +259,7 @@ export function EquipeDetailView({
             <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
               {filteredSemEquipe.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  {searchTerm ? "Nenhum prestador encontrado" : "Todos os prestadores ja pertencem a uma equipe"}
+                  {searchTerm ? "Nenhum prestador encontrado" : "Todos os prestadores já pertencem a uma equipe"}
                 </p>
               ) : (
                 filteredSemEquipe.map((c) => (
@@ -353,7 +353,7 @@ export function EquipeDetailView({
           <AlertDialogHeader>
             <AlertDialogTitle>Remover membro?</AlertDialogTitle>
             <AlertDialogDescription>
-              O prestador sera desvinculado desta equipe. Voce podera adiciona-lo novamente depois.
+              O prestador será desvinculado desta equipe. Você poderá adicioná-lo novamente depois.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -12,7 +12,7 @@ import { uploadFile } from "@/lib/gcs"
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
   if (!session || !["Supervisor", "Adm", "Gerente", "Financeiro"].includes(session.tipoAcesso)) {
-    throw new Error("Voce nao tem permissao para criar pedidos")
+    throw new Error("Você não tem permissão para criar pedidos")
   }
 
   if (data.tipo_pedido !== "reembolso_km" && data.conducao > 0) {

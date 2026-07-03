@@ -17,9 +17,9 @@ export default async function PedidosPage() {
         </div>
         <Alert>
           <LogIn className="h-4 w-4" />
-          <AlertTitle>Login Necessario</AlertTitle>
+          <AlertTitle>Login Necessário</AlertTitle>
           <AlertDescription className="mt-2">
-            Voce precisa fazer login como <strong>Supervisor ou Gerente</strong> para criar pedidos de pagamento.
+            Você precisa fazer login como <strong>Supervisor ou Gerente</strong> para criar pedidos de pagamento.
           </AlertDescription>
           <Button asChild className="mt-4">
             <a href="/login">Fazer Login</a>
@@ -40,13 +40,13 @@ export default async function PedidosPage() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Acesso Restrito</AlertTitle>
           <AlertDescription className="mt-2">
-            Voce nao tem permissao para criar pedidos de pagamento.
+            Você não tem permissão para criar pedidos de pagamento.
             <br />
             Seu perfil atual: <strong>{session.tipoAcesso}</strong>
           </AlertDescription>
           <div className="flex gap-2 mt-4">
             <Button asChild variant="outline">
-              <a href="/">Voltar ao Inicio</a>
+              <a href="/">Voltar ao Início</a>
             </Button>
           </div>
         </Alert>
@@ -65,14 +65,14 @@ export default async function PedidosPage() {
         </div>
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Nenhum Prestador Disponivel</AlertTitle>
+          <AlertTitle>Nenhum Prestador Disponível</AlertTitle>
           <AlertDescription className="mt-2">
             {session.tipoAcesso === "Supervisor"
-              ? "Voce nao possui prestadores na sua equipe."
-              : "Voce nao possui equipes vinculadas. Entre em contato com o administrador."}
+              ? "Você não possui prestadores na sua equipe."
+              : "Você não possui equipes vinculadas. Entre em contato com o administrador."}
           </AlertDescription>
           <Button asChild className="mt-4" variant="outline">
-            <a href="/">Voltar ao Inicio</a>
+            <a href="/">Voltar ao Início</a>
           </Button>
         </Alert>
       </div>

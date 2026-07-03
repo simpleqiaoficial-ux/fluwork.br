@@ -30,14 +30,14 @@ export default async function HistoricoPage() {
     <div className="container mx-auto px-4 lg:px-6 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pedidos</h1>
-        <p className="text-sm text-muted-foreground">Acompanhe o status de todos os pedidos de pagamento que voce criou</p>
+        <p className="text-sm text-muted-foreground">Acompanhe o status de todos os pedidos de pagamento que você criou</p>
       </div>
 
       <Tabs defaultValue="historico" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 h-10">
-          <TabsTrigger value="historico" className="text-sm">Historico</TabsTrigger>
+          <TabsTrigger value="historico" className="text-sm">Histórico</TabsTrigger>
           <TabsTrigger value="correcoes" className="relative text-sm">
-            Correcoes Pendentes
+            Correções Pendentes
             {pedidosCorrecao.length > 0 && (
               <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-background bg-foreground rounded">
                 {pedidosCorrecao.length}

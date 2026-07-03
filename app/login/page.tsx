@@ -111,13 +111,13 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-muted-foreground mt-8">
-            Ao acessar, voce concorda com nossos{" "}
+            Ao acessar, você concorda com nossos{" "}
             <Link href="/termos" className="text-foreground hover:underline">
               Termos de Uso
             </Link>{" "}
             e{" "}
             <Link href="/privacidade" className="text-foreground hover:underline">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
           </p>
         </div>

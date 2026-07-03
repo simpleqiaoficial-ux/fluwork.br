@@ -69,13 +69,13 @@ const ITEM_CONFIG: Record<
     unidade: "horas",
   },
   plantao: {
-    label: "Plantao",
-    desc: "Valor fixo por plantao realizado",
+    label: "Plantão",
+    desc: "Valor fixo por plantão realizado",
     icon: AlertCircle,
     unidade: "valor",
   },
   conducao: {
-    label: "Conducao",
+    label: "Condução",
     desc: "Vale transporte / deslocamento",
     icon: Bus,
     unidade: "valor",
@@ -87,21 +87,21 @@ const ITEM_CONFIG: Record<
     unidade: "valor",
   },
   comissao: {
-    label: "Comissao",
-    desc: "Comissao sobre vendas/resultados",
+    label: "Comissão",
+    desc: "Comissão sobre vendas/resultados",
     icon: Award,
     unidade: "valor",
   },
   desconto_dias: {
     label: "Desconto por Dias",
-    desc: "Calculo: salario / 22 dias uteis x qtd",
+    desc: "Cálculo: valor contratual / 22 dias úteis x qtd",
     icon: Percent,
     unidade: "dias",
     isDesconto: true,
   },
   desconto_horas: {
     label: "Desconto por Horas",
-    desc: "Calculo: valor hora x quantidade",
+    desc: "Cálculo: valor hora x quantidade",
     icon: Percent,
     unidade: "horas",
     isDesconto: true,
@@ -232,7 +232,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
       return
     }
     if (!addingMotivo.trim()) {
-      setAddingError("O motivo e obrigatorio")
+      setAddingError("O motivo é obrigatório")
       return
     }
 
@@ -318,7 +318,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
   }
 
   const handleSubmitClick = () => {
-    if (!selectedColaborador) { setError("Selecione um colaborador"); return }
+    if (!selectedColaborador) { setError("Selecione um prestador"); return }
     if (items.length === 0 && tipoPedido === "reembolso_km") { setError("Adicione pelo menos um item"); return }
     setError("")
     setPendingPedido(buildPedido())
@@ -347,35 +347,50 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
   const currentConfig = addingTipo ? ITEM_CONFIG[addingTipo as ItemTipo] : null
 
+  const StepHeader = ({ n, title }: { n: number; title: string }) => (
+    <div className="flex items-center gap-2.5 mb-4">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+        {n}
+      </span>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+    </div>
+  )
+
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="pt-6 space-y-8">
           {/* Step 1: Colaborador Selection */}
           <section>
-            <h3 className="text-sm font-medium mb-4">1. Selecione o prestador</h3>
+            <StepHeader n={1} title="Selecione o prestador" />
 
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nome ou email..."
-                    value={buscaColaborador}
-                    onChange={(e) => setBuscaColaborador(e.target.value)}
-                    className="pl-9"
-                  />
+                <div className="relative flex-1 space-y-1">
+                  <Label className="text-xs text-muted-foreground">Buscar prestador</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Nome ou e-mail..."
+                      value={buscaColaborador}
+                      onChange={(e) => setBuscaColaborador(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
-                <Select value={filtroDiaPagamento} onValueChange={setFiltroDiaPagamento}>
-                  <SelectTrigger className="w-full sm:w-32">
-                    <SelectValue placeholder="Dia pgto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="1">Dia 1</SelectItem>
-                    <SelectItem value="15">Dia 15</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Dia de pagamento</Label>
+                  <Select value={filtroDiaPagamento} onValueChange={setFiltroDiaPagamento}>
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue placeholder="Dia" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="1">Dia 1</SelectItem>
+                      <SelectItem value="15">Dia 15</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Select value={selectedColaborador} onValueChange={(v) => { setSelectedColaborador(v); setItems([]) }}>
@@ -386,22 +401,23 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                   {colaboradoresFiltrados.map((c) => (
                     <SelectItem key={c.id} value={c.id} disabled={c.bloqueado}>
                       {c.nome_completo} - {fmt(c.salario)} (Dia {c.dia_pagamento})
-                      {c.bloqueado ? " [ja lancado]" : ""}
+                      {c.bloqueado ? " [já lançado]" : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               {colaborador && (
-                <div className="flex flex-wrap gap-x-5 gap-y-1 pt-1 text-xs text-muted-foreground">
-                  <span>Valor contratual <span className="font-medium text-foreground tabular-nums">{fmt(salario)}</span></span>
-                  <span>Valor hora <span className="font-medium text-foreground tabular-nums">{fmt(valorHoraNormal)}</span></span>
-                  <span>Valor dia <span className="font-medium text-foreground tabular-nums">{fmt(valorDiario)}</span></span>
-                  <span>Pagamento no dia <span className="font-medium text-foreground tabular-nums">{colaborador.dia_pagamento}</span></span>
+                <div className="flex flex-wrap gap-x-5 gap-y-1.5 rounded-md bg-muted/50 px-3 py-2.5 text-xs">
+                  <span className="text-muted-foreground">Valor contratual <span className="font-semibold text-foreground tabular-nums">{fmt(salario)}</span></span>
+                  <span className="text-muted-foreground">Valor hora <span className="font-semibold text-foreground tabular-nums">{fmt(valorHoraNormal)}</span></span>
+                  <span className="text-muted-foreground">Valor dia <span className="font-semibold text-foreground tabular-nums">{fmt(valorDiario)}</span></span>
+                  <span className="text-muted-foreground">Pagamento no dia <span className="font-semibold text-foreground tabular-nums">{colaborador.dia_pagamento}</span></span>
                 </div>
               )}
 
-              <div className="pt-1">
+              <div className="space-y-1 pt-1">
+                <Label className="text-xs text-muted-foreground">Tipo de pedido</Label>
                 <Select value={tipoPedido} onValueChange={(v) => { setTipoPedido(v as "completo" | "reembolso_km"); setItems([]) }}>
                   <SelectTrigger>
                     <SelectValue />
@@ -418,7 +434,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
           {/* Step 2: Item Builder */}
           {selectedColaborador && (
             <section className="pt-8 border-t">
-              <h3 className="text-sm font-medium mb-4">2. Adicionar itens</h3>
+              <StepHeader n={2} title="Adicionar itens" />
 
               <div className="space-y-4">
                 {/* Quick Type Buttons */}
@@ -434,7 +450,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                         onClick={() => { setAddingTipo(t); setAddingQtd(""); setAddingValor(""); setAddingMotivo(""); setAddingError("") }}
                         className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                           isActive
-                            ? "border-primary bg-primary/5 text-primary"
+                            ? "border-primary bg-primary text-primary-foreground"
                             : "border-transparent bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                         }`}
                       >
@@ -458,7 +474,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                       {currentConfig.unidade !== "valor" && (
                         <div className="space-y-1">
                           <Label className="text-xs">
-                            Quantidade ({currentConfig.unidade === "dias" ? "dias uteis" : "horas"})
+                            Quantidade ({currentConfig.unidade === "dias" ? "dias úteis" : "horas"})
                           </Label>
                           <Input
                             type="number"
@@ -569,7 +585,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
           {/* Step 3: Summary */}
           {selectedColaborador && (
             <section className="pt-8 border-t">
-              <h3 className="text-sm font-medium mb-4">3. Resumo do pedido</h3>
+              <StepHeader n={3} title="Resumo do pedido" />
 
               <div className="space-y-2">
                 {tipoPedido === "completo" && (
@@ -586,13 +602,13 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                 )}
                 {resumo.plantao > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plantao</span>
+                    <span className="text-muted-foreground">Plantão</span>
                     <span className="font-medium tabular-nums">+ {fmt(resumo.plantao)}</span>
                   </div>
                 )}
                 {resumo.conducao > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Conducao</span>
+                    <span className="text-muted-foreground">Condução</span>
                     <span className="font-medium tabular-nums">+ {fmt(resumo.conducao)}</span>
                   </div>
                 )}
@@ -604,7 +620,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                 )}
                 {resumo.comissao > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Comissao</span>
+                    <span className="text-muted-foreground">Comissão</span>
                     <span className="font-medium tabular-nums">+ {fmt(resumo.comissao)}</span>
                   </div>
                 )}
@@ -614,11 +630,11 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                     <span className="font-medium tabular-nums text-destructive">− {fmt(resumo.desconto)}</span>
                   </div>
                 )}
+              </div>
 
-                <div className="flex justify-between items-center pt-3 border-t mt-1">
-                  <span className="font-semibold">Total Liquido</span>
-                  <span className="font-semibold text-lg tabular-nums">{fmt(resumo.totalLiquido)}</span>
-                </div>
+              <div className="flex justify-between items-center mt-4 rounded-md bg-primary/5 px-3 py-3">
+                <span className="font-semibold text-sm">Total Líquido</span>
+                <span className="font-semibold text-lg tabular-nums text-primary">{fmt(resumo.totalLiquido)}</span>
               </div>
 
               {error && (

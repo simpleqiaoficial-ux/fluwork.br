@@ -19,7 +19,7 @@ export function SystemSuspendedScreen({ reason }: SystemSuspendedScreenProps) {
         <div className="space-y-1.5">
           <h1 className="text-xl font-semibold">Sistema temporariamente suspenso</h1>
           <p className="text-sm text-muted-foreground">
-            O FluWork esta em manutencao no momento.
+            O FluWork está em manutenção no momento.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export function SystemSuspendedScreen({ reason }: SystemSuspendedScreenProps) {
 
         <div className="pt-4 border-t space-y-3">
           <p className="text-sm text-muted-foreground">
-            Em caso de duvidas, entre em contato:
+            Em caso de dúvidas, entre em contato:
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
             <a
@@ -55,7 +55,7 @@ export function SystemSuspendedScreen({ reason }: SystemSuspendedScreenProps) {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Agradecemos sua compreensao. O sistema voltara ao normal em breve.
+          Agradecemos sua compreensão. O sistema voltará ao normal em breve.
         </p>
       </div>
     </div>

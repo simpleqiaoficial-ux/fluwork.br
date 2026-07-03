@@ -68,7 +68,7 @@ export async function suspendSystem(reason: string): Promise<{
   const session = await getSession()
 
   if (!session?.colaboradorId) {
-    return { success: false, error: "Usuario nao autenticado" }
+    return { success: false, error: "Usuário não autenticado" }
   }
 
   if (session.tipoAcesso !== "Adm") {
@@ -76,7 +76,7 @@ export async function suspendSystem(reason: string): Promise<{
   }
 
   if (!reason || reason.trim().length < 5) {
-    return { success: false, error: "Informe um motivo valido para a suspensao" }
+    return { success: false, error: "Informe um motivo válido para a suspensão" }
   }
 
   try {
@@ -135,7 +135,7 @@ export async function reactivateSystem(): Promise<{
   const session = await getSession()
 
   if (!session?.colaboradorId) {
-    return { success: false, error: "Usuario nao autenticado" }
+    return { success: false, error: "Usuário não autenticado" }
   }
 
   if (session.tipoAcesso !== "Adm") {

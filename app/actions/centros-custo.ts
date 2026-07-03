@@ -32,7 +32,7 @@ export async function criarCentroCusto(dados: { numero: string; nome: string }):
     })
   } catch (error: any) {
     if (error?.code === "23505") {
-      throw new Error("Ja existe um centro de custo com esse numero")
+      throw new Error("Já existe um centro de custo com esse número")
     }
     console.error("[v0] Erro ao criar centro de custo:", error)
     throw new Error("Erro ao criar centro de custo")
@@ -45,7 +45,7 @@ export async function criarCentroCusto(dados: { numero: string; nome: string }):
 export async function editarCentroCusto(id: string, dados: { numero: string; nome: string }): Promise<void> {
   const session = await getSession()
   if (!session || (session.tipoAcesso !== "Adm" && session.tipoAcesso !== "Financeiro")) {
-    throw new Error("Sem permissao")
+    throw new Error("Sem permissão")
   }
 
   try {
@@ -58,7 +58,7 @@ export async function editarCentroCusto(id: string, dados: { numero: string; nom
       .where(eq(centrosCusto.id, id))
   } catch (error: any) {
     if (error?.code === "23505") {
-      throw new Error("Ja existe um centro de custo com esse numero")
+      throw new Error("Já existe um centro de custo com esse número")
     }
     console.error("[v0] Erro ao editar centro de custo:", error)
     throw new Error("Erro ao editar centro de custo")
@@ -71,7 +71,7 @@ export async function editarCentroCusto(id: string, dados: { numero: string; nom
 export async function excluirCentroCusto(id: string): Promise<void> {
   const session = await getSession()
   if (!session || (session.tipoAcesso !== "Adm" && session.tipoAcesso !== "Financeiro")) {
-    throw new Error("Sem permissao")
+    throw new Error("Sem permissão")
   }
 
   // Check if any collaborators are using this centro de custo
@@ -82,7 +82,7 @@ export async function excluirCentroCusto(id: string): Promise<void> {
     .limit(1)
 
   if (colaboradoresVinculados && colaboradoresVinculados.length > 0) {
-    throw new Error("Nao e possivel excluir: existem prestadores vinculados a este centro de custo")
+    throw new Error("Não é possível excluir: existem prestadores vinculados a este centro de custo")
   }
 
   try {

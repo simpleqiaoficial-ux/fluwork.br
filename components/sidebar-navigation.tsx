@@ -246,13 +246,20 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         className={cn(
           "group flex items-center gap-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
           iconOnly ? "justify-center px-0" : levelPadding,
-          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent",
+          isActive
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent",
         )}
       >
         <Icon className="h-4 w-4 shrink-0" />
         {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
         {badge > 0 && !iconOnly && (
-          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium px-1.5">
+          <span
+            className={cn(
+              "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full text-[10px] font-medium px-1.5",
+              isActive ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground",
+            )}
+          >
             {badge}
           </span>
         )}
@@ -310,7 +317,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
                       className={cn(
                         "w-full flex items-center gap-3 pl-9 pr-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
                         groupHasActiveItem && !isOpen
-                          ? "text-primary"
+                          ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-accent",
                       )}
                     >

@@ -25,13 +25,13 @@ export default async function CadastrosPage() {
     {
       href: "/cadastros/equipes",
       title: "Equipes",
-      description: "Organize prestadores em equipes e defina supervisores responsaveis.",
+      description: "Organize prestadores em equipes e defina supervisores responsáveis.",
       icon: UsersRound,
     },
     {
       href: "/cadastros/centros-custo",
       title: "Centros de Custo",
-      description: "Gerencie os centros de custo para organizacao financeira dos pagamentos.",
+      description: "Gerencie os centros de custo para organização financeira dos pagamentos.",
       icon: Building2,
     },
   ]

@@ -293,7 +293,7 @@ export function ColaboradorEditDialog({ colaborador, open, onOpenChange, usuario
                   <SelectItem value="cnpj">CNPJ</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="telefone">Telefone</SelectItem>
-                  <SelectItem value="aleatoria">Chave Aleatoria</SelectItem>
+                  <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
                 </SelectContent>
               </Select>
             </div>

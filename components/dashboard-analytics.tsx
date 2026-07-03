@@ -64,8 +64,8 @@ const TIPO_LABELS: Record<string, string> = {
   salario: "Valor Contratual",
   horas_extras: "Horas Extras",
   reembolso_km: "Reembolso KM",
-  plantao: "Plantao",
-  conducao: "Conducao",
+  plantao: "Plantão",
+  conducao: "Condução",
 }
 
 function formatDateBR(dateString: string) {
@@ -263,8 +263,8 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
       { name: "Valor Contratual", value: kpis.salarios },
       { name: "Horas Extras", value: kpis.horasExtras },
       { name: "Reembolso KM", value: kpis.reembolsoKm },
-      { name: "Plantao", value: kpis.plantao },
-      { name: "Conducao", value: kpis.conducao },
+      { name: "Plantão", value: kpis.plantao },
+      { name: "Condução", value: kpis.conducao },
     ].filter((i) => i.value > 0)
     return items
   }, [kpis])
@@ -308,13 +308,13 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
       "HE 100% (h)",
       "Valor Horas Extras",
       "Reembolso KM",
-      "Plantao",
-      "Conducao",
-      "Comissao",
+      "Plantão",
+      "Condução",
+      "Comissão",
       "Desconto",
       "Valor Total",
       "Criado por",
-      "Previsao Pagamento",
+      "Previsão Pagamento",
     ]
 
     const escXml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -369,7 +369,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
   xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-  <Worksheet ss:Name="Relatorio">
+  <Worksheet ss:Name="Relatório">
     <Table>${xmlRows}</Table>
   </Worksheet>
 </Workbook>`
@@ -433,7 +433,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
           <CardContent>
             {monthlyData.length === 0 ? (
               <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
-                Sem dados para o periodo selecionado
+                Sem dados para o período selecionado
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
@@ -464,7 +464,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Distribuicao por Tipo</CardTitle>
+            <CardTitle className="text-base font-semibold">Distribuição por Tipo</CardTitle>
           </CardHeader>
           <CardContent>
             {pieData.length === 0 ? (
@@ -528,7 +528,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
               90 dias
             </Button>
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={setMonthPreset}>
-              Este mes
+              Este mês
             </Button>
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
               Limpar
@@ -538,7 +538,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-3 pt-3 border-t">
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Data inicio</label>
+                <label className="text-xs text-muted-foreground mb-1 block">Data início</label>
                 <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="h-8 text-sm" />
               </div>
               <div>
@@ -558,7 +558,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                     <SelectItem value="aprovado">Aprovado</SelectItem>
                     <SelectItem value="pago">Pago</SelectItem>
                     <SelectItem value="recusado">Recusado</SelectItem>
-                    <SelectItem value="correcao">Correcao</SelectItem>
+                    <SelectItem value="correcao">Correção</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -572,8 +572,8 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                     <SelectItem value="todos">Todos</SelectItem>
                     <SelectItem value="reembolso_km">Reembolso KM</SelectItem>
                     <SelectItem value="horas_extras">Horas Extras</SelectItem>
-                    <SelectItem value="plantao">Plantao</SelectItem>
-                    <SelectItem value="conducao">Conducao</SelectItem>
+                    <SelectItem value="plantao">Plantão</SelectItem>
+                    <SelectItem value="conducao">Condução</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -717,7 +717,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                                   )}
                                   {(p.valor_plantao || 0) > 0 && (
                                     <div>
-                                      <span className="text-muted-foreground text-xs block">Plantao</span>
+                                      <span className="text-muted-foreground text-xs block">Plantão</span>
                                       <span className="font-medium">{formatValue(p.valor_plantao)}</span>
                                       {p.motivo_plantao && (
                                         <span className="text-xs text-muted-foreground block">{p.motivo_plantao}</span>
@@ -726,13 +726,13 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                                   )}
                                   {(p.conducao || 0) > 0 && (
                                     <div>
-                                      <span className="text-muted-foreground text-xs block">Conducao</span>
+                                      <span className="text-muted-foreground text-xs block">Condução</span>
                                       <span className="font-medium">{formatValue(p.conducao)}</span>
                                     </div>
                                   )}
                                   {(p.comissao || 0) > 0 && (
                                     <div>
-                                      <span className="text-muted-foreground text-xs block">Comissao</span>
+                                      <span className="text-muted-foreground text-xs block">Comissão</span>
                                       <span className="font-medium">{formatValue(p.comissao || 0)}</span>
                                       {p.motivo_comissao && (
                                         <span className="text-xs text-muted-foreground block">{p.motivo_comissao}</span>
@@ -750,7 +750,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                                   )}
                                   {p.data_previsao_pagamento && (
                                     <div>
-                                      <span className="text-muted-foreground text-xs block">Previsao Pagamento</span>
+                                      <span className="text-muted-foreground text-xs block">Previsão Pagamento</span>
                                       <span className="font-medium">{formatDateBR(p.data_previsao_pagamento)}</span>
                                     </div>
                                   )}

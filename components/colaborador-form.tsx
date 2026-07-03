@@ -106,7 +106,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
               <Label htmlFor="nome_completo">Nome Completo</Label>
               <Input
                 id="nome_completo"
-                placeholder="Joao da Silva"
+                placeholder="João da Silva"
                 value={formData.nome_completo}
                 onChange={(e) => setFormData({ ...formData, nome_completo: e.target.value })}
                 required
@@ -130,7 +130,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
               <Input
                 id="senha"
                 type="password"
-                placeholder="Minimo 6 caracteres"
+                placeholder="Mínimo 6 caracteres"
                 minLength={6}
                 value={formData.senha}
                 onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
@@ -277,7 +277,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
                   <SelectItem value="cnpj">CNPJ</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="telefone">Telefone</SelectItem>
-                  <SelectItem value="aleatoria">Chave Aleatoria</SelectItem>
+                  <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
                 </SelectContent>
               </Select>
             </div>

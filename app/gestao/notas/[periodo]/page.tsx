@@ -12,7 +12,7 @@ import { toPedidoDTO } from "@/lib/db/mappers"
 const MESES_NOMES = [
   "Janeiro",
   "Fevereiro",
-  "Marco",
+  "Março",
   "Abril",
   "Maio",
   "Junho",
@@ -52,7 +52,7 @@ async function listarNotasDoPeriodo(ano: number, mes: number) {
 
     return filtrados.map((row) => toPedidoDTO(row))
   } catch (error) {
-    console.error("[v0] Erro ao buscar notas do periodo:", error)
+    console.error("[v0] Erro ao buscar notas do período:", error)
     return []
   }
 }

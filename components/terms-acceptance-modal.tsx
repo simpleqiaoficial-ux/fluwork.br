@@ -157,19 +157,19 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
         >
           <div className="space-y-4 py-4 pr-2 text-sm">
             <section>
-              <h3 className="mb-2 font-semibold">1. Aceitacao dos Termos</h3>
+              <h3 className="mb-2 font-semibold">1. Aceitação dos Termos</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Ao acessar e utilizar o sistema FluWork, voce concorda em cumprir e estar vinculado a estes 
-                Termos de Uso. Se voce nao concordar com qualquer parte destes termos, nao devera utilizar 
+                Ao acessar e utilizar o sistema FluWork, você concorda em cumprir e estar vinculado a estes
+                Termos de Uso. Se você não concordar com qualquer parte destes termos, não deverá utilizar
                 o sistema.
               </p>
             </section>
 
             <section>
-              <h3 className="mb-2 font-semibold">2. Descricao do Servico</h3>
+              <h3 className="mb-2 font-semibold">2. Descrição do Serviço</h3>
               <p className="text-muted-foreground leading-relaxed">
-                O FluWork e um sistema de gestao de pagamentos para colaboradores, permitindo o controle 
-                de pedidos, notas fiscais, aprovacoes e pagamentos. O sistema e disponibilizado pela empresa 
+                O FluWork é um sistema de gestão de pagamentos para colaboradores, permitindo o controle
+                de pedidos, notas fiscais, aprovações e pagamentos. O sistema é disponibilizado pela empresa
                 contratante para uso exclusivo de seus colaboradores autorizados.
               </p>
             </section>
@@ -177,63 +177,63 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">3. Cadastro e Credenciais</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Voce e responsavel por manter a confidencialidade de suas credenciais de acesso (email e senha). 
-                Qualquer atividade realizada com suas credenciais sera de sua responsabilidade. Voce deve 
-                notificar imediatamente a administracao em caso de uso nao autorizado de sua conta.
+                Você é responsável por manter a confidencialidade de suas credenciais de acesso (email e senha).
+                Qualquer atividade realizada com suas credenciais será de sua responsabilidade. Você deve
+                notificar imediatamente a administração em caso de uso não autorizado de sua conta.
               </p>
             </section>
 
             <section>
               <h3 className="mb-2 font-semibold">4. Uso Adequado</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Voce concorda em utilizar o sistema apenas para fins legitimos relacionados as suas atividades 
-                profissionais. E expressamente proibido:
+                Você concorda em utilizar o sistema apenas para fins legítimos relacionados às suas atividades
+                profissionais. É expressamente proibido:
               </p>
               <ul className="mt-2 list-disc pl-6 text-muted-foreground space-y-1">
-                <li>Fornecer informacoes falsas ou enganosas</li>
-                <li>Tentar acessar areas ou funcionalidades nao autorizadas</li>
-                <li>Realizar qualquer acao que possa comprometer a seguranca do sistema</li>
+                <li>Fornecer informações falsas ou enganosas</li>
+                <li>Tentar acessar áreas ou funcionalidades não autorizadas</li>
+                <li>Realizar qualquer ação que possa comprometer a segurança do sistema</li>
                 <li>Compartilhar suas credenciais de acesso com terceiros</li>
-                <li>Utilizar o sistema para atividades ilegais ou nao autorizadas</li>
+                <li>Utilizar o sistema para atividades ilegais ou não autorizadas</li>
               </ul>
             </section>
 
             <section>
               <h3 className="mb-2 font-semibold">5. Privacidade e Dados</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Seus dados pessoais serao tratados de acordo com a Lei Geral de Protecao de Dados (LGPD). 
-                Coletamos apenas os dados necessarios para a operacao do sistema, incluindo:
+                Seus dados pessoais serão tratados de acordo com a Lei Geral de Proteção de Dados (LGPD).
+                Coletamos apenas os dados necessários para a operação do sistema, incluindo:
               </p>
               <ul className="mt-2 list-disc pl-6 text-muted-foreground space-y-1">
-                <li>Dados de identificacao (nome, email, CPF/CNPJ)</li>
-                <li>Dados financeiros (informacoes bancarias para pagamento)</li>
+                <li>Dados de identificação (nome, email, CPF/CNPJ)</li>
+                <li>Dados financeiros (informações bancárias para pagamento)</li>
                 <li>Logs de acesso e atividades no sistema</li>
-                <li>Informacoes de dispositivo e IP para fins de seguranca</li>
+                <li>Informações de dispositivo e IP para fins de segurança</li>
               </ul>
             </section>
 
             <section>
               <h3 className="mb-2 font-semibold">6. Propriedade Intelectual</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Todo o conteudo do sistema, incluindo mas nao limitado a textos, graficos, logos, icones, 
-                imagens e software, e protegido por direitos autorais e outras leis de propriedade intelectual.
+                Todo o conteúdo do sistema, incluindo mas não limitado a textos, gráficos, logos, ícones,
+                imagens e software, é protegido por direitos autorais e outras leis de propriedade intelectual.
               </p>
             </section>
 
             <section>
-              <h3 className="mb-2 font-semibold">7. Limitacao de Responsabilidade</h3>
+              <h3 className="mb-2 font-semibold">7. Limitação de Responsabilidade</h3>
               <p className="text-muted-foreground leading-relaxed">
-                O sistema e fornecido &quot;como esta&quot;. Nao garantimos que o servico sera ininterrupto ou 
-                livre de erros. Nao nos responsabilizamos por danos indiretos, incidentais ou consequenciais 
+                O sistema é fornecido &quot;como está&quot;. Não garantimos que o serviço será ininterrupto ou
+                livre de erros. Não nos responsabilizamos por danos indiretos, incidentais ou consequenciais
                 decorrentes do uso do sistema.
               </p>
             </section>
 
             <section>
-              <h3 className="mb-2 font-semibold">8. Modificacoes dos Termos</h3>
+              <h3 className="mb-2 font-semibold">8. Modificações dos Termos</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Reservamo-nos o direito de modificar estes termos a qualquer momento. Alteracoes significativas 
-                serao comunicadas atraves do sistema. O uso continuado apos as modificacoes constitui aceitacao 
+                Reservamo-nos o direito de modificar estes termos a qualquer momento. Alterações significativas
+                serão comunicadas através do sistema. O uso continuado após as modificações constitui aceitação
                 dos novos termos.
               </p>
             </section>
@@ -241,22 +241,22 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">9. Encerramento</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Seu acesso ao sistema pode ser suspenso ou encerrado a qualquer momento, com ou sem aviso previo, 
-                por violacao destes termos ou por determinacao da empresa contratante.
+                Seu acesso ao sistema pode ser suspenso ou encerrado a qualquer momento, com ou sem aviso prévio,
+                por violação destes termos ou por determinação da empresa contratante.
               </p>
             </section>
 
             <section>
-              <h3 className="mb-2 font-semibold">10. Disposicoes Gerais</h3>
+              <h3 className="mb-2 font-semibold">10. Disposições Gerais</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Estes termos constituem o acordo integral entre voce e o FluWork. A invalidade de qualquer 
-                disposicao nao afetara a validade das demais. O nao exercicio de qualquer direito nao implica 
-                renuncia ao mesmo.
+                Estes termos constituem o acordo integral entre você e o FluWork. A invalidade de qualquer
+                disposição não afetará a validade das demais. O não exercício de qualquer direito não implica
+                renúncia ao mesmo.
               </p>
             </section>
 
             <p className="mt-6 pt-4 border-t text-xs text-muted-foreground text-center">
-              Ultima atualizacao: Janeiro de 2025 | Versao {CURRENT_TERMS_VERSION}
+              Última atualização: Janeiro de 2025 | Versão {CURRENT_TERMS_VERSION}
             </p>
           </div>
         </div>
@@ -265,7 +265,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
         <div className="shrink-0 border-t bg-background px-4 sm:px-6 pb-4 pt-3 space-y-3">
           {!hasScrolledToBottom && (
             <p className="text-center text-xs text-muted-foreground">
-              Role ate o final para habilitar a opcao de aceite
+              Role até o final para habilitar a opção de aceite
             </p>
           )}
 
@@ -281,8 +281,8 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               htmlFor="accept-terms"
               className={`text-sm leading-relaxed cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
             >
-              Li e concordo com os Termos de Uso do FluWork. Entendo que meus dados serao processados conforme
-              descrito acima e que devo utilizar o sistema de forma responsavel.
+              Li e concordo com os Termos de Uso do FluWork. Entendo que meus dados serão processados conforme
+              descrito acima e que devo utilizar o sistema de forma responsável.
             </Label>
           </div>
 

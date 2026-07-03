@@ -91,7 +91,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
     setLoading(true)
     try {
       await excluirCentroCusto(deleteId)
-      toast.success("Centro de custo excluido")
+      toast.success("Centro de custo excluído")
       setDeleteId(null)
       router.refresh()
     } catch (err: unknown) {
@@ -121,7 +121,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <h3 className="font-medium text-foreground">Nenhum centro de custo</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-            Crie centros de custo para organizar seus prestadores por area.
+            Crie centros de custo para organizar seus prestadores por área.
           </p>
           <Button onClick={openNew} variant="outline" size="sm" className="mt-4">
             <Plus className="h-4 w-4" />
@@ -133,9 +133,9 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[120px]">Numero</TableHead>
-                <TableHead>Nome da Area</TableHead>
-                <TableHead className="w-[100px] text-right">Acoes</TableHead>
+                <TableHead className="w-[120px]">Número</TableHead>
+                <TableHead>Nome da Área</TableHead>
+                <TableHead className="w-[100px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,7 +175,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="numero">Numero</Label>
+              <Label htmlFor="numero">Número</Label>
               <Input
                 id="numero"
                 placeholder="Ex: 1001"
@@ -184,7 +184,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nome">Nome da Area</Label>
+              <Label htmlFor="nome">Nome da Área</Label>
               <Input
                 id="nome"
                 placeholder="Ex: Departamento Comercial"
@@ -210,7 +210,7 @@ export function CentrosCustoList({ centros }: CentrosCustoListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir centro de custo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa acao nao pode ser desfeita. Centros de custo com prestadores vinculados nao podem ser excluidos.
+              Essa ação não pode ser desfeita. Centros de custo com prestadores vinculados não podem ser excluídos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

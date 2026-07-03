@@ -107,7 +107,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
     setLoading(true)
     try {
       await deletarEquipe(deleteId)
-      toast.success("Equipe excluida")
+      toast.success("Equipe excluída")
       setDeleteId(null)
       router.refresh()
     } catch (err) {
@@ -299,7 +299,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir equipe?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa acao nao pode ser desfeita. Prestadores vinculados serao desvinculados da equipe.
+              Essa ação não pode ser desfeita. Prestadores vinculados serão desvinculados da equipe.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
