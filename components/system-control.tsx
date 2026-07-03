@@ -102,7 +102,7 @@ export function SystemControl() {
               <div>
                 <CardTitle className="text-lg">Controle do Sistema</CardTitle>
                 <CardDescription>
-                  Gerencie o status de funcionamento do FluXork
+                  Gerencie o status de funcionamento do FluWork
                 </CardDescription>
               </div>
             </div>

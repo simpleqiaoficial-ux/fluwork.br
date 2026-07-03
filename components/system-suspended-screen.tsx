@@ -19,7 +19,7 @@ export function SystemSuspendedScreen({ reason }: SystemSuspendedScreenProps) {
         <div className="space-y-1.5">
           <h1 className="text-xl font-semibold">Sistema temporariamente suspenso</h1>
           <p className="text-sm text-muted-foreground">
-            O FluXork esta em manutencao no momento.
+            O FluWork esta em manutencao no momento.
           </p>
         </div>
 

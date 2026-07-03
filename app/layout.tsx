@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "FluXork - Gestão de Prestadores",
+  title: "FluWork - Gestão de Prestadores",
   description: "Gerencie contratos, notas fiscais e valores contratuais de prestadores com facilidade",
 }
 
@@ -45,7 +45,9 @@ export default async function RootLayout({
         <ValoresVisibilityProvider>
           {!isAuthPage && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
 
-          <div className={cn("min-h-screen", !isAuthPage && "lg:pl-64")}>
+          <div
+            className={cn("min-h-screen transition-[padding] duration-150", !isAuthPage && "lg:pl-[var(--sidebar-w,16rem)]")}
+          >
             {!isAuthPage && session && (
               <UserHeader
                 nomeCompleto={session.nomeCompleto}

@@ -36,7 +36,7 @@ export default function LoginPage() {
       <header className="border-b">
         <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
           <span className="text-sm font-semibold tracking-tight">
-            Fluxo<span className="text-primary">Pay</span>
+            Flu<span className="text-primary">Work</span>
           </span>
           <div className="flex items-center gap-6 text-sm">
             <Link href="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -126,7 +126,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluXork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-3">
             <span>simpleqia.oficial@gmail.com</span>
             <span>·</span>

@@ -24,7 +24,7 @@ export default function PrivacidadePage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
         <h1 className="text-2xl font-semibold tracking-tight">Politica de Privacidade</h1>
-        <p className="text-sm text-muted-foreground mt-2">FluXork - LGPD (Lei n 13.709/2018)</p>
+        <p className="text-sm text-muted-foreground mt-2">FluWork - LGPD (Lei n 13.709/2018)</p>
         <p className="text-xs text-muted-foreground mt-3">
           Vigencia: 02/04/2026 · Versao 2.1 · CNPJ 26.344.386/0001-42
         </p>
@@ -38,7 +38,7 @@ export default function PrivacidadePage() {
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             <strong className="text-foreground font-medium">Controlador dos Dados:</strong> FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
             CNPJ 26.344.386/0001-42, nome fantasia KAFERRI TEC SERVICOS, com sede em Osasco/SP, responsavel pelas
-            decisoes relativas ao tratamento de dados pessoais no FluXork.
+            decisoes relativas ao tratamento de dados pessoais no FluWork.
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             <strong className="text-foreground font-medium">Encarregado de Dados (DPO):</strong> simpleqia.oficial@gmail.com. O DPO e o canal
@@ -47,7 +47,7 @@ export default function PrivacidadePage() {
           <div className="border-l-2 border-border pl-4 py-1">
             <p className="text-sm text-muted-foreground">
               Para dados de prestadores inseridos pelas Empresas Clientes, a Empresa Cliente atua como Controladora
-              e o FluXork atua como Operadora, conforme Art. 37 da LGPD.
+              e o FluWork atua como Operadora, conforme Art. 37 da LGPD.
             </p>
           </div>
         </section>
@@ -73,7 +73,7 @@ export default function PrivacidadePage() {
           <div className="border-l-2 border-success pl-4 py-1">
             <p className="text-sm text-muted-foreground">
               Nao coletamos dados sensiveis (saude, biometria, etnia, orientacao sexual) e nao permitimos o cadastro
-              de dados de menores de 18 anos atraves do FluXork.
+              de dados de menores de 18 anos atraves do FluWork.
             </p>
           </div>
         </section>
@@ -125,7 +125,7 @@ export default function PrivacidadePage() {
           </ul>
           <div className="border-l-2 border-destructive pl-4 py-1">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground font-medium">Proibido:</strong> O FluXork jamais vende, cede ou comercializa dados pessoais para terceiros
+              <strong className="text-foreground font-medium">Proibido:</strong> O FluWork jamais vende, cede ou comercializa dados pessoais para terceiros
               para fins de marketing, publicidade ou qualquer finalidade alheia ao servico contratado.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">5. Transferencia Internacional de Dados</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Caso dados sejam processados em infraestrutura localizada fora do Brasil, o FluXork garante que tais
+            Caso dados sejam processados em infraestrutura localizada fora do Brasil, o FluWork garante que tais
             transferencias ocorrem apenas para paises com grau de protecao adequado reconhecido pela ANPD ou mediante
             clausulas contratuais padrao, conforme Arts. 33 e seguintes da LGPD.
           </p>
@@ -211,7 +211,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">9. Cookies e Tecnologias Similares</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluXork utiliza exclusivamente cookies estritamente necessarios para:
+            O FluWork utiliza exclusivamente cookies estritamente necessarios para:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Manutencao da sessao autenticada do usuario</li>
@@ -229,7 +229,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">10. Incidentes de Seguranca</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Em caso de incidente que possa afetar dados pessoais, o FluXork:
+            Em caso de incidente que possa afetar dados pessoais, o FluWork:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Notificara a Empresa Cliente no prazo maximo de 72 horas apos ciencia do evento</li>
@@ -247,7 +247,7 @@ export default function PrivacidadePage() {
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             Esta Politica entra em vigor em 02/04/2026 e pode ser atualizada periodicamente. Alteracoes relevantes
             serao comunicadas por e-mail com antecedencia minima de 15 dias. A versao vigente estara sempre disponivel
-            na tela de login do FluXork.
+            na tela de login do FluWork.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
@@ -274,7 +274,7 @@ export default function PrivacidadePage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluXork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
