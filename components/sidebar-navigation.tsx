@@ -104,19 +104,16 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         href={link.href}
         onClick={onClick}
         className={cn(
-          "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+          "group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
           isActive
-            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-            : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent",
         )}
       >
-        <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary-foreground")} />
+        <Icon className="h-4 w-4 shrink-0" />
         <span className="flex-1 truncate">{link.label}</span>
         {hasBadge && (
-          <span className={cn(
-            "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full text-[10px] font-bold px-1.5",
-            isActive ? "bg-white/20 text-white" : "bg-primary text-primary-foreground"
-          )}>
+          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium px-1.5">
             {link.badge}
           </span>
         )}
@@ -137,7 +134,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       </Button>
 
 {/* Desktop sidebar */}
-  <aside className="fixed top-0 left-0 z-40 h-screen w-60 hidden lg:flex flex-col border-r bg-card/95 backdrop-blur-sm">
+  <aside className="fixed top-0 left-0 z-40 h-screen w-60 hidden lg:flex flex-col border-r bg-card">
   <div className="flex items-center h-16 px-4 border-b">
   <Link href="/" className="flex items-center">
   <img 
@@ -172,7 +169,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       {mobileOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-foreground/50 lg:hidden" onClick={() => setMobileOpen(false)} />
-<aside className="fixed top-0 left-0 z-50 h-screen w-72 bg-card/95 backdrop-blur-sm border-r lg:hidden flex flex-col shadow-2xl animate-in slide-in-from-left duration-200">
+<aside className="fixed top-0 left-0 z-50 h-screen w-72 bg-card border-r lg:hidden flex flex-col animate-in slide-in-from-left duration-200">
   <div className="flex items-center justify-between h-16 px-4 border-b">
   <Link href="/" className="flex items-center">
   <img 
