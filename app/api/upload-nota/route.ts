@@ -1,5 +1,5 @@
-import { put } from "@vercel/blob"
 import { type NextRequest, NextResponse } from "next/server"
+import { uploadFile } from "@/lib/gcs"
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,13 +44,11 @@ export async function POST(request: NextRequest) {
         ? "application/pdf"
         : "application/xml"
 
-    const blob = await put(filename, file, {
-      access: "public",
-      contentType,
-    })
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const objectPath = await uploadFile(buffer, `nota-fiscal/${filename}`, contentType)
 
     return NextResponse.json({
-      url: blob.url,
+      url: `/api/files/${objectPath}`,
       filename: file.name,
       size: file.size,
     })

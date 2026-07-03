@@ -7,7 +7,7 @@ import { toPedidoDTO } from "@/lib/db/mappers"
 import type { NovoPedido, AcaoPedido } from "@/types/pedido"
 import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
-import { put } from "@vercel/blob"
+import { uploadFile } from "@/lib/gcs"
 
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
@@ -700,17 +700,23 @@ export async function uploadNotaFiscal(formData: FormData) {
       throw new Error("Arquivo muito grande. Máximo 10MB")
     }
 
-    // Upload to Vercel Blob com nome único
+    // Upload para o Google Cloud Storage (bucket privado) com nome único
     const timestamp = Date.now()
-    const filename = `nota-fiscal-${timestamp}-${file.name}`
+    const safeFileName = file.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .replace(/[^a-zA-Z0-9._-]/g, "_") // substitui especiais por underscore
+      .toLowerCase()
+    const filename = `nota-fiscal-${timestamp}-${safeFileName}`
+    const contentType =
+      file.type === "application/pdf" || fileName.endsWith(".pdf") ? "application/pdf" : "application/xml"
 
-    const blob = await put(filename, file, {
-      access: "public",
-    })
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const objectPath = await uploadFile(buffer, `nota-fiscal/${filename}`, contentType)
 
     return {
       success: true,
-      url: blob.url,
+      url: `/api/files/${objectPath}`,
       filename: file.name,
       size: file.size,
     }

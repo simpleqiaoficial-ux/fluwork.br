@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 export default function GlobalError({
   error,
 }: {
@@ -7,8 +9,24 @@ export default function GlobalError({
 }) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
 
-  // Log the error to the console so it will be forwarded to server logs and captured by auto-fix
   console.error(error)
+
+  useEffect(() => {
+    // Envia o erro para o Cloud Error Reporting via nossa própria rota server-side
+    // (erros de client component não chegam ao stdout do container sozinhos).
+    fetch('/api/report-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: error.message,
+        stack: error.stack,
+        digest: error.digest,
+        pathname,
+      }),
+      keepalive: true,
+    }).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <html>

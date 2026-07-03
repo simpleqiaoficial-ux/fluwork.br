@@ -1,5 +1,5 @@
-import { put } from "@vercel/blob"
 import { type NextRequest, NextResponse } from "next/server"
+import { uploadFile } from "@/lib/gcs"
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,13 +33,11 @@ export async function POST(request: NextRequest) {
 
     const uniqueFileName = `faturas/${Date.now()}-${safeFileName}`
 
-    // Upload para Vercel Blob
-    const blob = await put(uniqueFileName, file, {
-      access: "public",
-      contentType: "application/pdf",
-    })
+    // Upload para o Google Cloud Storage (bucket privado)
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const objectPath = await uploadFile(buffer, uniqueFileName, "application/pdf")
 
-    return NextResponse.json({ url: blob.url })
+    return NextResponse.json({ url: `/api/files/${objectPath}` })
   } catch (error) {
     console.error("[v0] Erro no upload de fatura:", error)
     const message = error instanceof Error ? error.message : "Erro desconhecido"
