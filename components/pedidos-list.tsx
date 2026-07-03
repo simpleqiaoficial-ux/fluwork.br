@@ -1,7 +1,16 @@
 import { listarPedidos, listarPedidosPorSupervisor, listarPedidosPorGerente } from "@/app/actions/pedidos"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PedidoItem } from "./pedido-item"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getSession } from "@/lib/session"
+import { formatCurrency } from "@/lib/utils"
+
+function formatDateBR(dateString: string) {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
 
 export async function PedidosList() {
   const session = await getSession()
@@ -16,24 +25,49 @@ export async function PedidosList() {
   }
 
   return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle>Pedidos de Pagamento</CardTitle>
-        <CardDescription>
-          {pedidos.length} pedido{pedidos.length !== 1 ? "s" : ""} registrado{pedidos.length !== 1 ? "s" : ""}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {pedidos.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">Nenhum pedido criado ainda</p>
-        ) : (
-          <div className="max-h-[600px] overflow-y-auto pr-2 space-y-3">
-            {pedidos.map((pedido) => (
-              <PedidoItem key={pedido.id} pedido={pedido} />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div>
+      <h2 className="text-sm font-medium">Pedidos de pagamento</h2>
+      <p className="text-xs text-muted-foreground mt-1 mb-4">
+        {pedidos.length} pedido{pedidos.length !== 1 ? "s" : ""} registrado{pedidos.length !== 1 ? "s" : ""}
+      </p>
+
+      {pedidos.length === 0 ? (
+        <p className="text-muted-foreground text-center py-8 text-sm">Nenhum pedido criado ainda</p>
+      ) : (
+        <div className="rounded-lg border max-h-[600px] overflow-y-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Colaborador</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead className="text-right">Valor total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pedidos.map((pedido) => {
+                const colaboradorNome = pedido.colaborador?.nome_completo || "N/A"
+                const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
+
+                return (
+                  <TableRow key={pedido.id}>
+                    <TableCell className="font-medium">{colaboradorNome}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDateBR(pedido.created_at)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal">
+                        {isReembolsoKm ? "Reembolso KM" : "Completo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {formatCurrency(pedido.valor_total)}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
   )
 }

@@ -13,11 +13,33 @@ import type { PedidoPagamento } from "@/types/pedido"
 import { formatCurrency } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PedidoDetailModal } from "./pedido-detail-modal"
 
 interface DashboardFiltersProps {
   pedidos: PedidoPagamento[]
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pendente_gerente: "Aguardando Gerente",
+  pendente_financeiro: "Aguardando Financeiro",
+  aprovado: "Aprovado",
+  pago: "Pago",
+  nota_recebida: "Nota Recebida",
+  recusado: "Recusado",
+  correcao: "Em Correção",
+}
+
+const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
+  pendente_gerente: "outline",
+  pendente_financeiro: "outline",
+  aprovado: "success",
+  pago: "success",
+  nota_recebida: "success",
+  recusado: "destructive",
+  correcao: "warning",
 }
 
 export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
@@ -191,7 +213,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
         : "-",
     ])
 
-    const BOM = "\uFEFF"
+    const BOM = "﻿"
     const csvContent = [headers, ...rows]
       .map((row) =>
         row
@@ -223,97 +245,96 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
     setIsModalOpen(true)
   }
 
+  const hasActiveFilters = Boolean(searchTerm || statusFilter !== "todos" || tipoFilter !== "todos" || dataInicio || dataFim)
+
   return (
-    <div className="space-y-4 mb-8">
-      <Card className="bg-card border">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">Total de Pedidos</p>
-              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.valorTotal)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">Pendentes</p>
-              <p className="text-2xl font-bold text-foreground">{stats.pendentes}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">Aprovados</p>
-              <p className="text-2xl font-bold text-foreground">{stats.aprovados}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-1">Pagos</p>
-              <p className="text-2xl font-bold text-foreground">{stats.pagos}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por colaborador ou criador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Status</SelectItem>
-              <SelectItem value="pendente_gerente">Aguardando Gerente</SelectItem>
-              <SelectItem value="pendente_financeiro">Aguardando Financeiro</SelectItem>
-              <SelectItem value="aprovado">Aprovado</SelectItem>
-              <SelectItem value="pago">Pago</SelectItem>
-              <SelectItem value="nota_recebida">Nota Recebida</SelectItem>
-              <SelectItem value="recusado">Recusado</SelectItem>
-              <SelectItem value="correcao">Em Correção</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={tipoFilter} onValueChange={setTipoFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Tipos</SelectItem>
-              <SelectItem value="completo">Pedido Completo</SelectItem>
-              <SelectItem value="reembolso_km">Reembolso KM</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" size="icon" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="h-4 w-4" />
-          </Button>
+    <div className="space-y-6 mb-8">
+      {/* Indicadores */}
+      <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Total de pedidos</p>
+          <p className="text-2xl font-semibold tabular-nums">{stats.total}</p>
         </div>
-
-        <div className="flex gap-2">
-          {(searchTerm || statusFilter !== "todos" || tipoFilter !== "todos" || dataInicio || dataFim) && (
-            <Button variant="outline" size="sm" onClick={limparFiltros}>
-              <X className="mr-2 h-4 w-4" />
-              Limpar Tudo
-            </Button>
-          )}
-          <Button onClick={exportarParaExcel} variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Valor total</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatCurrency(stats.valorTotal)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Pendentes</p>
+          <p className="text-2xl font-semibold tabular-nums">{stats.pendentes}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Aprovados</p>
+          <p className="text-2xl font-semibold tabular-nums">{stats.aprovados}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Pagos</p>
+          <p className="text-2xl font-semibold tabular-nums">{stats.pagos}</p>
         </div>
       </div>
 
-      {showFilters && (
-        <Card className="border-dashed">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row gap-2 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por colaborador ou criador..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="pendente_gerente">Aguardando Gerente</SelectItem>
+                  <SelectItem value="pendente_financeiro">Aguardando Financeiro</SelectItem>
+                  <SelectItem value="aprovado">Aprovado</SelectItem>
+                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="nota_recebida">Nota Recebida</SelectItem>
+                  <SelectItem value="recusado">Recusado</SelectItem>
+                  <SelectItem value="correcao">Em Correção</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={tipoFilter} onValueChange={setTipoFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Tipos</SelectItem>
+                  <SelectItem value="completo">Pedido Completo</SelectItem>
+                  <SelectItem value="reembolso_km">Reembolso KM</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button variant="outline" size="icon" onClick={() => setShowFilters(!showFilters)} className="shrink-0">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 shrink-0">
+              {hasActiveFilters && (
+                <Button variant="outline" size="sm" onClick={limparFiltros}>
+                  <X className="mr-1 h-4 w-4" />
+                  Limpar
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={exportarParaExcel}>
+                <Download className="mr-1 h-4 w-4" />
+                Exportar
+              </Button>
+            </div>
+          </div>
+
+          {showFilters && (
+            <div className="space-y-3 mt-3 pt-3 border-t">
               <div className="flex flex-col sm:flex-row gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -345,96 +366,70 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
                   </PopoverContent>
                 </Popover>
 
-                <Button onClick={aplicarFiltros} disabled={!dataInicio && !dataFim}>
+                <Button variant="outline" onClick={aplicarFiltros} disabled={!dataInicio && !dataFim}>
                   Aplicar Datas
                 </Button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <p className="text-sm text-muted-foreground w-full mb-1">Filtros Rápidos:</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">Filtros rápidos:</span>
                 {filtrosRapidos.map((filtro) => (
-                  <Button key={filtro.label} variant="secondary" size="sm" onClick={filtro.onClick}>
+                  <Button key={filtro.label} variant="ghost" size="sm" className="h-7 text-xs" onClick={filtro.onClick}>
                     {filtro.label}
                   </Button>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardHeader>
 
-      {pedidosFiltrados.length > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b sticky top-0 bg-white z-10">
-                  <tr className="text-left">
-                    <th className="pb-3 px-2 font-semibold">Data</th>
-                    <th className="pb-3 px-2 font-semibold">Colaborador</th>
-                    <th className="pb-3 px-2 font-semibold">Tipo</th>
-                    <th className="pb-3 px-2 font-semibold text-right">Valor</th>
-                    <th className="pb-3 px-2 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedidosFiltrados.map((pedido) => (
-                    <tr
-                      key={pedido.id}
-                      onClick={() => handleRowClick(pedido)}
-                      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
-                    >
-                      <td className="py-3 px-2 text-muted-foreground">
-                        {format(new Date(pedido.created_at), "dd/MM/yy", { locale: ptBR })}
-                      </td>
-                      <td className="py-3 px-2 font-medium">{pedido.colaborador?.nome_completo}</td>
-                      <td className="py-3 px-2">
-                        {pedido.tipo_pedido === "reembolso_km" ? (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                            Reembolso KM
-                          </span>
-                        ) : (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Completo</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-2 text-right font-semibold">{formatCurrency(pedido.valor_total)}</td>
-                      <td className="py-3 px-2">
-                        {pedido.status === "pendente_gerente" && (
-                          <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
-                            Aguardando Gerente
-                          </span>
-                        )}
-                        {pedido.status === "pendente_financeiro" && (
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                            Aguardando Financeiro
-                          </span>
-                        )}
-                        {pedido.status === "aprovado" && (
-                          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">Aprovado</span>
-                        )}
-                        {pedido.status === "pago" && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Pago</span>
-                        )}
-                        {pedido.status === "nota_recebida" && (
-                          <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">
-                            Nota Recebida
-                          </span>
-                        )}
-                        {pedido.status === "recusado" && (
-                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">Recusado</span>
-                        )}
-                        {pedido.status === "correcao" && (
-                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Em Correção</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {pedidosFiltrados.length > 0 && (
+          <CardContent className="pt-0">
+            <div className="rounded-lg border overflow-hidden">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableHead className="text-xs">Data</TableHead>
+                      <TableHead className="text-xs">Colaborador</TableHead>
+                      <TableHead className="text-xs">Tipo</TableHead>
+                      <TableHead className="text-xs text-right">Valor</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pedidosFiltrados.map((pedido) => (
+                      <TableRow
+                        key={pedido.id}
+                        onClick={() => handleRowClick(pedido)}
+                        className="cursor-pointer"
+                      >
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {format(new Date(pedido.created_at), "dd/MM/yy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">{pedido.colaborador?.nome_completo}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {pedido.tipo_pedido === "reembolso_km" ? "Reembolso KM" : "Completo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-semibold tabular-nums">
+                          {formatCurrency(pedido.valor_total)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
+                            {STATUS_LABELS[pedido.status] || pedido.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </CardContent>
-        </Card>
-      )}
+        )}
+      </Card>
 
       <PedidoDetailModal pedido={selectedPedido} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>

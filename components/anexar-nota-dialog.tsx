@@ -93,20 +93,24 @@ export function AnexarNotaDialog({
           <DialogTitle>Anexar Nota Fiscal</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
+        <div className="space-y-6">
+          <div className="space-y-2">
             <Label>Arquivo PDF da Nota Fiscal *</Label>
-            <label className="flex items-center gap-2 p-4 mt-2 rounded-lg border-2 border-dashed cursor-pointer hover:bg-muted/50 transition-colors">
-              {uploadandoPdf ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+            <label className="flex items-center gap-3 p-4 rounded-lg border border-dashed cursor-pointer hover:bg-muted/50 transition-colors">
+              {uploadandoPdf ? (
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              ) : (
+                <FileText className="w-5 h-5 text-muted-foreground" />
+              )}
               <div className="flex-1">
                 <p className="text-sm font-medium">
                   {uploadandoPdf
                     ? "Enviando PDF..."
                     : arquivoPdf
-                      ? `${arquivoPdf.name} ✓`
+                      ? arquivoPdf.name
                       : "Clique para selecionar o arquivo PDF"}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Anexe o PDF da nota fiscal para enviar ao financeiro
                 </p>
               </div>
@@ -125,22 +129,23 @@ export function AnexarNotaDialog({
             </label>
           </div>
 
-          <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-2">Informações do Pedido:</p>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • Competência: {mesAnoEsperado.mes.toString().padStart(2, "0")}/{mesAnoEsperado.ano}
-              </li>
-              <li>• Valor: R$ {valorEsperado.toFixed(2).replace(".", ",")}</li>
-            </ul>
+          <div className="divide-y border-t border-b">
+            <div className="flex justify-between items-center py-2.5">
+              <span className="text-xs text-muted-foreground">Competência</span>
+              <span className="text-sm font-medium">
+                {mesAnoEsperado.mes.toString().padStart(2, "0")}/{mesAnoEsperado.ano}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2.5">
+              <span className="text-xs text-muted-foreground">Valor esperado</span>
+              <span className="text-sm font-medium">R$ {valorEsperado.toFixed(2).replace(".", ",")}</span>
+            </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-            <p className="text-sm text-amber-900">
-              ⚠️ Certifique-se de que o PDF da nota fiscal contém todas as informações corretas antes de anexar. O
-              financeiro irá revisar a nota.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Certifique-se de que o PDF da nota fiscal contém todas as informações corretas antes de anexar. O
+            financeiro irá revisar a nota.
+          </p>
 
           <Button onClick={handleAnexar} disabled={!arquivoPdf || !arquivoPdfUrl || salvando} className="w-full">
             {salvando ? (

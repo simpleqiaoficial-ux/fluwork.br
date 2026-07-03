@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Search, History, ArrowLeft } from "lucide-react"
 import { ReajusteDialog } from "@/components/reajuste-dialog"
 import { listarColaboradores } from "@/app/actions/colaboradores"
@@ -159,7 +160,7 @@ export function ReajustesPageContent() {
                         <TableCell className="text-muted-foreground">{colaborador.email}</TableCell>
                         <TableCell className="text-muted-foreground">{colaborador.cnpj || "-"}</TableCell>
                         <TableCell className="text-muted-foreground">{colaborador.equipe?.nome || "-"}</TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell className="text-right font-semibold tabular-nums">
                           {formatCurrency(colaborador.salario)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -223,20 +224,16 @@ export function ReajustesPageContent() {
                           {reajuste.colaborador?.nome_completo || "-"}
                         </TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            reajuste.tipo_reajuste === "porcentagem" 
-                              ? "bg-blue-100 text-blue-700" 
-                              : "bg-green-100 text-green-700"
-                          }`}>
-                            {reajuste.tipo_reajuste === "porcentagem" 
-                              ? `${reajuste.valor_reajuste}%` 
+                          <Badge variant="outline" className="font-normal">
+                            {reajuste.tipo_reajuste === "porcentagem"
+                              ? `${reajuste.valor_reajuste}%`
                               : formatCurrency(reajuste.valor_reajuste)}
-                          </span>
+                          </Badge>
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-right text-muted-foreground tabular-nums">
                           {formatCurrency(reajuste.salario_anterior)}
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-green-600">
+                        <TableCell className="text-right font-semibold tabular-nums">
                           {formatCurrency(reajuste.salario_novo)}
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-muted-foreground">

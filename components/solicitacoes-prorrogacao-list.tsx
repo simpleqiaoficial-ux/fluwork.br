@@ -1,8 +1,9 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, User, DollarSign, AlertCircle, CheckCircle, XCircle } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { useState } from "react"
 import { responderSolicitacaoProrrogacao } from "@/app/actions/pedidos"
@@ -44,6 +45,7 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null)
   const [observacao, setObservacao] = useState("")
   const [novaData, setNovaData] = useState("")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const router = useRouter()
 
   const handleAbrirDialog = (pedido: Pedido, acao: "aprovar" | "negar") => {
@@ -96,116 +98,122 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
 
   if (solicitacoes.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <p className="text-lg font-medium mb-2">Nenhuma solicitação pendente</p>
-          <p className="text-muted-foreground">Todas as solicitações de prorrogação foram processadas</p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <h3 className="text-base font-semibold mb-1">Nenhuma solicitação pendente</h3>
+        <p className="text-sm text-muted-foreground">Todas as solicitações de prorrogação foram processadas.</p>
+      </div>
     )
   }
 
   return (
     <>
-      <div className="space-y-4">
-        {solicitacoes.map((solicitacao) => {
-          const prazoExpirado = new Date(solicitacao.data_limite_anexo_nota).getTime() < new Date().getTime()
-          const diasAtrasado = Math.ceil(
-            (new Date().getTime() - new Date(solicitacao.data_limite_anexo_nota).getTime()) / (1000 * 60 * 60 * 24),
-          )
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Colaborador</TableHead>
+              <TableHead className="text-right">Valor total</TableHead>
+              <TableHead>Prazo original</TableHead>
+              <TableHead>Situação</TableHead>
+              <TableHead>Ações</TableHead>
+              <TableHead className="w-8" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {solicitacoes.map((solicitacao) => {
+              const prazoExpirado = new Date(solicitacao.data_limite_anexo_nota).getTime() < new Date().getTime()
+              const diasAtrasado = Math.ceil(
+                (new Date().getTime() - new Date(solicitacao.data_limite_anexo_nota).getTime()) /
+                  (1000 * 60 * 60 * 24),
+              )
+              const isExpanded = expandedId === solicitacao.id
+              const isLoading = loading === solicitacao.id
 
-          return (
-            <Card key={solicitacao.id} className="border-orange-200 bg-orange-50/50">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-6 h-6 text-orange-600" />
-                    <div>
-                      <CardTitle className="text-lg">Solicitação de Prorrogação de Prazo</CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Solicitado em{" "}
-                        {new Date(solicitacao.data_solicitacao_prorrogacao).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  {prazoExpirado && (
-                    <span className="px-3 py-1 text-sm font-medium bg-red-100 text-red-700 rounded-full">
-                      {diasAtrasado} {diasAtrasado === 1 ? "dia" : "dias"} atrasado
-                    </span>
+              return (
+                <>
+                  <TableRow
+                    key={solicitacao.id}
+                    className="cursor-pointer"
+                    onClick={() => setExpandedId(isExpanded ? null : solicitacao.id)}
+                  >
+                    <TableCell className="font-medium">{solicitacao.colaborador.nome_completo}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrency(solicitacao.valor_total)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(solicitacao.data_limite_anexo_nota).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell>
+                      {prazoExpirado ? (
+                        <Badge variant="destructive" className="font-normal">
+                          {diasAtrasado} {diasAtrasado === 1 ? "dia" : "dias"} atrasado
+                        </Badge>
+                      ) : (
+                        <Badge variant="warning" className="font-normal">
+                          Pendente
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAbrirDialog(solicitacao, "aprovar")}
+                          disabled={isLoading}
+                        >
+                          Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleAbrirDialog(solicitacao, "negar")}
+                          disabled={isLoading}
+                        >
+                          Negar
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+
+                  {isExpanded && (
+                    <TableRow key={`${solicitacao.id}-detail`}>
+                      <TableCell colSpan={6} className="bg-muted/20 px-6 py-4">
+                        <p className="text-xs text-muted-foreground mb-1">Motivo da solicitação</p>
+                        <p className="text-sm">{solicitacao.motivo_prorrogacao}</p>
+                        <p className="text-xs text-muted-foreground mt-3">
+                          Solicitado em{" "}
+                          {new Date(solicitacao.data_solicitacao_prorrogacao).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border">
-                    <User className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Colaborador</p>
-                      <p className="font-semibold">{solicitacao.colaborador.nome_completo}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border">
-                    <DollarSign className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Valor Total</p>
-                      <p className="font-semibold">{formatCurrency(solicitacao.valor_total)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white border">
-                    <Calendar className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Prazo Original</p>
-                      <p className="font-semibold">
-                        {new Date(solicitacao.data_limite_anexo_nota).toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-lg bg-white border border-orange-200">
-                  <p className="text-sm font-medium mb-2 text-orange-900">Motivo da Solicitação:</p>
-                  <p className="text-sm text-gray-700">{solicitacao.motivo_prorrogacao}</p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => handleAbrirDialog(solicitacao, "aprovar")}
-                    disabled={loading === solicitacao.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Aprovar Prorrogação
-                  </Button>
-                  <Button
-                    onClick={() => handleAbrirDialog(solicitacao, "negar")}
-                    disabled={loading === solicitacao.id}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Negar Solicitação
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+                </>
+              )
+            })}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {acaoSelecionada === "aprovar" ? "Aprovar Prorrogação de Prazo" : "Negar Solicitação"}
+              {acaoSelecionada === "aprovar" ? "Aprovar prorrogação de prazo" : "Negar solicitação"}
             </DialogTitle>
             <DialogDescription>
               {acaoSelecionada === "aprovar"
@@ -216,7 +224,7 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
           <div className="space-y-4">
             {acaoSelecionada === "aprovar" && (
               <div>
-                <Label htmlFor="novaData">Nova Data Limite *</Label>
+                <Label htmlFor="novaData">Nova data limite *</Label>
                 <Input
                   id="novaData"
                   type="date"
@@ -234,7 +242,7 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
             )}
             <div>
               <Label htmlFor="observacao">
-                {acaoSelecionada === "aprovar" ? "Observação (opcional)" : "Motivo da Negação *"}
+                {acaoSelecionada === "aprovar" ? "Observação (opcional)" : "Motivo da negação *"}
               </Label>
               <Textarea
                 id="observacao"
@@ -265,13 +273,13 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
               Cancelar
             </Button>
             <Button
+              variant={acaoSelecionada === "negar" ? "destructive" : "default"}
               onClick={handleResponder}
               disabled={
                 !!loading ||
                 (acaoSelecionada === "negar" && !observacao.trim()) ||
                 (acaoSelecionada === "aprovar" && !novaData)
               }
-              className={acaoSelecionada === "aprovar" ? "bg-green-600 hover:bg-green-700" : ""}
             >
               {loading ? "Processando..." : acaoSelecionada === "aprovar" ? "Aprovar" : "Negar"}
             </Button>

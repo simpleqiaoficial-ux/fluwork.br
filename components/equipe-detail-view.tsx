@@ -145,21 +145,6 @@ export function EquipeDetailView({
     )
   }
 
-  const tipoAcessoColor = (tipo: string) => {
-    switch (tipo) {
-      case "Supervisor":
-        return "bg-blue-100 text-blue-800"
-      case "Gerente":
-        return "bg-violet-100 text-violet-800"
-      case "Financeiro":
-        return "bg-emerald-100 text-emerald-800"
-      case "Adm":
-        return "bg-amber-100 text-amber-800"
-      default:
-        return "bg-secondary text-secondary-foreground"
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -237,9 +222,9 @@ export function EquipeDetailView({
                     <TableCell className="font-medium">{m.nome_completo}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{m.email}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tipoAcessoColor(m.tipo_acesso)}`}>
+                      <Badge variant="secondary" className="font-normal">
                         {m.tipo_acesso}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Button
@@ -288,9 +273,9 @@ export function EquipeDetailView({
                       <p className="font-medium text-sm truncate">{c.nome_completo}</p>
                       <p className="text-xs text-muted-foreground truncate">{c.email}</p>
                     </div>
-                    <span className={`shrink-0 ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tipoAcessoColor(c.tipo_acesso)}`}>
+                    <Badge variant="secondary" className="shrink-0 ml-2 font-normal">
                       {c.tipo_acesso}
-                    </span>
+                    </Badge>
                   </button>
                 ))
               )}

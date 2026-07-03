@@ -67,24 +67,24 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <p className="text-sm">
-              <span className="text-muted-foreground">Colaborador:</span>{" "}
-              <span className="font-semibold">{colaborador.nome_completo}</span>
-            </p>
-            <p className="text-sm">
-              <span className="text-muted-foreground">Salário Atual:</span>{" "}
-              <span className="font-semibold">
+          <div className="grid grid-cols-2 gap-4 pb-4 border-b">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Colaborador</p>
+              <p className="font-medium">{colaborador.nome_completo}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Salário atual</p>
+              <p className="font-medium tabular-nums">
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                 }).format(colaborador.salario)}
-              </span>
-            </p>
+              </p>
+            </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Tipo de Reajuste</Label>
+            <Label>Tipo de reajuste</Label>
             <RadioGroup value={tipoReajuste} onValueChange={(v) => setTipoReajuste(v as "porcentagem" | "valor")}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="porcentagem" id="porcentagem" />
@@ -117,9 +117,9 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
           </div>
 
           {valorReajuste && (
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Novo Salário:</p>
-              <p className="text-2xl font-bold text-green-600">
+            <div className="border-t pt-3">
+              <p className="text-xs text-muted-foreground mb-1">Novo salário</p>
+              <p className="text-2xl font-semibold tabular-nums">
                 {new Intl.NumberFormat("pt-BR", {
                   style: "currency",
                   currency: "BRL",

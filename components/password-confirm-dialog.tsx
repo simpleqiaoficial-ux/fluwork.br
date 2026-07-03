@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { AlertTriangle } from "lucide-react"
 
 interface PasswordConfirmDialogProps {
   open: boolean
@@ -49,15 +48,12 @@ export function PasswordConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
-            {title}
-          </DialogTitle>
+          <DialogTitle className="text-destructive">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="senha">Senha de Confirmação</Label>
             <Input
               id="senha"
@@ -68,18 +64,17 @@ export function PasswordConfirmDialog({
                 setErro("")
               }}
               placeholder="Digite a senha"
-              className="mt-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleConfirm()
                 }
               }}
             />
-            {erro && <p className="mt-1 text-sm text-destructive">{erro}</p>}
+            {erro && <p className="text-sm text-destructive">{erro}</p>}
           </div>
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={handleCancel} className="flex-1 bg-transparent">
+            <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
               Cancelar
             </Button>
             <Button onClick={handleConfirm} variant="destructive" className="flex-1">

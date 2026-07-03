@@ -29,7 +29,7 @@ export function CurrencyDisplay({ value, className, showPrefix = true, negative 
   }).format(Math.abs(value))
 
   return (
-    <span className={className}>
+    <span className={cn("tabular-nums", className)}>
       {negative ? "- " : ""}{formatted}
     </span>
   )

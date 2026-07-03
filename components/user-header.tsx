@@ -15,7 +15,7 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario }: UserHeaderPro
   const { valoresVisiveis, toggleValoresVisiveis, mascararValor } = useValoresVisibility()
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b bg-card">
       <div className="flex items-center gap-4 px-4 py-3 lg:px-6">
         {/* Spacer for mobile hamburger */}
         <div className="w-9 lg:hidden" />

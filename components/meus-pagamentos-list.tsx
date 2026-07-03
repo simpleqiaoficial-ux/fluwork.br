@@ -1,20 +1,18 @@
 "use client"
 
 import type { Colaborador } from "@/types/colaborador"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Calendar,
-  DollarSign,
   Clock,
-  MapPin,
-  Percent,
-  FileText,
   CheckCircle,
   Upload,
   ExternalLink,
   AlertCircle,
   XCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { marcarNotaEmitida, uploadNotaFiscal, solicitarProrrogacaoPrazo } from "@/app/actions/pedidos"
 import { useState } from "react"
@@ -171,22 +169,20 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
   const renderPedidos = (pedidos: Pedido[], isHistorico: boolean) => {
     if (!pedidos || !Array.isArray(pedidos) || pedidos.length === 0) {
       return (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              {isHistorico
-                ? "Nenhum pagamento no histórico ainda"
-                : colaborador?.tipo_acesso === "Colaborador"
-                  ? "Nenhum pagamento aprovado ainda"
-                  : "Nenhum pagamento registrado ainda"}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-center py-16 text-center">
+          <p className="text-muted-foreground text-sm">
+            {isHistorico
+              ? "Nenhum pagamento no histórico ainda"
+              : colaborador?.tipo_acesso === "Colaborador"
+                ? "Nenhum pagamento aprovado ainda"
+                : "Nenhum pagamento registrado ainda"}
+          </p>
+        </div>
       )
     }
 
     return (
-      <div className="space-y-4">
+      <div className="divide-y">
         {pedidos.map((pedido) => {
           // Valor da NF = Salário + HE + Plantão - Desconto (sem condução e KM)
           const valorParaEmitir =
@@ -195,12 +191,6 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
             (pedido.valor_plantao || 0) -
             (pedido.valor_desconto || 0)
           const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
-
-          const dataPedido = new Date(pedido.created_at)
-          const mesAnoEsperado = {
-            mes: dataPedido.getMonth() + 1,
-            ano: dataPedido.getFullYear(),
-          }
 
           const prazoExpirado = pedido.data_limite_anexo_nota
             ? new Date(pedido.data_limite_anexo_nota).getTime() < new Date().getTime()
@@ -212,446 +202,310 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
           const isExpandedHistorico = isHistorico && expandedHistorico === pedido.id
 
           return (
-            <Card key={pedido.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">
-                      {isReembolsoKm ? "Reembolso de Quilometragem" : "Pedido de Pagamento"}
-                    </CardTitle>
-                    {isReembolsoKm && (
-                      <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
-                        Apenas KM
-                      </span>
-                    )}
-                    {isHistorico && (
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          pedido.status === "pago" 
-                            ? "bg-emerald-100 text-emerald-700" 
-                            : pedido.status === "nota_recebida" 
-                              ? "bg-teal-100 text-teal-700" 
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {pedido.status === "pago" 
-                          ? "Pago" 
-                          : pedido.status === "nota_recebida" 
-                            ? "Nota Recebida" 
-                            : "Em Análise"}
-                      </span>
-                    )}
-                    {aguardandoProrrogacao && (
-                      <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Aguardando Prorrogação
-                      </span>
-                    )}
-                    {prorrogacaoNegada && (
-                      <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full flex items-center gap-1">
-                        <XCircle className="w-3 h-3" />
-                        Prorrogação Negada
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {isHistorico && (
-                      <button
-                        onClick={() => setExpandedHistorico(isExpandedHistorico ? null : pedido.id)}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        {isExpandedHistorico ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 14l-7-7m0 0L5 14m7-7v12"
-                            />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7 7 7-7" />
-                          </svg>
-                        )}
-                      </button>
-                    )}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(pedido.created_at).toLocaleDateString("pt-BR")}
+            <div key={pedido.id} className="py-6 first:pt-0 last:pb-0 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-semibold">
+                    {isReembolsoKm ? "Reembolso de Quilometragem" : "Pedido de Pagamento"}
+                  </h3>
+                  {isReembolsoKm && (
+                    <Badge variant="outline" className="font-normal">Apenas KM</Badge>
+                  )}
+                  {isHistorico && (
+                    <Badge
+                      variant={
+                        pedido.status === "pago" || pedido.status === "nota_recebida" ? "success" : "outline"
+                      }
+                      className="font-normal"
+                    >
+                      {pedido.status === "pago" ? "Pago" : pedido.status === "nota_recebida" ? "Nota Recebida" : "Em Análise"}
+                    </Badge>
+                  )}
+                  {aguardandoProrrogacao && (
+                    <Badge variant="warning" className="font-normal">Aguardando Prorrogação</Badge>
+                  )}
+                  {prorrogacaoNegada && (
+                    <Badge variant="destructive" className="font-normal">Prorrogação Negada</Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-sm text-muted-foreground">
+                    {new Date(pedido.created_at).toLocaleDateString("pt-BR")}
+                  </span>
+                  {isHistorico && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => setExpandedHistorico(isExpandedHistorico ? null : pedido.id)}
+                    >
+                      {isExpandedHistorico ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Timeline de Status do Pedido */}
+              {!isHistorico && (
+                <div>
+                  <h4 className="text-xs text-muted-foreground mb-3">Acompanhe o progresso do seu pedido</h4>
+                  <PedidoTimeline pedido={{
+                    created_at: pedido.created_at,
+                    status: pedido.status || "pendente_gerente",
+                    data_aprovacao_gerente: pedido.data_aprovacao_gerente,
+                    data_aprovacao_financeiro: pedido.data_aprovacao_financeiro,
+                    data_emissao_nota: pedido.data_emissao_nota,
+                    data_nota_recebida: pedido.data_nota_recebida,
+                    aprovado_gerente: pedido.aprovado_gerente,
+                    aprovado_financeiro: pedido.aprovado_financeiro,
+                    nota_emitida: pedido.nota_emitida,
+                    correcao_solicitada_por: pedido.correcao_solicitada_por,
+                  }} />
+                </div>
+              )}
+
+              {isHistorico && !isExpandedHistorico ? (
+                <div className="space-y-3">
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {isReembolsoKm ? "Quilometragem (Reembolso)" : "Valor para Nota Fiscal"}
+                      </p>
+                      <p className="text-2xl font-semibold tabular-nums">
+                        {formatValue(isReembolsoKm ? pedido.valor_km : valorParaEmitir)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1">Total do pedido</p>
+                      <p className="text-base font-medium tabular-nums">{formatValue(pedido.valor_total)}</p>
                     </div>
                   </div>
+
+                  {pedido.valor_desconto && pedido.valor_desconto > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Desconto</span>
+                      <span className="text-destructive font-medium tabular-nums">
+                        -{formatValue(pedido.valor_desconto)}
+                      </span>
+                    </div>
+                  )}
+
+                  {pedido.nota_fiscal_url && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openPdfSafely(pedido.nota_fiscal_url)}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Ver Nota Fiscal
+                    </Button>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Timeline de Status do Pedido */}
-                {!isHistorico && (
-                  <div className="border rounded-lg p-4 bg-muted/20">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Acompanhe o progresso do seu pedido</h4>
-                    <PedidoTimeline pedido={{
-                      created_at: pedido.created_at,
-                      status: pedido.status || "pendente_gerente",
-                      data_aprovacao_gerente: pedido.data_aprovacao_gerente,
-                      data_aprovacao_financeiro: pedido.data_aprovacao_financeiro,
-                      data_emissao_nota: pedido.data_emissao_nota,
-                      data_nota_recebida: pedido.data_nota_recebida,
-                      aprovado_gerente: pedido.aprovado_gerente,
-                      aprovado_financeiro: pedido.aprovado_financeiro,
-                      nota_emitida: pedido.nota_emitida,
-                      correcao_solicitada_por: pedido.correcao_solicitada_por,
-                    }} />
-                  </div>
-                )}
-
-                {isHistorico && !isExpandedHistorico ? (
-                  <div className="space-y-3">
-                    {isReembolsoKm ? (
-                      <div className="p-4 rounded-lg bg-muted border">
-                        <div className="flex items-end justify-between">
-                          <div className="flex-1">
-                            <p className="text-sm text-muted-foreground font-medium mb-1">
-                              Quilometragem (Reembolso)
-                            </p>
-                            <p className="text-3xl font-bold text-foreground">
-                              {formatValue(pedido.valor_km)}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground mb-1">Total do Pedido</p>
-                            <p className="text-lg font-semibold text-foreground">
-                              {formatValue(pedido.valor_total)}
-                            </p>
-                          </div>
-                        </div>
+              ) : (
+                <>
+                  {isReembolsoKm ? (
+                    <div className="text-sm">
+                      <p className="text-xs text-muted-foreground mb-1">Quilometragem</p>
+                      <p className="font-medium tabular-nums">{formatValue(pedido.valor_km)}</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Salário Base</p>
+                        <p className="font-medium tabular-nums">{formatValue(colaborador?.salario || 0)}</p>
                       </div>
-                    ) : (
-                      <div className="p-4 rounded-lg bg-muted border">
-                        <div className="flex items-end justify-between">
-                          <div className="flex-1">
-                            <p className="text-sm text-muted-foreground font-medium mb-1">
-                              Valor para Nota Fiscal
-                            </p>
-                            <p className="text-3xl font-bold text-foreground">
-                              {formatValue(valorParaEmitir)}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground mb-1">Total do Pedido</p>
-                            <p className="text-lg font-semibold text-foreground">
-                              {formatValue(pedido.valor_total)}
-                            </p>
-                          </div>
-                        </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Horas Extras</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.horas_extras)}</p>
                       </div>
-                    )}
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Quilometragem</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.valor_km)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Condução</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.conducao)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Plantão</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.valor_plantao)}</p>
+                      </div>
+                    </div>
+                  )}
 
-                    {/* Desconto summary */}
-                    {pedido.valor_desconto && pedido.valor_desconto > 0 && (
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-                        <span className="text-red-700 dark:text-red-300 font-medium">Desconto:</span>
-                        <span className="text-red-600 dark:text-red-400 font-semibold">
-                          - {formatValue(pedido.valor_desconto)}
+                  {!isReembolsoKm && pedido.valor_desconto && pedido.valor_desconto > 0 && (
+                    <div className="text-sm">
+                      <p className="text-xs text-muted-foreground mb-1">Desconto aplicado</p>
+                      <p className="font-medium tabular-nums text-destructive">
+                        -{formatValue(pedido.valor_desconto)}
+                      </p>
+                      {pedido.motivo_desconto && (
+                        <p className="text-xs text-muted-foreground mt-1">{pedido.motivo_desconto}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {aguardandoProrrogacao && (
+                    <div className="border-l-2 border-warning pl-4 py-1">
+                      <div className="flex items-center gap-2 text-warning mb-1">
+                        <Clock className="w-4 h-4" />
+                        <p className="text-sm font-medium">Solicitação de prorrogação em análise</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Sua solicitação de prorrogação de prazo foi enviada ao financeiro e está aguardando aprovação.
+                      </p>
+                      {pedido.motivo_prorrogacao && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Motivo informado: {pedido.motivo_prorrogacao}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {prorrogacaoNegada && (
+                    <div className="border-l-2 border-destructive pl-4 py-1">
+                      <div className="flex items-center gap-2 text-destructive mb-1">
+                        <XCircle className="w-4 h-4" />
+                        <p className="text-sm font-medium">Prorrogação negada</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Sua solicitação de prorrogação foi negada pelo financeiro.
+                      </p>
+                      {pedido.observacao_prorrogacao && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Motivo da negação: {pedido.observacao_prorrogacao}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Entre em contato com o seu supervisor para resolver esta situação.
+                      </p>
+                    </div>
+                  )}
+
+                  {pedido.status === "aprovado" && !isReembolsoKm && !isHistorico && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <div>
+                        <p className="font-medium text-sm mb-1">Valor para emitir nota</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Salário base + horas extras + condução + plantão − desconto
+                        </p>
+                        <p className="text-2xl font-semibold tabular-nums">{formatValue(valorParaEmitir)}</p>
+                      </div>
+
+                      {pedido.nota_emitida ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-success text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="font-medium">
+                              Nota emitida
+                              {pedido.data_emissao_nota &&
+                                ` em ${new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")}`}
+                            </span>
+                          </div>
+                          {pedido.nota_fiscal_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openPdfSafely(pedido.nota_fiscal_url)}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Ver Nota Fiscal
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {pedido.data_limite_anexo_nota && (
+                            <CountdownTimer dataLimite={pedido.data_limite_anexo_nota} />
+                          )}
+
+                          {prazoExpirado && !pedido.prorrogacao_solicitada ? (
+                            <div className="space-y-3">
+                              <div className="border-l-2 border-destructive pl-4 py-1">
+                                <div className="flex items-center gap-2 text-destructive mb-1">
+                                  <AlertCircle className="w-4 h-4" />
+                                  <p className="text-sm font-medium">Você não anexou a nota a tempo</p>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  O prazo para anexar a nota fiscal expirou. Você precisa solicitar uma nova data ao
+                                  financeiro.
+                                </p>
+                              </div>
+                              <Button
+                                onClick={() => {
+                                  setPedidoSelecionado(pedido)
+                                  setProrrogacaoDialogOpen(true)
+                                }}
+                                size="sm"
+                              >
+                                <Clock className="w-4 h-4" />
+                                Solicitar Nova Data
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <p className="text-sm text-muted-foreground">Você já emitiu sua nota?</p>
+                              <Button
+                                onClick={() => {
+                                  setPedidoSelecionado(pedido)
+                                  setDialogOpen(true)
+                                }}
+                                size="sm"
+                              >
+                                <Upload className="w-4 h-4" />
+                                Anexar Nota Fiscal
+                              </Button>
+                              <p className="text-xs text-muted-foreground">A nota será validada automaticamente</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {isHistorico && pedido.nota_fiscal_url && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <div className="flex items-center gap-2 text-success text-sm">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-medium">
+                          Nota fiscal enviada
+                          {pedido.data_emissao_nota &&
+                            ` em ${new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")}`}
                         </span>
                       </div>
-                    )}
-
-                    {/* Nota Fiscal link */}
-                    {pedido.nota_fiscal_url && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full bg-transparent"
                         onClick={() => openPdfSafely(pedido.nota_fiscal_url)}
                       >
-                        <ExternalLink className="w-4 h-4 mr-2" />
+                        <ExternalLink className="w-4 h-4" />
                         Ver Nota Fiscal
                       </Button>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    {isReembolsoKm ? (
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50">
-                        <MapPin className="w-5 h-5 text-purple-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm text-purple-900 font-medium">Quilometragem</p>
-                          <p className="font-semibold">{formatValue(pedido.valor_km)}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                          <DollarSign className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Salário Base</p>
-                            <p className="font-semibold">{formatValue(colaborador?.salario || 0)}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                          <Clock className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Horas Extras</p>
-                            <p className="font-semibold">{formatValue(pedido.horas_extras)}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                          <MapPin className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Quilometragem</p>
-                            <p className="font-semibold">{formatValue(pedido.valor_km)}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                          <MapPin className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Condução</p>
-                            <p className="font-semibold">{formatValue(pedido.conducao)}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                          <MapPin className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Plantão</p>
-                            <p className="font-semibold">{formatValue(pedido.valor_plantao)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {!isReembolsoKm && pedido.valor_desconto && pedido.valor_desconto > 0 && (
-                      <>
-                        <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-                          <Percent className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-red-900 dark:text-red-100">Desconto Aplicado</p>
-                            <p className="font-semibold text-red-700 dark:text-red-300">
-                              - {formatValue(pedido.valor_desconto)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {pedido.motivo_desconto && (
-                          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
-                            <p className="text-sm font-medium mb-1 text-amber-900 dark:text-amber-100">
-                              Motivo do Desconto:
-                            </p>
-                            <p className="text-sm text-amber-800 dark:text-amber-200">{pedido.motivo_desconto}</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {aguardandoProrrogacao && (
-                      <div className="p-4 rounded-lg bg-orange-50 dark:bg-orange-950 border-2 border-orange-200 dark:border-orange-800">
-                        <div className="flex items-start gap-3">
-                          <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                              Solicitação de Prorrogação em Análise
-                            </p>
-                            <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
-                              Sua solicitação de prorrogação de prazo foi enviada ao financeiro e está aguardando
-                              aprovação.
-                            </p>
-                            {pedido.motivo_prorrogacao && (
-                              <div className="p-3 rounded bg-white dark:bg-orange-950/30">
-                                <p className="text-xs font-medium text-orange-900 dark:text-orange-100 mb-1">
-                                  Motivo informado:
-                                </p>
-                                <p className="text-sm text-orange-800 dark:text-orange-200">
-                                  {pedido.motivo_prorrogacao}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {prorrogacaoNegada && (
-                      <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950 border-2 border-red-200 dark:border-red-800">
-                        <div className="flex items-start gap-3">
-                          <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-red-900 dark:text-red-100 mb-2">Prorrogação Negada</p>
-                            <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-                              Sua solicitação de prorrogação foi negada pelo financeiro.
-                            </p>
-                            {pedido.observacao_prorrogacao && (
-                              <div className="p-3 rounded bg-white dark:bg-red-950/30">
-                                <p className="text-xs font-medium text-red-900 dark:text-red-100 mb-1">
-                                  Motivo da negação:
-                                </p>
-                                <p className="text-sm text-red-800 dark:text-red-200">
-                                  {pedido.observacao_prorrogacao}
-                                </p>
-                              </div>
-                            )}
-                            <p className="text-sm text-red-700 dark:text-red-300 mt-3">
-                              Entre em contato com o seu supervisor para resolver esta situação.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {pedido.status === "aprovado" && !isReembolsoKm && !isHistorico && (
-                      <div className="p-4 rounded-lg bg-muted border">
-                        <div className="flex items-start gap-3 mb-3">
-                          <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-foreground mb-1">
-                              Valor para Emitir Nota
-                            </p>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              (Salário Base + Horas Extras + Condução + Plantão - Desconto)
-                            </p>
-                            <p className="text-2xl font-bold text-foreground">
-                              {formatValue(valorParaEmitir)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {pedido.nota_emitida ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700">
-                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                              <div className="flex-1">
-                                <p className="font-medium text-green-900 dark:text-green-100">Nota Emitida</p>
-                                <p className="text-xs text-green-700 dark:text-green-300">
-                                  {pedido.data_emissao_nota &&
-                                    new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")}
-                                </p>
-                              </div>
-                            </div>
-                            {pedido.nota_fiscal_url && (
-                              <Button
-                                variant="outline"
-                                className="w-full bg-transparent"
-                                onClick={() => openPdfSafely(pedido.nota_fiscal_url)}
-                              >
-                                <ExternalLink className="w-4 h-4 mr-2" />
-                                Ver Nota Fiscal
-                              </Button>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {pedido.data_limite_anexo_nota && (
-                              <CountdownTimer dataLimite={pedido.data_limite_anexo_nota} />
-                            )}
-
-                            {prazoExpirado && !pedido.prorrogacao_solicitada ? (
-                              <div className="space-y-3">
-                                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950 border-2 border-red-200 dark:border-red-800">
-                                  <div className="flex items-start gap-3 mb-3">
-                                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
-                                    <div className="flex-1">
-                                      <p className="font-semibold text-red-900 dark:text-red-100 mb-2">
-                                        Você não anexou a nota a tempo
-                                      </p>
-                                      <p className="text-sm text-red-700 dark:text-red-300">
-                                        O prazo para anexar a nota fiscal expirou. Você precisa solicitar uma nova data
-                                        ao financeiro.
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <Button
-                                  onClick={() => {
-                                    setPedidoSelecionado(pedido)
-                                    setProrrogacaoDialogOpen(true)
-                                  }}
-                                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                                >
-                                  <Clock className="w-4 h-4 mr-2" />
-                                  Solicitar Nova Data
-                                </Button>
-                              </div>
-                            ) : (
-                              <>
-                                <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                                  Você já emitiu sua nota?
-                                </p>
-                                <Button
-                                  onClick={() => {
-                                    setPedidoSelecionado(pedido)
-                                    setDialogOpen(true)
-                                  }}
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                >
-                                  <Upload className="w-4 h-4 mr-2" />
-                                  Anexar Nota Fiscal
-                                </Button>
-                                <p className="text-xs text-center text-green-700 dark:text-green-300">
-                                  * A nota será validada automaticamente
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {isHistorico && pedido.nota_fiscal_url && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700">
-                          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                          <div className="flex-1">
-                            <p className="font-medium text-green-900 dark:text-green-100">Nota Fiscal Enviada</p>
-                            <p className="text-xs text-green-700 dark:text-green-300">
-                              {pedido.data_emissao_nota &&
-                                new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="w-full bg-transparent"
-                          onClick={() => openPdfSafely(pedido.nota_fiscal_url)}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Ver Nota Fiscal
-                        </Button>
-                        {(pedido.status === "pago" || pedido.status === "nota_recebida") && (
-                          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                              <p className="font-medium text-blue-900 dark:text-blue-100">Pagamento Aprovado</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {pedido.data_previsao_pagamento && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                        <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Previsão de Pagamento</p>
-                          <p className="font-semibold text-blue-700 dark:text-blue-300">
-                            {pedido.data_previsao_pagamento.includes("T")
-                              ? new Date(pedido.data_previsao_pagamento).toLocaleDateString("pt-BR")
-                              : new Date(pedido.data_previsao_pagamento + "T12:00:00").toLocaleDateString("pt-BR")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-semibold">Valor Total</span>
-                        <span className="text-2xl font-bold text-primary">{formatValue(pedido.valor_total)}</span>
-                      </div>
+                      {(pedido.status === "pago" || pedido.status === "nota_recebida") && (
+                        <p className="text-sm font-medium">Pagamento aprovado</p>
+                      )}
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+
+                  {pedido.data_previsao_pagamento && (
+                    <div className="flex items-center gap-2 text-sm pt-4 border-t">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Previsão de pagamento:</span>
+                      <span className="font-medium">
+                        {pedido.data_previsao_pagamento.includes("T")
+                          ? new Date(pedido.data_previsao_pagamento).toLocaleDateString("pt-BR")
+                          : new Date(pedido.data_previsao_pagamento + "T12:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <span className="font-semibold">Valor Total</span>
+                    <span className="text-xl font-semibold tabular-nums">{formatValue(pedido.valor_total)}</span>
+                  </div>
+                </>
+              )}
+            </div>
           )
         })}
       </div>
@@ -659,7 +513,7 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
   }
 
   return (
-    <div className="space-y-4">
+    <div>
       {renderPedidos(pedidos || [], isHistorico)}
       {pedidoSelecionado && (
         <>

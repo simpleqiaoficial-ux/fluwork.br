@@ -43,11 +43,11 @@ export function CountdownTimer({ dataLimite }: CountdownTimerProps) {
 
   if (timeLeft.expired) {
     return (
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-red-900 dark:text-red-100">Prazo Expirado</p>
-          <p className="text-xs text-red-700 dark:text-red-300">O prazo para anexar a nota fiscal terminou</p>
+      <div className="flex items-center gap-2 border-l-2 border-destructive pl-3 py-1.5">
+        <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-destructive">Prazo expirado</p>
+          <p className="text-xs text-muted-foreground">O prazo para anexar a nota fiscal terminou</p>
         </div>
       </div>
     )
@@ -56,25 +56,13 @@ export function CountdownTimer({ dataLimite }: CountdownTimerProps) {
   const isUrgent = timeLeft.days === 0 && timeLeft.hours < 6
 
   return (
-    <div
-      className={`flex items-center gap-2 p-3 rounded-lg border ${
-        isUrgent
-          ? "bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800"
-          : "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
-      }`}
-    >
-      <Clock
-        className={`w-5 h-5 ${isUrgent ? "text-orange-600 dark:text-orange-400" : "text-blue-600 dark:text-blue-400"}`}
-      />
-      <div className="flex-1">
-        <p
-          className={`text-sm font-medium ${isUrgent ? "text-orange-900 dark:text-orange-100" : "text-blue-900 dark:text-blue-100"}`}
-        >
-          Tempo Restante para Anexar Nota
+    <div className={`flex items-center gap-2 pl-3 py-1.5 border-l-2 ${isUrgent ? "border-warning" : "border-border"}`}>
+      <Clock className={`w-4 h-4 shrink-0 ${isUrgent ? "text-warning" : "text-muted-foreground"}`} />
+      <div>
+        <p className={`text-sm font-medium ${isUrgent ? "text-warning" : "text-foreground"}`}>
+          Tempo restante para anexar nota
         </p>
-        <div
-          className={`flex gap-2 text-xs font-mono ${isUrgent ? "text-orange-700 dark:text-orange-300" : "text-blue-700 dark:text-blue-300"}`}
-        >
+        <div className="flex gap-2 text-xs font-mono tabular-nums text-muted-foreground">
           {timeLeft.days > 0 && <span>{timeLeft.days}d</span>}
           <span>{timeLeft.hours.toString().padStart(2, "0")}h</span>
           <span>{timeLeft.minutes.toString().padStart(2, "0")}m</span>

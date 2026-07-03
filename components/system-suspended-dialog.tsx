@@ -22,19 +22,18 @@ export function SystemSuspendedDialog({ open, onOpenChange, reason }: SystemSusp
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-              <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-            <AlertDialogTitle className="text-xl">Sistema Suspenso</AlertDialogTitle>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <AlertDialogTitle>Sistema suspenso</AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="pt-4 text-base">
-            O sistema esta temporariamente suspenso. Nenhuma acao pode ser realizada no momento. Entre em contato com o administrador.
+          <AlertDialogDescription>
+            O sistema está temporariamente suspenso. Nenhuma ação pode ser realizada no momento. Entre em contato
+            com o administrador.
           </AlertDialogDescription>
           {reason && (
-            <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
-              <p className="text-sm font-medium text-red-800 dark:text-red-300">Motivo:</p>
-              <p className="text-sm text-red-700 dark:text-red-400 mt-1">{reason}</p>
+            <div className="border-l-2 border-destructive pl-4 py-1 mt-2">
+              <p className="text-sm font-medium text-destructive">Motivo</p>
+              <p className="text-sm text-muted-foreground mt-1">{reason}</p>
             </div>
           )}
         </AlertDialogHeader>

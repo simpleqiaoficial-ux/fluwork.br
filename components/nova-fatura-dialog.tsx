@@ -283,7 +283,7 @@ export function NovaFaturaDialog({ colaboradores, criadorId, onFaturaCreated }: 
                   </div>
                 ) : (
                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
-                    <FileText className="h-8 w-8 text-red-500" />
+                    <FileText className="h-8 w-8 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{pdfFile.name}</p>
                       <p className="text-xs text-muted-foreground">

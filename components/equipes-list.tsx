@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -38,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Trash2, UsersRound, UserCheck, Briefcase, ChevronRight } from "lucide-react"
+import { Plus, Trash2, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Equipe } from "@/types/equipe"
@@ -139,110 +138,97 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          {equipes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-4">
-                <UsersRound className="h-7 w-7 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold text-foreground">Nenhuma equipe cadastrada</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Crie equipes para organizar seus colaboradores.
-              </p>
-              <Button onClick={openNew} variant="outline" size="sm" className="mt-4 gap-2">
-                <Plus className="h-4 w-4" />
-                Criar primeira equipe
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Equipe</TableHead>
-                  <TableHead className="hidden sm:table-cell">Supervisor</TableHead>
-                  <TableHead className="hidden md:table-cell">Gerentes</TableHead>
-                  <TableHead className="hidden sm:table-cell w-[100px] text-center">Membros</TableHead>
-                  <TableHead className="w-[80px] text-right">Acoes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {equipes.map((equipe) => (
-                  <TableRow key={equipe.id} className="group cursor-pointer hover:bg-muted/50">
-                    <TableCell>
-                      <Link href={`/cadastros/equipes/${equipe.id}`} className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-muted">
-                          <UsersRound className="h-4 w-4 text-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-foreground truncate">{equipe.nome}</p>
-                          <p className="text-xs text-muted-foreground sm:hidden">
-                            {equipe.supervisor?.nome_completo || "Sem supervisor"}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto sm:hidden opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {equipe.supervisor ? (
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-sm">{equipe.supervisor.nome_completo}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">--</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {equipe.gerentes && equipe.gerentes.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {equipe.gerentes.slice(0, 2).map((g) => (
-                            <Badge key={g.id} variant="secondary" className="text-xs font-normal">
-                              {g.nome_completo.split(" ")[0]}
-                            </Badge>
-                          ))}
-                          {equipe.gerentes.length > 2 && (
-                            <Badge variant="secondary" className="text-xs font-normal">
-                              +{equipe.gerentes.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">--</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-center">
-                      <Badge variant="outline" className="font-mono">
-                        {membrosCount[equipe.id] || 0}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link href={`/cadastros/equipes/${equipe.id}`}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setDeleteId(equipe.id)
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+      {equipes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <h3 className="font-semibold text-foreground">Nenhuma equipe cadastrada</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            Crie equipes para organizar seus colaboradores.
+          </p>
+          <Button onClick={openNew} variant="outline" size="sm" className="mt-4 gap-2">
+            <Plus className="h-4 w-4" />
+            Criar primeira equipe
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-lg border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Equipe</TableHead>
+                <TableHead className="hidden sm:table-cell">Supervisor</TableHead>
+                <TableHead className="hidden md:table-cell">Gerentes</TableHead>
+                <TableHead className="hidden sm:table-cell w-[100px] text-center">Membros</TableHead>
+                <TableHead className="w-[80px] text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {equipes.map((equipe) => (
+                <TableRow key={equipe.id} className="group cursor-pointer">
+                  <TableCell>
+                    <Link href={`/cadastros/equipes/${equipe.id}`} className="flex items-center gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground truncate">{equipe.nome}</p>
+                        <p className="text-xs text-muted-foreground sm:hidden">
+                          {equipe.supervisor?.nome_completo || "Sem supervisor"}
+                        </p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto sm:hidden opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="text-sm text-muted-foreground">
+                      {equipe.supervisor?.nome_completo || "—"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {equipe.gerentes && equipe.gerentes.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {equipe.gerentes.slice(0, 2).map((g) => (
+                          <Badge key={g.id} variant="secondary" className="text-xs font-normal">
+                            {g.nome_completo.split(" ")[0]}
+                          </Badge>
+                        ))}
+                        {equipe.gerentes.length > 2 && (
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            +{equipe.gerentes.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell text-center">
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      {membrosCount[equipe.id] || 0}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link href={`/cadastros/equipes/${equipe.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteId(equipe.id)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Dialog criar equipe */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

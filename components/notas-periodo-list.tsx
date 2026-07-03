@@ -1,28 +1,30 @@
 "use client"
 
 import { useState } from "react"
-import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  FileText,
-  Download,
-  Search,
-  Calendar,
-  DollarSign,
-  Receipt,
-  CheckCircle,
-  Clock,
-  ChevronDown,
-  ChevronUp,
-  User,
-} from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Download, Search, ChevronDown, ChevronUp } from "lucide-react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { useMaskedCurrency } from "@/components/currency-display"
 
 interface NotasPeriodoListProps {
   pedidos: PedidoPagamento[]
+}
+
+const STATUS_VARIANT: Record<string, "success" | "warning" | "outline"> = {
+  nota_recebida: "success",
+  pago: "success",
+  pendente_financeiro: "warning",
+  aprovado: "warning",
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  nota_recebida: "Nota recebida",
+  pago: "Pago",
+  pendente_financeiro: "Pendente",
+  aprovado: "Pendente",
 }
 
 export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
@@ -42,44 +44,10 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
   if (pedidos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="rounded-full bg-muted p-6 mb-4">
-          <FileText className="w-12 h-12 text-muted-foreground" />
-        </div>
-        <h3 className="text-xl font-semibold mb-2">Nenhuma nota neste periodo</h3>
-        <p className="text-muted-foreground">
-          Nao foram encontradas notas fiscais para este mes.
-        </p>
+        <h3 className="text-base font-semibold mb-1">Nenhuma nota neste período</h3>
+        <p className="text-sm text-muted-foreground">Não foram encontradas notas fiscais para este mês.</p>
       </div>
     )
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "nota_recebida":
-        return (
-          <Badge variant="default" className="bg-teal-600 text-xs">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Nota Recebida
-          </Badge>
-        )
-      case "pago":
-        return (
-          <Badge variant="default" className="bg-emerald-600 text-xs">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Pago
-          </Badge>
-        )
-      case "pendente_financeiro":
-      case "aprovado":
-        return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
-            <Clock className="w-3 h-3 mr-1" />
-            Pendente
-          </Badge>
-        )
-      default:
-        return null
-    }
   }
 
   return (
@@ -99,163 +67,164 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
         </span>
       </div>
 
-      <div className="space-y-2">
-        {filteredPedidos.map((pedido) => {
-          let notaFiscal = null
-          if (pedido.notas_fiscais) {
-            notaFiscal = Array.isArray(pedido.notas_fiscais)
-              ? pedido.notas_fiscais[0] || null
-              : pedido.notas_fiscais
-          }
-          const pdfUrl = notaFiscal?.arquivo_pdf_url || pedido.nota_fiscal_url
-          const xmlUrl = notaFiscal?.arquivo_xml_url
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Colaborador</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead className="text-right">Valor NF</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-8" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredPedidos.map((pedido) => {
+              let notaFiscal = null
+              if (pedido.notas_fiscais) {
+                notaFiscal = Array.isArray(pedido.notas_fiscais)
+                  ? pedido.notas_fiscais[0] || null
+                  : pedido.notas_fiscais
+              }
+              const pdfUrl = notaFiscal?.arquivo_pdf_url || pedido.nota_fiscal_url
+              const xmlUrl = notaFiscal?.arquivo_xml_url
 
-          const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
-          const valorNF = isReembolsoKm
-            ? pedido.valor_km
-            : (pedido.colaborador?.salario || 0) +
-              (pedido.horas_extras || 0) +
-              (pedido.valor_plantao || 0) +
-              (pedido.comissao || 0) -
-              (pedido.valor_desconto || 0)
+              const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
+              const valorNF = isReembolsoKm
+                ? pedido.valor_km
+                : (pedido.colaborador?.salario || 0) +
+                  (pedido.horas_extras || 0) +
+                  (pedido.valor_plantao || 0) +
+                  (pedido.comissao || 0) -
+                  (pedido.valor_desconto || 0)
 
-          const isExpanded = expandedId === pedido.id
+              const isExpanded = expandedId === pedido.id
 
-          return (
-            <Card key={pedido.id} className="p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-semibold truncate">
-                      {pedido.colaborador?.nome_completo || "Colaborador"}
-                    </h3>
-                    {getStatusBadge(pedido.status)}
-                    {isReembolsoKm && (
-                      <Badge variant="outline" className="text-xs">
-                        Reembolso KM
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1 flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(pedido.created_at).toLocaleDateString("pt-BR")}
-                    </span>
-                    <span className="flex items-center gap-1 font-medium text-blue-600">
-                      <Receipt className="w-3 h-3" />
-                      NF: {formatValue(valorNF)}
-                    </span>
-                    {pedido.colaborador?.cnpj && (
-                      <span className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        {pedido.colaborador.cnpj}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {pdfUrl && (
-                    <Button asChild variant="outline" size="sm" className="h-8 bg-transparent">
-                      <a href={pdfUrl} download target="_blank" rel="noopener noreferrer">
-                        <Download className="w-3.5 h-3.5 mr-1" />
-                        PDF
-                      </a>
-                    </Button>
-                  )}
-                  {xmlUrl && (
-                    <Button asChild variant="outline" size="sm" className="h-8 bg-transparent">
-                      <a href={xmlUrl} download target="_blank" rel="noopener noreferrer">
-                        <Download className="w-3.5 h-3.5 mr-1" />
-                        XML
-                      </a>
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+              return (
+                <>
+                  <TableRow
+                    key={pedido.id}
+                    className="cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
-                    className="h-8 px-2"
                   >
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              {isExpanded && (
-                <div className="mt-3 pt-3 border-t space-y-3">
-                  {isReembolsoKm ? (
-                    <div className="bg-muted/30 p-2 rounded">
-                      <span className="text-xs text-muted-foreground block">Quilometragem (Reembolso)</span>
-                      <span className="font-semibold text-sm">{formatValue(pedido.valor_km || 0)}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs bg-muted/30 p-2 rounded">
-                        <div>
-                          <span className="text-muted-foreground block">Salario</span>
-                          <span className="font-semibold">{formatValue(pedido.colaborador?.salario || 0)}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Horas Extras</span>
-                          <span className="font-semibold">{formatValue(pedido.horas_extras || 0)}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Plantao</span>
-                          <span className="font-semibold">{formatValue(pedido.valor_plantao || 0)}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Comissao</span>
-                          <span className="font-semibold">{formatValue(pedido.comissao || 0)}</span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs bg-teal-50 border border-teal-200 p-2 rounded">
-                        <div>
-                          <span className="text-teal-700 block">Conducao (fora da NF)</span>
-                          <span className="font-semibold text-teal-800">{formatValue(pedido.conducao || 0)}</span>
-                        </div>
-                        <div>
-                          <span className="text-teal-700 block">Quilometragem (fora da NF)</span>
-                          <span className="font-semibold text-teal-800">{formatValue(pedido.valor_km || 0)}</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {(pedido.valor_desconto || 0) > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded p-2">
-                      <span className="text-xs text-muted-foreground block">Desconto</span>
-                      <span className="font-semibold text-red-600 text-sm">
-                        -{formatValue(pedido.valor_desconto || 0)}
-                      </span>
-                      {pedido.motivo_desconto && (
-                        <span className="text-xs text-muted-foreground block mt-1">
-                          Motivo: {pedido.motivo_desconto}
+                    <TableCell className="font-medium">
+                      {pedido.colaborador?.nome_completo || "Colaborador"}
+                      {isReembolsoKm && (
+                        <Badge variant="outline" className="font-normal ml-2">
+                          Reembolso KM
+                        </Badge>
+                      )}
+                      {pedido.colaborador?.cnpj && (
+                        <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                          {pedido.colaborador.cnpj}
                         </span>
                       )}
-                    </div>
-                  )}
-
-                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                    <div className="flex justify-between items-end">
-                      {!isReembolsoKm && (
-                        <div>
-                          <div className="text-xs text-muted-foreground">Valor para Nota Fiscal</div>
-                          <div className="text-sm font-semibold text-blue-600">{formatValue(valorNF)}</div>
-                        </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(pedido.created_at).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">{formatValue(valorNF)}</TableCell>
+                    <TableCell>
+                      {STATUS_LABELS[pedido.status] && (
+                        <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
+                          {STATUS_LABELS[pedido.status]}
+                        </Badge>
                       )}
-                      <div className={`text-right ${isReembolsoKm ? "w-full" : ""}`}>
-                        <div className="text-xs text-muted-foreground">Total do Pedido</div>
-                        <div className="text-sm font-semibold">{formatValue(pedido.valor_total)}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-          )
-        })}
+                    </TableCell>
+                    <TableCell>
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+
+                  {isExpanded && (
+                    <TableRow key={`${pedido.id}-detail`}>
+                      <TableCell colSpan={5} className="bg-muted/20 px-6 py-5">
+                        <div className="space-y-4">
+                          {isReembolsoKm ? (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Quilometragem (reembolso)</p>
+                              <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Salário</p>
+                                <p className="font-medium tabular-nums">
+                                  {formatValue(pedido.colaborador?.salario || 0)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Horas extras</p>
+                                <p className="font-medium tabular-nums">{formatValue(pedido.horas_extras || 0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Plantão</p>
+                                <p className="font-medium tabular-nums">{formatValue(pedido.valor_plantao || 0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Comissão</p>
+                                <p className="font-medium tabular-nums">{formatValue(pedido.comissao || 0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Condução (fora da NF)</p>
+                                <p className="font-medium tabular-nums">{formatValue(pedido.conducao || 0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Quilometragem (fora da NF)</p>
+                                <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
+                              </div>
+                              {(pedido.valor_desconto || 0) > 0 && (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Desconto</p>
+                                  <p className="font-medium tabular-nums text-destructive">
+                                    -{formatValue(pedido.valor_desconto || 0)}
+                                  </p>
+                                  {pedido.motivo_desconto && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{pedido.motivo_desconto}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between pt-4 border-t">
+                            <span className="text-sm font-medium">Total do pedido</span>
+                            <span className="font-semibold tabular-nums">{formatValue(pedido.valor_total)}</span>
+                          </div>
+
+                          {(pdfUrl || xmlUrl) && (
+                            <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                              {pdfUrl && (
+                                <Button asChild variant="outline" size="sm">
+                                  <a href={pdfUrl} download target="_blank" rel="noopener noreferrer">
+                                    <Download className="w-3.5 h-3.5" />
+                                    Baixar PDF
+                                  </a>
+                                </Button>
+                              )}
+                              {xmlUrl && (
+                                <Button asChild variant="outline" size="sm">
+                                  <a href={xmlUrl} download target="_blank" rel="noopener noreferrer">
+                                    <Download className="w-3.5 h-3.5" />
+                                    Baixar XML
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              )
+            })}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

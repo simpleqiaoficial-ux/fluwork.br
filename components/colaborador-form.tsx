@@ -100,8 +100,8 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
         <CardTitle>Novo Colaborador</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="nome_completo">Nome Completo</Label>
               <Input

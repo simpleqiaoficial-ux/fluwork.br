@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { listarColaboradores } from "@/app/actions/colaboradores"
 import type { Colaborador } from "@/types/colaborador"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TrendingUp, Search, History } from "lucide-react"
@@ -76,7 +75,7 @@ export function ColaboradoresFinanceiroList() {
         </Button>
       </div>
 
-      <Card>
+      <div className="rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -119,7 +118,7 @@ export function ColaboradoresFinanceiroList() {
             )}
           </TableBody>
         </Table>
-      </Card>
+      </div>
 
       {colaboradorSelecionado && (
         <ReajusteDialog

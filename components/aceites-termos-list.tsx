@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -24,7 +23,7 @@ import {
   getTermsAcceptanceStats,
 } from "@/app/actions/terms"
 import { CURRENT_TERMS_VERSION, type TermsAcceptanceWithUser } from "@/types/terms"
-import { Search, FileCheck, FileX, Users, Clock, Monitor, Smartphone } from "lucide-react"
+import { Search, Monitor, Smartphone } from "lucide-react"
 
 export function AceitesTermosList() {
   const [acceptances, setAcceptances] = useState<TermsAcceptanceWithUser[]>([])
@@ -93,168 +92,141 @@ export function AceitesTermosList() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Aceites de Termos de Uso</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold text-foreground">Aceites de Termos de Uso</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Gerencie e acompanhe os aceites dos termos de uso pelos colaboradores
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">Usuarios ativos no sistema</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Termos Aceitos</CardTitle>
-            <FileCheck className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.acceptedCurrentVersion}</div>
-            <p className="text-xs text-muted-foreground">Versao {CURRENT_TERMS_VERSION}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.pendingAcceptance}</div>
-            <p className="text-xs text-muted-foreground">Ainda nao aceitaram</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recusados</CardTitle>
-            <FileX className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.declinedCurrentVersion}</div>
-            <p className="text-xs text-muted-foreground">Recusaram os termos</p>
-          </CardContent>
-        </Card>
+      {/* Indicadores */}
+      <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Total de usuários</p>
+          <p className="text-2xl font-semibold tabular-nums">{stats.totalUsers}</p>
+          <p className="text-xs text-muted-foreground mt-1">Usuários ativos no sistema</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Termos aceitos</p>
+          <p className="text-2xl font-semibold tabular-nums text-success">{stats.acceptedCurrentVersion}</p>
+          <p className="text-xs text-muted-foreground mt-1">Versão {CURRENT_TERMS_VERSION}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Pendentes</p>
+          <p className="text-2xl font-semibold tabular-nums text-warning">{stats.pendingAcceptance}</p>
+          <p className="text-xs text-muted-foreground mt-1">Ainda não aceitaram</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Recusados</p>
+          <p className="text-2xl font-semibold tabular-nums text-destructive">{stats.declinedCurrentVersion}</p>
+          <p className="text-xs text-muted-foreground mt-1">Recusaram os termos</p>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Historico de Aceites</CardTitle>
-          <CardDescription>
+      {/* Historico */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-sm font-medium text-foreground">Histórico de aceites</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Lista detalhada de todos os aceites e recusas registrados
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou email..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterAccepted} onValueChange={setFilterAccepted}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="accepted">Aceitos</SelectItem>
-                <SelectItem value="declined">Recusados</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          </p>
+        </div>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-muted-foreground">Carregando...</div>
-            </div>
-          ) : acceptances.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <FileCheck className="mb-2 h-12 w-12 text-muted-foreground/50" />
-              <p className="text-muted-foreground">Nenhum registro encontrado</p>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Colaborador</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Versao</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Dispositivo</TableHead>
-                    <TableHead>IP</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {acceptances.map((acceptance) => {
-                    const deviceInfo = parseDeviceInfo(acceptance.device_info)
-                    return (
-                      <TableRow key={acceptance.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {acceptance.colaborador?.nome_completo || "Usuario desconhecido"}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {acceptance.colaborador?.email || "-"}
-                            </div>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={filterAccepted} onValueChange={setFilterAccepted}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filtrar por status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="accepted">Aceitos</SelectItem>
+              <SelectItem value="declined">Recusados</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          </div>
+        ) : acceptances.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum registro encontrado</p>
+          </div>
+        ) : (
+          <div className="rounded-lg border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Colaborador</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Versão</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Dispositivo</TableHead>
+                  <TableHead>IP</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {acceptances.map((acceptance) => {
+                  const deviceInfo = parseDeviceInfo(acceptance.device_info)
+                  return (
+                    <TableRow key={acceptance.id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          {acceptance.colaborador?.nome_completo || "Usuário desconhecido"}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {acceptance.colaborador?.email || "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {acceptance.accepted ? (
+                          <Badge variant="success">Aceito</Badge>
+                        ) : (
+                          <Badge variant="destructive">Recusado</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{acceptance.version}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(acceptance.accepted_at || acceptance.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {deviceInfo ? (
+                          <div className="flex items-center gap-2 text-sm">
+                            {deviceInfo.type === "mobile" ? (
+                              <Smartphone className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Monitor className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            {deviceInfo.os}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {acceptance.accepted ? (
-                            <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                              Aceito
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">Recusado</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{acceptance.version}</Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(acceptance.accepted_at || acceptance.created_at)}</TableCell>
-                        <TableCell>
-                          {deviceInfo ? (
-                            <div className="flex items-center gap-2">
-                              {deviceInfo.type === "mobile" ? (
-                                <Smartphone className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Monitor className="h-4 w-4 text-muted-foreground" />
-                              )}
-                              <span className="text-sm">{deviceInfo.os}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-sm">
-                            {acceptance.ip_address || "-"}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {acceptance.ip_address || "-"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

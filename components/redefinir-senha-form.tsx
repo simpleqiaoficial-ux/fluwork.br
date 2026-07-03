@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { redefinirSenha } from "@/app/actions/auth"
-import { Eye, EyeOff, Lock, CheckCircle2, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react"
 
 export function RedefinirSenhaForm() {
   const [senhaAtual, setSenhaAtual] = useState("")
@@ -67,12 +67,9 @@ export function RedefinirSenhaForm() {
   }
 
   return (
-    <Card className="border-border/50 shadow-sm">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Lock className="h-5 w-5 text-primary" />
-          Alterar Senha
-        </CardTitle>
+        <CardTitle>Alterar Senha</CardTitle>
         <CardDescription>Digite sua senha atual e escolha uma nova senha segura</CardDescription>
       </CardHeader>
       <CardContent>
@@ -122,7 +119,7 @@ export function RedefinirSenhaForm() {
               </button>
             </div>
             {novaSenha && novaSenha.length < 6 && (
-              <p className="text-xs text-amber-600">Senha deve ter no mínimo 6 caracteres</p>
+              <p className="text-xs text-warning">Senha deve ter no mínimo 6 caracteres</p>
             )}
           </div>
 
@@ -148,14 +145,18 @@ export function RedefinirSenhaForm() {
               </button>
             </div>
             {confirmarSenha && novaSenha !== confirmarSenha && (
-              <p className="text-xs text-red-600">As senhas não coincidem</p>
+              <p className="text-xs text-destructive">As senhas não coincidem</p>
             )}
           </div>
 
           {/* Mensagem de Feedback */}
           {message && (
             <Alert variant={message.type === "error" ? "destructive" : "default"}>
-              {message.type === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              {message.type === "success" ? (
+                <CheckCircle2 className="h-4 w-4 text-success" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
               <AlertDescription>{message.text}</AlertDescription>
             </Alert>
           )}
@@ -166,8 +167,8 @@ export function RedefinirSenhaForm() {
           </Button>
 
           {/* Dicas de Segurança */}
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-2">
-            <p className="text-sm font-medium">Dicas para uma senha segura:</p>
+          <div className="pt-4 border-t space-y-2">
+            <p className="text-sm font-medium">Dicas para uma senha segura</p>
             <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
               <li>Use no mínimo 6 caracteres</li>
               <li>Combine letras maiúsculas e minúsculas</li>

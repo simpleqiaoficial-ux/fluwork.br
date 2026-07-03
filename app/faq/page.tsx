@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Search, ArrowLeft, Mail, Phone, HelpCircle, Shield, CreditCard, Users, Key } from "lucide-react"
+import { ChevronDown, Search, ArrowLeft, Mail, Phone, HelpCircle, Shield, CreditCard, Key } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 const faqCategories = [
   {
@@ -94,71 +96,70 @@ export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   const toggleQuestion = (id: string) => {
-    setExpandedQuestions(prev => 
+    setExpandedQuestions(prev =>
       prev.includes(id) ? prev.filter(q => q !== id) : [...prev, id]
     )
   }
 
   const filteredCategories = faqCategories.map(category => ({
     ...category,
-    questions: category.questions.filter(q => 
+    questions: category.questions.filter(q =>
       q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.answer.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })).filter(category => category.questions.length > 0)
 
-  const displayCategories = activeCategory 
+  const displayCategories = activeCategory
     ? filteredCategories.filter(c => c.id === activeCategory)
     : filteredCategories
 
   return (
-    <div className="min-h-screen bg-[#0a0f1a]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="w-full py-4 px-6 border-b border-gray-800">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/login" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+      <header className="border-b">
+        <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
+          <Link href="/login" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Voltar ao Login</span>
+            Voltar ao login
           </Link>
-          <div className="flex items-center gap-2">
-            <Link href="/login" className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium">Login</Link>
-            <Link href="/faq" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">FAQ</Link>
-            <Link href="/termos" className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium">Termos</Link>
-            <Link href="/privacidade" className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium">Privacidade</Link>
+          <div className="flex items-center gap-6 text-sm">
+            <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+            <Link href="/faq" className="text-foreground font-medium">FAQ</Link>
+            <Link href="/termos" className="text-muted-foreground hover:text-foreground transition-colors">Termos</Link>
+            <Link href="/privacidade" className="text-muted-foreground hover:text-foreground transition-colors">Privacidade</Link>
           </div>
         </nav>
       </header>
 
       {/* Hero */}
-      <div className="bg-gradient-to-b from-primary/10 to-transparent py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Central de Ajuda</h1>
-          <p className="text-gray-400 mb-8">Encontre respostas para suas duvidas sobre o FluxoPay</p>
-          
-          {/* Search */}
-          <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-            <Input
-              type="text"
-              placeholder="Buscar perguntas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-14 bg-[#111827] border-gray-700 text-white placeholder:text-gray-500 text-lg rounded-xl"
-            />
-          </div>
+      <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">Central de Ajuda</h1>
+        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas duvidas sobre o FluxoPay</p>
+
+        {/* Search */}
+        <div className="relative max-w-lg mx-auto mt-8">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Buscar perguntas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-11"
+          />
         </div>
       </div>
 
-      {/* Category Pills */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex flex-wrap gap-3 justify-center">
+      {/* Category Filters */}
+      <div className="max-w-3xl mx-auto px-4 pb-10">
+        <div className="flex flex-wrap gap-2 justify-center">
           <button
             onClick={() => setActiveCategory(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeCategory === null 
-                ? 'bg-primary text-white' 
-                : 'bg-[#111827] text-gray-400 hover:text-white border border-gray-700'
-            }`}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm border transition-colors",
+              activeCategory === null
+                ? "bg-primary text-primary-foreground border-primary"
+                : "text-muted-foreground border-border hover:text-foreground"
+            )}
           >
             Todas
           </button>
@@ -166,13 +167,14 @@ export default function FAQPage() {
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                activeCategory === category.id 
-                  ? 'bg-primary text-white' 
-                  : 'bg-[#111827] text-gray-400 hover:text-white border border-gray-700'
-              }`}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm border transition-colors flex items-center gap-1.5",
+                activeCategory === category.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "text-muted-foreground border-border hover:text-foreground"
+              )}
             >
-              <category.icon className="h-4 w-4" />
+              <category.icon className="h-3.5 w-3.5" />
               {category.title}
             </button>
           ))}
@@ -180,37 +182,37 @@ export default function FAQPage() {
       </div>
 
       {/* FAQ Content */}
-      <div className="max-w-4xl mx-auto px-4 pb-16">
+      <div className="max-w-3xl mx-auto px-4 pb-20">
         {displayCategories.map(category => (
-          <div key={category.id} className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <category.icon className="h-5 w-5 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold text-white">{category.title}</h2>
-            </div>
-            
-            <div className="space-y-3">
+          <div key={category.id} className="mb-10">
+            <h2 className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
+              <category.icon className="h-4 w-4 text-muted-foreground" />
+              {category.title}
+            </h2>
+
+            <div className="divide-y border-t border-b">
               {category.questions.map((item, idx) => {
                 const questionId = `${category.id}-${idx}`
                 const isExpanded = expandedQuestions.includes(questionId)
-                
+
                 return (
-                  <div 
-                    key={questionId}
-                    className="bg-[#111827] border border-gray-800 rounded-xl overflow-hidden"
-                  >
+                  <div key={questionId}>
                     <button
                       onClick={() => toggleQuestion(questionId)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800/50 transition-colors"
+                      className="w-full flex items-center justify-between gap-4 py-4 text-left"
                     >
-                      <span className="text-white font-medium pr-4">{item.question}</span>
-                      <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-sm font-medium text-foreground">{item.question}</span>
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform",
+                          isExpanded && "rotate-180"
+                        )}
+                      />
                     </button>
                     {isExpanded && (
-                      <div className="px-4 pb-4 text-gray-400 text-sm leading-relaxed border-t border-gray-800 pt-4">
+                      <p className="text-sm text-muted-foreground leading-relaxed pb-4 pr-8">
                         {item.answer}
-                      </div>
+                      </p>
                     )}
                   </div>
                 )
@@ -220,45 +222,40 @@ export default function FAQPage() {
         ))}
 
         {displayCategories.length === 0 && (
-          <div className="text-center py-12">
-            <HelpCircle className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">Nenhuma pergunta encontrada para "{searchTerm}"</p>
+          <div className="text-center py-16">
+            <p className="text-sm text-muted-foreground">Nenhuma pergunta encontrada para "{searchTerm}"</p>
           </div>
         )}
 
-        {/* Contact Box */}
-        <div className="mt-12 bg-[#111827] border border-gray-800 rounded-2xl p-8 text-center">
-          <h3 className="text-xl font-semibold text-white mb-2">Ainda precisa de ajuda?</h3>
-          <p className="text-gray-400 mb-6">Nossa equipe esta pronta para ajudar voce</p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a 
-              href="mailto:simpleqia.oficial@gmail.com"
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
-            >
-              <Mail className="h-5 w-5" />
-              simpleqia.oficial@gmail.com
-            </a>
-            <a 
-              href="https://wa.me/5511914860806"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3 bg-[#1a2332] text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
-            >
-              <Phone className="h-5 w-5" />
-              (11) 91486-0806
-            </a>
+        {/* Contact */}
+        <div className="mt-16 pt-10 border-t text-center">
+          <h3 className="text-lg font-semibold">Ainda precisa de ajuda?</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-6">Nossa equipe esta pronta para ajudar voce</p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button asChild>
+              <a href="mailto:simpleqia.oficial@gmail.com">
+                <Mail className="h-4 w-4" />
+                simpleqia.oficial@gmail.com
+              </a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="https://wa.me/5511914860806" target="_blank" rel="noopener noreferrer">
+                <Phone className="h-4 w-4" />
+                (11) 91486-0806
+              </a>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="py-6 px-4 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>2025 FluxoPay - Simpleqia. Todos os direitos reservados.</p>
+      <footer className="border-t py-6 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <p>2026 FluxoPay - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
-            <Link href="/termos" className="hover:text-white transition-colors">Termos</Link>
-<Link href="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
+            <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
+            <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
           </div>
         </div>
       </footer>

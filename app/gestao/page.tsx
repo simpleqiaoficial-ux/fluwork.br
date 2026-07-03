@@ -48,21 +48,18 @@ export default async function GestaoPage() {
       title: "Gerenciar Notas",
       description: "Visualize e gerencie as notas fiscais organizadas por mês de competência.",
       icon: FileText,
-      color: "bg-blue-50 text-blue-600 border-blue-200",
     },
     {
       href: "/gestao/reajustes",
       title: "Aplicar Reajustes",
       description: "Aplique reajustes salariais nos colaboradores e consulte o histórico.",
       icon: TrendingUp,
-      color: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
     {
       href: "/gestao/aceites",
       title: "Aceites de Termos",
       description: "Visualize e gerencie os aceites de termos de uso dos colaboradores.",
       icon: FileCheck,
-      color: "bg-violet-50 text-violet-600 border-violet-200",
     },
   ]
 
@@ -86,15 +83,13 @@ export default async function GestaoPage() {
           const Icon = item.icon
           return (
             <Link key={item.href} href={item.href} className="group">
-              <Card className="h-full transition-all hover:shadow-md hover:border-foreground/20 group-hover:bg-muted/30">
+              <Card className="h-full transition-colors hover:border-foreground/20 group-hover:bg-muted/30">
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
-                    <div className={`p-3 rounded-lg border ${item.color}`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                   </div>
-                  <CardTitle className="text-lg mt-4">{item.title}</CardTitle>
+                  <CardTitle className="text-base mt-4">{item.title}</CardTitle>
                   <CardDescription className="text-sm leading-relaxed">
                     {item.description}
                   </CardDescription>

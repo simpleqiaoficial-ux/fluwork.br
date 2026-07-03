@@ -9,15 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Plus,
   Trash2,
   Clock,
-  Car,
   Bus,
   AlertCircle,
-  DollarSign,
   Percent,
   Award,
   MapPin,
@@ -50,70 +48,54 @@ interface PedidoItem {
 
 const ITEM_CONFIG: Record<
   ItemTipo,
-  { label: string; desc: string; icon: typeof Clock; color: string; bgCard: string; unidade: string; isDesconto?: boolean }
+  { label: string; desc: string; icon: typeof Clock; unidade: string; isDesconto?: boolean }
 > = {
   hora_extra_normal: {
     label: "Hora Extra Normal",
     desc: "Sem adicional percentual",
     icon: Clock,
-    color: "text-sky-700",
-    bgCard: "bg-sky-50 border-sky-200",
     unidade: "horas",
   },
   hora_extra_50: {
     label: "Hora Extra 50%",
     desc: "Adicional de 50% sobre hora normal",
     icon: Clock,
-    color: "text-amber-700",
-    bgCard: "bg-amber-50 border-amber-200",
     unidade: "horas",
   },
   hora_extra_100: {
     label: "Hora Extra 100%",
     desc: "Adicional de 100% sobre hora normal",
     icon: Clock,
-    color: "text-orange-700",
-    bgCard: "bg-orange-50 border-orange-200",
     unidade: "horas",
   },
   plantao: {
     label: "Plantao",
     desc: "Valor fixo por plantao realizado",
     icon: AlertCircle,
-    color: "text-purple-700",
-    bgCard: "bg-purple-50 border-purple-200",
     unidade: "valor",
   },
   conducao: {
     label: "Conducao",
     desc: "Vale transporte / deslocamento",
     icon: Bus,
-    color: "text-teal-700",
-    bgCard: "bg-teal-50 border-teal-200",
     unidade: "valor",
   },
   reembolso_km: {
     label: "Reembolso KM",
     desc: "Quilometragem percorrida",
     icon: MapPin,
-    color: "text-green-700",
-    bgCard: "bg-green-50 border-green-200",
     unidade: "valor",
   },
   comissao: {
     label: "Comissao",
     desc: "Comissao sobre vendas/resultados",
     icon: Award,
-    color: "text-blue-700",
-    bgCard: "bg-blue-50 border-blue-200",
     unidade: "valor",
   },
   desconto_dias: {
     label: "Desconto por Dias",
     desc: "Calculo: salario / 22 dias uteis x qtd",
     icon: Percent,
-    color: "text-red-700",
-    bgCard: "bg-red-50 border-red-200",
     unidade: "dias",
     isDesconto: true,
   },
@@ -121,8 +103,6 @@ const ITEM_CONFIG: Record<
     label: "Desconto por Horas",
     desc: "Calculo: valor hora x quantidade",
     icon: Percent,
-    color: "text-red-700",
-    bgCard: "bg-red-50 border-red-200",
     unidade: "horas",
     isDesconto: true,
   },
@@ -130,8 +110,6 @@ const ITEM_CONFIG: Record<
     label: "Desconto Fixo",
     desc: "Valor fixo de desconto",
     icon: Percent,
-    color: "text-red-700",
-    bgCard: "bg-red-50 border-red-200",
     unidade: "valor",
     isDesconto: true,
   },
@@ -371,310 +349,293 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
   return (
     <div className="space-y-4">
-      {/* Step 1: Colaborador Selection */}
       <Card>
-        <CardContent className="pt-5 pb-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">1</span>
-              </div>
-              <Label className="text-sm font-semibold">Selecione o Colaborador</Label>
-            </div>
+        <CardContent className="pt-6 space-y-8">
+          {/* Step 1: Colaborador Selection */}
+          <section>
+            <h3 className="text-sm font-medium mb-4">1. Selecione o colaborador</h3>
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={buscaColaborador}
-                  onChange={(e) => setBuscaColaborador(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={filtroDiaPagamento} onValueChange={setFiltroDiaPagamento}>
-                <SelectTrigger className="w-full sm:w-32">
-                  <SelectValue placeholder="Dia pgto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="1">Dia 1</SelectItem>
-                  <SelectItem value="15">Dia 15</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Select value={selectedColaborador} onValueChange={(v) => { setSelectedColaborador(v); setItems([]) }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o colaborador" />
-              </SelectTrigger>
-              <SelectContent>
-                {colaboradoresFiltrados.map((c) => (
-                  <SelectItem key={c.id} value={c.id} disabled={c.bloqueado}>
-                    {c.nome_completo} - {fmt(c.salario)} (Dia {c.dia_pagamento})
-                    {c.bloqueado ? " [ja lancado]" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {colaborador && (
-              <div className="flex flex-wrap gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">Salario: {fmt(salario)}</Badge>
-                <Badge variant="outline" className="text-xs">Hora: {fmt(valorHoraNormal)}</Badge>
-                <Badge variant="outline" className="text-xs">Dia: {fmt(valorDiario)}</Badge>
-                <Badge variant="outline" className="text-xs">Pgto dia: {colaborador.dia_pagamento}</Badge>
-              </div>
-            )}
-
-            <div className="pt-1">
-              <Select value={tipoPedido} onValueChange={(v) => { setTipoPedido(v as "completo" | "reembolso_km"); setItems([]) }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="completo">Pagamento Completo</SelectItem>
-                  <SelectItem value="reembolso_km">Somente Reembolso KM</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Step 2: Item Builder */}
-      {selectedColaborador && (
-        <Card>
-          <CardContent className="pt-5 pb-4">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">2</span>
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome ou email..."
+                    value={buscaColaborador}
+                    onChange={(e) => setBuscaColaborador(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-                <Label className="text-sm font-semibold">Adicionar Itens</Label>
+                <Select value={filtroDiaPagamento} onValueChange={setFiltroDiaPagamento}>
+                  <SelectTrigger className="w-full sm:w-32">
+                    <SelectValue placeholder="Dia pgto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="1">Dia 1</SelectItem>
+                    <SelectItem value="15">Dia 15</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Quick Type Buttons */}
-              <div className="flex flex-wrap gap-1.5">
-                {availableTypes.map((t) => {
-                  const cfg = ITEM_CONFIG[t]
-                  const Icon = cfg.icon
-                  const isActive = addingTipo === t
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => { setAddingTipo(t); setAddingQtd(""); setAddingValor(""); setAddingMotivo(""); setAddingError("") }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        isActive
-                          ? `${cfg.bgCard} ${cfg.color} ring-2 ring-offset-1 ring-current`
-                          : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted"
-                      }`}
-                    >
-                      <Icon className="h-3 w-3" />
-                      {cfg.label}
-                    </button>
-                  )
-                })}
-              </div>
+              <Select value={selectedColaborador} onValueChange={(v) => { setSelectedColaborador(v); setItems([]) }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o colaborador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {colaboradoresFiltrados.map((c) => (
+                    <SelectItem key={c.id} value={c.id} disabled={c.bloqueado}>
+                      {c.nome_completo} - {fmt(c.salario)} (Dia {c.dia_pagamento})
+                      {c.bloqueado ? " [ja lancado]" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              {/* Active Item Form */}
-              {currentConfig && addingTipo && (
-                <div className={`rounded-lg border p-4 space-y-3 ${currentConfig.bgCard}`}>
-                  <div className="flex items-center gap-2">
-                    {(() => { const Icon = currentConfig.icon; return <Icon className={`h-4 w-4 ${currentConfig.color}`} /> })()}
-                    <span className={`font-semibold text-sm ${currentConfig.color}`}>{currentConfig.label}</span>
-                    <span className="text-xs text-muted-foreground">{currentConfig.desc}</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {currentConfig.unidade !== "valor" && (
-                      <div className="space-y-1">
-                        <Label className="text-xs">
-                          Quantidade ({currentConfig.unidade === "dias" ? "dias uteis" : "horas"})
-                        </Label>
-                        <Input
-                          type="number"
-                          step={currentConfig.unidade === "dias" ? "1" : "0.5"}
-                          min="0"
-                          placeholder={`Ex: ${currentConfig.unidade === "dias" ? "3" : "2"}`}
-                          value={addingQtd}
-                          onChange={(e) => setAddingQtd(e.target.value)}
-                          className="bg-background"
-                        />
-                        {addingQtd && (
-                          <p className="text-xs text-muted-foreground">
-                            {"= "}
-                            {fmt(calcularValorItem({
-                              id: "", tipo: addingTipo as ItemTipo,
-                              quantidade: parseFloat(addingQtd) || 0,
-                              valor: 0, motivo: "",
-                            }))}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {currentConfig.unidade === "valor" && (
-                      <div className="space-y-1">
-                        <Label className="text-xs">Valor (R$)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0,00"
-                          value={addingValor}
-                          onChange={(e) => setAddingValor(e.target.value)}
-                          className="bg-background"
-                        />
-                      </div>
-                    )}
-
-                    <div className="space-y-1 sm:col-span-1">
-                      <Label className="text-xs">
-                        Motivo <span className="text-red-500">*</span>
-                      </Label>
-                      <Textarea
-                        placeholder="Descreva o motivo..."
-                        value={addingMotivo}
-                        onChange={(e) => { setAddingMotivo(e.target.value); setAddingError("") }}
-                        className="bg-background min-h-[60px] text-sm resize-none"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-
-                  {addingError && (
-                    <p className="text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {addingError}
-                    </p>
-                  )}
-
-                  <Button type="button" size="sm" onClick={addItem} className="w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar ao Pedido
-                  </Button>
+              {colaborador && (
+                <div className="flex flex-wrap gap-x-5 gap-y-1 pt-1 text-xs text-muted-foreground">
+                  <span>Salário <span className="font-medium text-foreground tabular-nums">{fmt(salario)}</span></span>
+                  <span>Valor hora <span className="font-medium text-foreground tabular-nums">{fmt(valorHoraNormal)}</span></span>
+                  <span>Valor dia <span className="font-medium text-foreground tabular-nums">{fmt(valorDiario)}</span></span>
+                  <span>Pagamento no dia <span className="font-medium text-foreground tabular-nums">{colaborador.dia_pagamento}</span></span>
                 </div>
               )}
 
-              {/* Added Items List */}
-              {items.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    {items.length} {items.length === 1 ? "item adicionado" : "itens adicionados"}
-                  </p>
-                  {items.map((item) => {
-                    const cfg = ITEM_CONFIG[item.tipo]
+              <div className="pt-1">
+                <Select value={tipoPedido} onValueChange={(v) => { setTipoPedido(v as "completo" | "reembolso_km"); setItems([]) }}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="completo">Pagamento Completo</SelectItem>
+                    <SelectItem value="reembolso_km">Somente Reembolso KM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
+          {/* Step 2: Item Builder */}
+          {selectedColaborador && (
+            <section className="pt-8 border-t">
+              <h3 className="text-sm font-medium mb-4">2. Adicionar itens</h3>
+
+              <div className="space-y-4">
+                {/* Quick Type Buttons */}
+                <div className="flex flex-wrap gap-1.5">
+                  {availableTypes.map((t) => {
+                    const cfg = ITEM_CONFIG[t]
                     const Icon = cfg.icon
-                    const val = calcularValorItem(item)
+                    const isActive = addingTipo === t
                     return (
-                      <div key={item.id} className={`flex items-start justify-between gap-3 p-3 rounded-lg border ${cfg.bgCard}`}>
-                        <div className="flex items-start gap-2 min-w-0 flex-1">
-                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${cfg.color}`} />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`font-medium text-sm ${cfg.color}`}>{cfg.label}</span>
-                              {cfg.unidade !== "valor" && (
-                                <Badge variant="secondary" className="text-xs">{item.quantidade} {cfg.unidade}</Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.motivo}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className={`font-semibold text-sm whitespace-nowrap ${cfg.isDesconto ? "text-red-600" : cfg.color}`}>
-                            {cfg.isDesconto ? "- " : "+ "}{fmt(val)}
-                          </span>
-                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 hover:bg-red-100" onClick={() => removeItem(item.id)}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => { setAddingTipo(t); setAddingQtd(""); setAddingValor(""); setAddingMotivo(""); setAddingError("") }}
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          isActive
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-transparent bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {cfg.label}
+                      </button>
                     )
                   })}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Step 3: Summary */}
-      {selectedColaborador && (
-        <Card className="border-2 border-blue-200 bg-blue-50/30">
-          <CardContent className="pt-5 pb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">3</span>
+                {/* Active Item Form */}
+                {currentConfig && addingTipo && (
+                  <div className="rounded-md border p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <currentConfig.icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm">{currentConfig.label}</span>
+                      <span className="text-xs text-muted-foreground">{currentConfig.desc}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {currentConfig.unidade !== "valor" && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">
+                            Quantidade ({currentConfig.unidade === "dias" ? "dias uteis" : "horas"})
+                          </Label>
+                          <Input
+                            type="number"
+                            step={currentConfig.unidade === "dias" ? "1" : "0.5"}
+                            min="0"
+                            placeholder={`Ex: ${currentConfig.unidade === "dias" ? "3" : "2"}`}
+                            value={addingQtd}
+                            onChange={(e) => setAddingQtd(e.target.value)}
+                          />
+                          {addingQtd && (
+                            <p className="text-xs text-muted-foreground">
+                              {"= "}
+                              {fmt(calcularValorItem({
+                                id: "", tipo: addingTipo as ItemTipo,
+                                quantidade: parseFloat(addingQtd) || 0,
+                                valor: 0, motivo: "",
+                              }))}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {currentConfig.unidade === "valor" && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Valor (R$)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0,00"
+                            value={addingValor}
+                            onChange={(e) => setAddingValor(e.target.value)}
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-1 sm:col-span-1">
+                        <Label className="text-xs">
+                          Motivo <span className="text-destructive">*</span>
+                        </Label>
+                        <Textarea
+                          placeholder="Descreva o motivo..."
+                          value={addingMotivo}
+                          onChange={(e) => { setAddingMotivo(e.target.value); setAddingError("") }}
+                          className="min-h-[60px] text-sm resize-none"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {addingError && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {addingError}
+                      </p>
+                    )}
+
+                    <Button type="button" size="sm" onClick={addItem} className="w-full sm:w-auto">
+                      <Plus className="h-4 w-4" />
+                      Adicionar ao Pedido
+                    </Button>
+                  </div>
+                )}
+
+                {/* Added Items List */}
+                {items.length > 0 && (
+                  <div className="pt-2">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {items.length} {items.length === 1 ? "item adicionado" : "itens adicionados"}
+                    </p>
+                    <div className="rounded-md border divide-y">
+                      {items.map((item) => {
+                        const cfg = ITEM_CONFIG[item.tipo]
+                        const Icon = cfg.icon
+                        const val = calcularValorItem(item)
+                        return (
+                          <div key={item.id} className="flex items-start justify-between gap-3 px-3 py-2.5">
+                            <div className="flex items-start gap-2 min-w-0 flex-1">
+                              <Icon className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-sm">{cfg.label}</span>
+                                  {cfg.unidade !== "valor" && (
+                                    <span className="text-xs text-muted-foreground">{item.quantidade} {cfg.unidade}</span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.motivo}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className={`font-medium text-sm whitespace-nowrap tabular-nums ${cfg.isDesconto ? "text-destructive" : "text-foreground"}`}>
+                                {cfg.isDesconto ? "− " : "+ "}{fmt(val)}
+                              </span>
+                              <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeItem(item.id)}>
+                                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-              <Label className="text-sm font-semibold">Resumo do Pedido</Label>
-            </div>
+            </section>
+          )}
 
-            <div className="space-y-1.5">
-              {tipoPedido === "completo" && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" />Salario Base</span>
-                  <span className="font-medium">{fmt(resumo.salario)}</span>
-                </div>
-              )}
-              {resumo.horasExtras > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Horas Extras</span>
-                  <span className="font-medium text-amber-700">+ {fmt(resumo.horasExtras)}</span>
-                </div>
-              )}
-              {resumo.plantao > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5" />Plantao</span>
-                  <span className="font-medium text-purple-700">+ {fmt(resumo.plantao)}</span>
-                </div>
-              )}
-              {resumo.conducao > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><Bus className="h-3.5 w-3.5" />Conducao</span>
-                  <span className="font-medium text-teal-700">+ {fmt(resumo.conducao)}</span>
-                </div>
-              )}
-              {resumo.km > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><Car className="h-3.5 w-3.5" />Reembolso KM</span>
-                  <span className="font-medium text-green-700">+ {fmt(resumo.km)}</span>
-                </div>
-              )}
-              {resumo.comissao > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><Award className="h-3.5 w-3.5" />Comissao</span>
-                  <span className="font-medium text-blue-700">+ {fmt(resumo.comissao)}</span>
-                </div>
-              )}
-              {resumo.desconto > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" />Descontos</span>
-                  <span className="font-medium text-red-600">- {fmt(resumo.desconto)}</span>
-                </div>
-              )}
+          {/* Step 3: Summary */}
+          {selectedColaborador && (
+            <section className="pt-8 border-t">
+              <h3 className="text-sm font-medium mb-4">3. Resumo do pedido</h3>
 
-              <div className="border-t border-blue-200 pt-2 mt-2 flex justify-between">
-                <span className="font-bold text-base">Total Liquido</span>
-                <span className="font-bold text-lg text-blue-700">{fmt(resumo.totalLiquido)}</span>
+              <div className="space-y-2">
+                {tipoPedido === "completo" && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Salario Base</span>
+                    <span className="font-medium tabular-nums">{fmt(resumo.salario)}</span>
+                  </div>
+                )}
+                {resumo.horasExtras > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Horas Extras</span>
+                    <span className="font-medium tabular-nums">+ {fmt(resumo.horasExtras)}</span>
+                  </div>
+                )}
+                {resumo.plantao > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Plantao</span>
+                    <span className="font-medium tabular-nums">+ {fmt(resumo.plantao)}</span>
+                  </div>
+                )}
+                {resumo.conducao > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Conducao</span>
+                    <span className="font-medium tabular-nums">+ {fmt(resumo.conducao)}</span>
+                  </div>
+                )}
+                {resumo.km > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Reembolso KM</span>
+                    <span className="font-medium tabular-nums">+ {fmt(resumo.km)}</span>
+                  </div>
+                )}
+                {resumo.comissao > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Comissao</span>
+                    <span className="font-medium tabular-nums">+ {fmt(resumo.comissao)}</span>
+                  </div>
+                )}
+                {resumo.desconto > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Descontos</span>
+                    <span className="font-medium tabular-nums text-destructive">− {fmt(resumo.desconto)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-3 border-t mt-1">
+                  <span className="font-semibold">Total Liquido</span>
+                  <span className="font-semibold text-lg tabular-nums">{fmt(resumo.totalLiquido)}</span>
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <div className="mt-3 p-2.5 rounded-lg bg-red-100 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                {error}
-              </div>
-            )}
+              {error && (
+                <Alert variant="destructive" className="mt-3">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-            <Button className="w-full mt-4" size="lg" onClick={handleSubmitClick} disabled={loading || !selectedColaborador}>
-              <Send className="h-4 w-4 mr-2" />
-              {loading ? "Enviando..." : "Enviar Pedido"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+              <Button className="w-full mt-4" size="lg" onClick={handleSubmitClick} disabled={loading || !selectedColaborador}>
+                <Send className="h-4 w-4" />
+                {loading ? "Enviando..." : "Enviar Pedido"}
+              </Button>
+            </section>
+          )}
+        </CardContent>
+      </Card>
 
       {pendingPedido && colaborador && (
         <PedidoConfirmationDialog

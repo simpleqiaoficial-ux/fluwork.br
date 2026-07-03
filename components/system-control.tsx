@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -50,7 +50,7 @@ export function SystemControl() {
 
     setIsSubmitting(true)
     const result = await suspendSystem(suspensionReason)
-    
+
     if (result.success) {
       toast.success("Sistema suspenso com sucesso")
       setSuspensionReason("")
@@ -65,7 +65,7 @@ export function SystemControl() {
   const handleReactivate = async () => {
     setIsSubmitting(true)
     const result = await reactivateSystem()
-    
+
     if (result.success) {
       toast.success("Sistema reativado com sucesso")
       setShowReactivateDialog(false)
@@ -90,18 +90,14 @@ export function SystemControl() {
 
   return (
     <>
-      <Card className={isActive ? "border-green-500/30" : "border-red-500/30"}>
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {isActive ? (
-                <div className="p-2 rounded-full bg-green-500/10">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                </div>
+                <CheckCircle2 className="h-5 w-5 text-success" />
               ) : (
-                <div className="p-2 rounded-full bg-red-500/10">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                </div>
+                <AlertTriangle className="h-5 w-5 text-destructive" />
               )}
               <div>
                 <CardTitle className="text-lg">Controle do Sistema</CardTitle>
@@ -110,18 +106,18 @@ export function SystemControl() {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant={isActive ? "default" : "destructive"} className="text-sm">
-              {isActive ? "ATIVO" : "SUSPENSO"}
+            <Badge variant={isActive ? "success" : "destructive"}>
+              {isActive ? "Ativo" : "Suspenso"}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {!isActive && status?.suspended_reason && (
-            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm font-medium text-red-400 mb-1">Motivo da Suspensao:</p>
-              <p className="text-sm text-red-300">{status.suspended_reason}</p>
+            <div className="border-l-2 border-destructive pl-4 py-1">
+              <p className="text-sm font-medium text-destructive mb-1">Motivo da suspensao</p>
+              <p className="text-sm text-muted-foreground">{status.suspended_reason}</p>
               {status.suspended_at && (
-                <p className="text-xs text-red-400/70 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   Suspenso em: {new Date(status.suspended_at).toLocaleString("pt-BR")}
                 </p>
               )}
@@ -146,8 +142,8 @@ export function SystemControl() {
             </div>
 
             {isActive ? (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 size="sm"
                 onClick={() => setShowSuspendDialog(true)}
               >
@@ -155,10 +151,9 @@ export function SystemControl() {
                 Suspender Sistema
               </Button>
             ) : (
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 size="sm"
-                className="bg-green-600 hover:bg-green-700"
                 onClick={() => setShowReactivateDialog(true)}
               >
                 <Power className="h-4 w-4 mr-2" />
@@ -173,7 +168,7 @@ export function SystemControl() {
       <AlertDialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-500">
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               Suspender Sistema
             </AlertDialogTitle>
@@ -181,7 +176,7 @@ export function SystemControl() {
               Ao suspender o sistema, todos os usuarios (exceto administradores) verao uma mensagem de manutencao e nao poderao acessar as funcionalidades.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <div className="space-y-3 py-4">
             <Label htmlFor="reason">Motivo da Suspensao *</Label>
             <Textarea
@@ -201,7 +196,7 @@ export function SystemControl() {
             <AlertDialogAction
               onClick={handleSuspend}
               disabled={isSubmitting || !suspensionReason.trim()}
-              className="bg-red-600 hover:bg-red-700"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {isSubmitting ? (
                 <>
@@ -223,7 +218,7 @@ export function SystemControl() {
       <AlertDialog open={showReactivateDialog} onOpenChange={setShowReactivateDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-green-500">
+            <AlertDialogTitle className="flex items-center gap-2">
               <Power className="h-5 w-5" />
               Reativar Sistema
             </AlertDialogTitle>
@@ -237,7 +232,6 @@ export function SystemControl() {
             <AlertDialogAction
               onClick={handleReactivate}
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? (
                 <>

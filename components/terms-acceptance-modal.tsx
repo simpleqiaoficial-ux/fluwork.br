@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label"
 import { acceptTerms, declineTerms } from "@/app/actions/terms"
 import { CURRENT_TERMS_VERSION } from "@/types/terms"
 import { logout } from "@/app/actions/auth"
-import { FileText, Shield, AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 
 interface TermsAcceptanceModalProps {
@@ -99,10 +99,10 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
       <Dialog open={isOpen}>
         <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
+            <div className="flex items-center justify-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+              <DialogTitle>Recusar termos de uso</DialogTitle>
             </div>
-            <DialogTitle className="text-center">Recusar Termos de Uso</DialogTitle>
             <DialogDescription className="text-center">
               Ao recusar os termos de uso, você será desconectado do sistema e não poderá acessar o FluxoPay até aceitar os termos.
             </DialogDescription>
@@ -139,9 +139,6 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
       >
         {/* Header fixo */}
         <DialogHeader className="px-4 sm:px-6 pt-5 pb-3 border-b shrink-0">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" />
-          </div>
           <DialogTitle className="text-center text-lg sm:text-xl">Termos de Uso do FluxoPay</DialogTitle>
           <DialogDescription className="text-center text-xs sm:text-sm">
             {userName && <span className="font-medium">{userName}, </span>}
@@ -160,10 +157,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
         >
           <div className="space-y-4 py-4 pr-2 text-sm">
             <section>
-              <h3 className="mb-2 font-semibold flex items-center gap-2">
-                <Shield className="h-4 w-4 text-primary" />
-                1. Aceitacao dos Termos
-              </h3>
+              <h3 className="mb-2 font-semibold">1. Aceitacao dos Termos</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Ao acessar e utilizar o sistema FluxoPay, voce concorda em cumprir e estar vinculado a estes 
                 Termos de Uso. Se voce nao concordar com qualquer parte destes termos, nao devera utilizar 
@@ -261,11 +255,9 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               </p>
             </section>
 
-            <div className="mt-6 rounded-lg bg-muted p-4">
-              <p className="text-xs text-muted-foreground text-center">
-                Ultima atualizacao: Janeiro de 2025 | Versao {CURRENT_TERMS_VERSION}
-              </p>
-            </div>
+            <p className="mt-6 pt-4 border-t text-xs text-muted-foreground text-center">
+              Ultima atualizacao: Janeiro de 2025 | Versao {CURRENT_TERMS_VERSION}
+            </p>
           </div>
         </div>
 

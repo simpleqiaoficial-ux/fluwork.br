@@ -91,22 +91,25 @@ export function Navigation({ tipoAcesso }: NavigationProps) {
   }
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b bg-background">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center gap-6">
-          <Link href="/" className="font-bold text-xl">
+          <Link href="/" className="font-semibold text-base">
             FluxoPay
           </Link>
           <div className="hidden md:flex gap-1 ml-auto items-center">
             {links.map((link) => {
               const Icon = link.icon
+              const isActive = pathname === link.href
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
-                    pathname === link.href ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent",
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -136,20 +139,23 @@ export function Navigation({ tipoAcesso }: NavigationProps) {
           </Button>
         </div>
         {mobileMenuOpen && (
-          <div className="md:hidden border-t py-4 space-y-1">
+          <div className="md:hidden border-t py-3 space-y-1">
             {links.map((link) => {
               const Icon = link.icon
+              const isActive = pathname === link.href
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors hover:bg-accent",
-                    pathname === link.href ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent",
                   )}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                   {link.label}
                 </Link>
               )
@@ -159,9 +165,9 @@ export function Navigation({ tipoAcesso }: NavigationProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="w-full justify-start flex items-center gap-3 px-4 py-3 text-muted-foreground"
+                className="w-full justify-start flex items-center gap-3 px-3 py-2 text-muted-foreground"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 Sair
               </Button>
             )}

@@ -2,8 +2,6 @@
 
 import type { PedidoPagamento } from "@/types/pedido"
 import { AprovacaoItem } from "./aprovacao-item"
-import { Card } from "@/components/ui/card"
-import { FileX } from "lucide-react"
 
 interface AprovacoesListProps {
   pedidos: PedidoPagamento[]
@@ -13,15 +11,10 @@ interface AprovacoesListProps {
 export function AprovacoesList({ pedidos, tipoAcesso }: AprovacoesListProps) {
   if (pedidos.length === 0) {
     return (
-      <Card className="p-12">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-            <FileX className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">Nenhum pedido pendente</h3>
-          <p className="text-muted-foreground">Não há pedidos aguardando aprovação no momento.</p>
-        </div>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <h3 className="text-base font-semibold mb-1">Nenhum pedido pendente</h3>
+        <p className="text-sm text-muted-foreground">Não há pedidos aguardando aprovação no momento.</p>
+      </div>
     )
   }
 
