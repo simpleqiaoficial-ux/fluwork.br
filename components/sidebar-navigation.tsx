@@ -18,8 +18,6 @@ import {
   Lock,
   Building2,
   Clock,
-  Landmark,
-  ScrollText,
   Search,
   ChevronsLeft,
   ChevronsRight,
@@ -107,18 +105,11 @@ const NAV_GROUPS: NavGroup[] = [
     items: [{ href: "/financeiro?tab=prorrogacoes", label: "Prorrogações", icon: Clock, roles: ["Adm", "Financeiro"] }],
   },
   {
-    label: "Gestão de Prestadores",
+    label: "Notas e Reajuste de Serviço",
     items: [
-      { href: "/gestao", label: "Gestão de Prestadores", icon: UsersRound, roles: ["Adm", "Financeiro"] },
+      { href: "/gestao", label: "Visão Geral", icon: UsersRound, roles: ["Adm", "Financeiro"] },
       { href: "/gestao/reajustes", label: "Reajustes Contratuais", icon: DollarSign, roles: ["Adm", "Financeiro"] },
       { href: "/gestao/aceites", label: "Aceites de Termos", icon: CheckSquare, roles: ["Adm", "Financeiro"] },
-    ],
-  },
-  {
-    label: "Em breve",
-    items: [
-      { href: "/fiscal", label: "Fiscal", icon: Landmark, roles: ["Adm", "Financeiro"] },
-      { href: "/contratos", label: "Contratos", icon: ScrollText, roles: ["Adm", "Financeiro"] },
     ],
   },
 ]
