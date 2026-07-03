@@ -23,11 +23,12 @@ import {
   Search,
   ChevronsLeft,
   ChevronsRight,
+  ChevronDown,
 } from "lucide-react"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { contarPendencias } from "@/app/actions/contadores"
 
 interface SidebarNavigationProps {
@@ -138,12 +139,17 @@ const SUPERVISOR_LINKS: NavItem[] = [
 
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"
 
+function itemPath(href: string) {
+  return href.split("?")[0]
+}
+
 export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState("")
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
   const [pendencias, setPendencias] = useState({ aprovacoes: 0, painelFinanceiro: 0, correcoes: 0 })
 
   useEffect(() => {
@@ -169,14 +175,14 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   }, [])
 
   const isItemActive = (href: string) => {
-    const [itemPath, itemQuery] = href.split("?")
-    if (pathname !== itemPath) return false
+    const [itemP, itemQuery] = href.split("?")
+    if (pathname !== itemP) return false
     if (!itemQuery) return !searchParams.get("tab")
     const itemTab = new URLSearchParams(itemQuery).get("tab")
     return searchParams.get("tab") === itemTab
   }
 
-  const baseGroups: NavGroup[] = (() => {
+  const baseGroups: NavGroup[] = useMemo(() => {
     if (tipoAcesso === "Colaborador") {
       return [{ label: "", items: COLABORADOR_LINKS }]
     }
@@ -187,7 +193,15 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       label: group.label,
       items: group.items.filter((item) => !item.roles || item.roles.includes(tipoAcesso || "")),
     })).filter((group) => group.items.length > 0)
-  })()
+  }, [tipoAcesso])
+
+  // Mantém aberta a categoria que contém a rota atual, sem fechar as demais.
+  useEffect(() => {
+    const activeGroup = baseGroups.find((group) => group.items.some((item) => itemPath(item.href) === pathname))
+    if (activeGroup && activeGroup.items.length > 1) {
+      setOpenGroups((prev) => (prev[activeGroup.label] ? prev : { ...prev, [activeGroup.label]: true }))
+    }
+  }, [pathname, baseGroups])
 
   const q = query.trim().toLowerCase()
   const groups: NavGroup[] = q
@@ -196,38 +210,44 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         .filter((group) => group.items.length > 0)
     : baseGroups
 
+  const flatItems = useMemo(() => baseGroups.flatMap((g) => g.items), [baseGroups])
+
   const bottomLink: NavItem = { href: "/redefinir-senha", label: "Redefinir Senha", icon: Lock }
 
   const handleLogout = async () => {
     await logout()
   }
 
-  const NavLink = ({ item, onClick, forceExpanded }: { item: NavItem; onClick?: () => void; forceExpanded?: boolean }) => {
+  const NavLink = ({
+    item,
+    onClick,
+    indent,
+    iconOnly,
+  }: {
+    item: NavItem
+    onClick?: () => void
+    indent?: boolean
+    iconOnly?: boolean
+  }) => {
     const Icon = item.icon
     const isActive = isItemActive(item.href)
     const badge = item.badgeKey ? pendencias[item.badgeKey] : 0
-    const isCollapsed = collapsed && !forceExpanded
 
     return (
       <Link
         href={item.href}
         onClick={onClick}
-        title={isCollapsed ? item.label : undefined}
+        title={iconOnly ? item.label : undefined}
         className={cn(
-          "group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
-          isCollapsed && "lg:justify-center lg:px-0",
+          "group flex items-center gap-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+          iconOnly ? "justify-center px-0" : indent ? "pl-9 pr-3" : "px-3",
           isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent",
         )}
       >
         <Icon className="h-4 w-4 shrink-0" />
-        <span className={cn("flex-1 truncate", isCollapsed && "lg:hidden")}>{item.label}</span>
-        {badge > 0 && (
-          <span
-            className={cn(
-              "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium px-1.5",
-              isCollapsed && "lg:hidden",
-            )}
-          >
+        {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
+        {badge > 0 && !iconOnly && (
+          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium px-1.5">
             {badge}
           </span>
         )}
@@ -235,30 +255,54 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     )
   }
 
-  const NavGroups = ({ onLinkClick, forceExpanded }: { onLinkClick?: () => void; forceExpanded?: boolean }) => (
-    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
-      {groups.map((group, i) => (
-        <div key={group.label || i}>
-          {group.label && (
-            <p
+  // Sidebar recolhida (só ícones): lista plana de todos os itens, sem categorias.
+  const CollapsedRail = () => (
+    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+      {flatItems.map((item) => (
+        <NavLink key={item.href} item={item} iconOnly />
+      ))}
+    </nav>
+  )
+
+  // Sidebar expandida: categorias com 1 item viram link direto; com 2+ itens viram acordeão.
+  const NavGroups = ({ onLinkClick }: { onLinkClick?: () => void }) => (
+    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      {groups.map((group, i) => {
+        if (!group.label || group.items.length === 1) {
+          return group.items.map((item) => <NavLink key={item.href} item={item} onClick={onLinkClick} />)
+        }
+
+        const isOpen = Boolean(q) || openGroups[group.label]
+        const GroupIcon = group.items[0].icon
+        const groupHasActiveItem = group.items.some((item) => isItemActive(item.href))
+
+        return (
+          <div key={group.label}>
+            <button
+              type="button"
+              onClick={() => setOpenGroups((prev) => ({ ...prev, [group.label]: !prev[group.label] }))}
               className={cn(
-                "px-3 mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground",
-                collapsed && !forceExpanded && "lg:hidden",
+                "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+                groupHasActiveItem && !isOpen
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
               )}
             >
-              {group.label}
-            </p>
-          )}
-          <div className="space-y-0.5">
-            {group.items.map((item) => (
-              <NavLink key={item.href} item={item} onClick={onLinkClick} forceExpanded={forceExpanded} />
-            ))}
+              <GroupIcon className="h-4 w-4 shrink-0" />
+              <span className="flex-1 truncate text-left">{group.label}</span>
+              <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
+            </button>
+            {isOpen && (
+              <div className="mt-0.5 space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink key={item.href} item={item} onClick={onLinkClick} indent />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
-      {groups.length === 0 && (
-        <p className={cn("px-3 text-sm text-muted-foreground", collapsed && !forceExpanded && "lg:hidden")}>Nada encontrado</p>
-      )}
+        )
+      })}
+      {groups.length === 0 && <p className="px-3 text-sm text-muted-foreground">Nada encontrado</p>}
     </nav>
   )
 
@@ -282,14 +326,15 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         )}
       >
         <div className={cn("flex items-center h-16 px-4 border-b", collapsed && "lg:justify-center lg:px-0")}>
-          <Link href="/" className={cn("flex items-center", collapsed && "lg:hidden")}>
-            <span className="text-base font-semibold tracking-tight">
-              Flu<span className="text-primary">Work</span>
-            </span>
-          </Link>
-          {collapsed && (
-            <Link href="/" className="hidden lg:flex items-center justify-center">
+          {collapsed ? (
+            <Link href="/" className="flex items-center justify-center">
               <span className="text-base font-semibold text-primary">F</span>
+            </Link>
+          ) : (
+            <Link href="/" className="flex items-center">
+              <span className="text-base font-semibold tracking-tight">
+                Flu<span className="text-primary">Work</span>
+              </span>
             </Link>
           )}
         </div>
@@ -308,21 +353,21 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           </div>
         )}
 
-        <NavGroups />
+        {collapsed ? <CollapsedRail /> : <NavGroups />}
 
         <div className="border-t p-3 space-y-1">
-          <NavLink item={bottomLink} />
+          <NavLink item={bottomLink} iconOnly={collapsed} />
           {tipoAcesso && (
             <Button
               variant="ghost"
               onClick={handleLogout}
               className={cn(
                 "w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-10 text-sm font-medium",
-                collapsed && "lg:justify-center lg:px-0",
+                collapsed && "justify-center px-0",
               )}
             >
               <LogOut className="h-4 w-4" />
-              <span className={cn(collapsed && "lg:hidden")}>Sair</span>
+              <span className={cn(collapsed && "hidden")}>Sair</span>
             </Button>
           )}
           <Button
@@ -330,11 +375,11 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
               "w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-9 text-sm font-medium",
-              collapsed && "lg:justify-center lg:px-0",
+              collapsed && "justify-center px-0",
             )}
           >
             {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
-            <span className={cn(collapsed && "lg:hidden")}>Recolher menu</span>
+            <span className={cn(collapsed && "hidden")}>Recolher menu</span>
           </Button>
         </div>
       </aside>
@@ -367,10 +412,10 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
               </div>
             </div>
 
-            <NavGroups onLinkClick={() => setMobileOpen(false)} forceExpanded />
+            <NavGroups onLinkClick={() => setMobileOpen(false)} />
 
             <div className="border-t p-3">
-              <NavLink item={bottomLink} onClick={() => setMobileOpen(false)} forceExpanded />
+              <NavLink item={bottomLink} onClick={() => setMobileOpen(false)} />
               {tipoAcesso && (
                 <Button
                   variant="ghost"
