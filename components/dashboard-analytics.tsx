@@ -10,13 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useMaskedCurrency } from "@/components/currency-display"
 import {
-  DollarSign,
-  Clock,
-  Car,
-  Bus,
-  Briefcase,
   TrendingUp,
-  Calendar,
   Search,
   Download,
   ChevronDown,
@@ -53,14 +47,14 @@ const STATUS_LABELS: Record<string, string> = {
   nota_recebida: "Nota Recebida",
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pendente_gerente: "bg-amber-50 text-amber-800 border-amber-200",
-  pendente_financeiro: "bg-sky-50 text-sky-800 border-sky-200",
-  aprovado: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  recusado: "bg-red-50 text-red-800 border-red-200",
-  correcao: "bg-orange-50 text-orange-800 border-orange-200",
-  pago: "bg-green-50 text-green-800 border-green-200",
-  nota_recebida: "bg-teal-50 text-teal-800 border-teal-200",
+const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
+  pendente_gerente: "outline",
+  pendente_financeiro: "outline",
+  aprovado: "success",
+  recusado: "destructive",
+  correcao: "warning",
+  pago: "success",
+  nota_recebida: "success",
 }
 
 const PIE_COLORS = ["#171717", "#404040", "#737373", "#a3a3a3", "#d4d4d4"]
@@ -375,83 +369,36 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <Receipt className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Total Pedidos</p>
-            <p className="text-2xl font-semibold text-foreground tabular-nums">{kpis.count}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {kpis.pagos} pagos / {kpis.pendentes} pendentes
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Valor Total</p>
-            <p className="text-xl font-semibold text-foreground tabular-nums">{formatValue(kpis.total)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{diasComPagamento} dias com pagamento</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <Briefcase className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Salarios</p>
-            <p className="text-xl font-semibold text-foreground tabular-nums">{formatValue(kpis.salarios)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <Clock className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Horas Extras</p>
-            <p className="text-xl font-semibold text-foreground tabular-nums">{formatValue(kpis.horasExtras)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <Car className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Reembolso KM</p>
-            <p className="text-xl font-semibold text-foreground tabular-nums">{formatValue(kpis.reembolsoKm)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none">
-          <CardContent className="pt-5 pb-4 px-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                <Bus className="h-4 w-4 text-foreground" />
-              </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">{"Plantao + Conducao"}</p>
-            <p className="text-xl font-semibold text-foreground tabular-nums">{formatValue(kpis.plantao + kpis.conducao)}</p>
-          </CardContent>
-        </Card>
+      {/* Indicadores */}
+      <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Total de pedidos</p>
+          <p className="text-2xl font-semibold tabular-nums">{kpis.count}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {kpis.pagos} pagos · {kpis.pendentes} pendentes
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Valor total</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.total)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{diasComPagamento} dias com pagamento</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Salários</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.salarios)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Horas extras</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.horasExtras)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Reembolso KM</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.reembolsoKm)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1.5">Plantão + condução</p>
+          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.plantao + kpis.conducao)}</p>
+        </div>
       </div>
 
       {/* Charts Row */}
@@ -706,7 +653,7 @@ export function DashboardAnalytics({ pedidos, equipes }: DashboardAnalyticsProps
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge className={`text-xs font-normal ${STATUS_COLORS[p.status] || ""}`}>
+                              <Badge variant={STATUS_VARIANT[p.status] || "outline"} className="font-normal">
                                 {STATUS_LABELS[p.status] || p.status}
                               </Badge>
                             </TableCell>
