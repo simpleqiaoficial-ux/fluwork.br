@@ -2,7 +2,7 @@
 
 import { and, asc, desc, eq, gte, inArray, ne, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, equipes, gerentesEquipes, pedidosPagamento } from "@/lib/db/schema"
+import { colaboradores, equipes, gerentesEquipes, pedidosPagamento, centrosCusto } from "@/lib/db/schema"
 import { toColaboradorDTO } from "@/lib/db/mappers"
 import type { NovoColaborador } from "@/types/colaborador"
 import { revalidatePath } from "next/cache"
@@ -60,6 +60,26 @@ export async function criarColaborador(data: NovoColaborador) {
 
   if (emailExistente) {
     throw new Error("Este email já está cadastrado no sistema")
+  }
+
+  // Nunca confiar que equipe_id/centro_custo_id vindos do formulário pertencem à empresa
+  // de quem está criando — mesmo que os dropdowns já só mostrem opções da própria empresa.
+  if (session.tipoAcesso !== "SuperAdmin") {
+    if (data.equipe_id) {
+      const [equipeAlvo] = await db.select({ empresaId: equipes.empresaId }).from(equipes).where(eq(equipes.id, data.equipe_id))
+      if (!equipeAlvo || equipeAlvo.empresaId !== session.empresaId) {
+        throw new Error("Equipe inválida")
+      }
+    }
+    if (data.centro_custo_id) {
+      const [centroAlvo] = await db
+        .select({ empresaId: centrosCusto.empresaId })
+        .from(centrosCusto)
+        .where(eq(centrosCusto.id, data.centro_custo_id))
+      if (!centroAlvo || centroAlvo.empresaId !== session.empresaId) {
+        throw new Error("Centro de custo inválido")
+      }
+    }
   }
 
   if (data.tipo_acesso === "Supervisor" && data.equipe_id) {
@@ -235,11 +255,18 @@ export async function getColaboradores() {
 }
 
 export async function deletarColaborador(id: string) {
-  await checkPermission(["Adm", "Financeiro"])
+  const session = await checkPermission(["Adm", "Financeiro"])
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(id)) {
     throw new Error("ID inválido")
+  }
+
+  if (session.tipoAcesso !== "SuperAdmin") {
+    const [alvo] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, id))
+    if (!alvo || alvo.empresaId !== session.empresaId) {
+      throw new Error("Prestador não encontrado")
+    }
   }
 
   let pedidos
@@ -280,11 +307,18 @@ export async function deletarColaborador(id: string) {
 }
 
 export async function atualizarColaborador(id: string, data: Partial<NovoColaborador>) {
-  await checkPermission(["Adm", "Financeiro"])
+  const session = await checkPermission(["Adm", "Financeiro"])
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(id)) {
     throw new Error("ID inválido")
+  }
+
+  if (session.tipoAcesso !== "SuperAdmin") {
+    const [alvo] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, id))
+    if (!alvo || alvo.empresaId !== session.empresaId) {
+      throw new Error("Prestador não encontrado")
+    }
   }
 
   if (data.email) {
@@ -301,6 +335,24 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
 
     if (emailExistente) {
       throw new Error("Este email já está cadastrado em outro prestador")
+    }
+  }
+
+  if (session.tipoAcesso !== "SuperAdmin") {
+    if (data.equipe_id) {
+      const [equipeAlvo] = await db.select({ empresaId: equipes.empresaId }).from(equipes).where(eq(equipes.id, data.equipe_id))
+      if (!equipeAlvo || equipeAlvo.empresaId !== session.empresaId) {
+        throw new Error("Equipe inválida")
+      }
+    }
+    if (data.centro_custo_id) {
+      const [centroAlvo] = await db
+        .select({ empresaId: centrosCusto.empresaId })
+        .from(centrosCusto)
+        .where(eq(centrosCusto.id, data.centro_custo_id))
+      if (!centroAlvo || centroAlvo.empresaId !== session.empresaId) {
+        throw new Error("Centro de custo inválido")
+      }
     }
   }
 
