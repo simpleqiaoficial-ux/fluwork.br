@@ -9,13 +9,21 @@ interface UserHeaderProps {
   email: string
   cnpj?: string
   salario?: number
+  empresaNome?: string
 }
 
-export function UserHeader({ nomeCompleto, email, cnpj, salario }: UserHeaderProps) {
+export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome }: UserHeaderProps) {
   const { valoresVisiveis, toggleValoresVisiveis, mascararValor } = useValoresVisibility()
 
   return (
     <header className="sticky top-0 z-30 border-b bg-card">
+      {empresaNome && (
+        <div className="px-4 lg:px-6 py-1 border-b bg-muted/40">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {empresaNome}
+          </span>
+        </div>
+      )}
       <div className="flex items-center gap-4 px-4 py-3 lg:px-6">
         {/* Spacer for mobile hamburger */}
         <div className="w-9 lg:hidden" />

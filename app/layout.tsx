@@ -7,6 +7,9 @@ import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { UserHeader } from "@/components/user-header"
 import { getSession } from "@/lib/session"
 import { headers } from "next/headers"
+import { db } from "@/lib/db"
+import { empresas } from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
 import { AutoLogoutProvider } from "@/components/auto-logout-provider"
 import { ValoresVisibilityProvider } from "@/contexts/valores-visibility-context"
 import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
@@ -39,6 +42,19 @@ export default async function RootLayout({
 
   const isAuthPage = pathname === "/login" || pathname === "/setup" || pathname === "/faq" || pathname === "/termos" || pathname === "/privacidade"
 
+  let empresaNome: string | undefined
+  if (!isAuthPage && session) {
+    if (session.tipoAcesso === "SuperAdmin") {
+      empresaNome = "Painel FluWork"
+    } else if (session.empresaId) {
+      const [empresa] = await db
+        .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia })
+        .from(empresas)
+        .where(eq(empresas.id, session.empresaId))
+      empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial
+    }
+  }
+
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-background">
@@ -54,6 +70,7 @@ export default async function RootLayout({
                 email={session.email}
                 cnpj={session.cnpj}
                 salario={session.salario}
+                empresaNome={empresaNome}
               />
             )}
             <main className={cn("transition-all duration-300", !isAuthPage && session && "pt-14 lg:pt-0", !isAuthPage && !session && "pt-14 lg:pt-0")}>
