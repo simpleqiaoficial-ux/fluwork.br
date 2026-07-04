@@ -107,6 +107,8 @@ export async function login(email: string, password: string) {
 
   if (colaborador.tipoAcesso === "Colaborador") {
     redirect("/meus-pagamentos")
+  } else if (colaborador.tipoAcesso === "SuperAdmin") {
+    redirect("/admin")
   } else {
     redirect("/")
   }

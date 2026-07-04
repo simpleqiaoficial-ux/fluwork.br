@@ -7,6 +7,7 @@ import { AniversariosContratoDashboard } from "@/components/aniversarios-contrat
 import { db } from "@/lib/db"
 import { colaboradores } from "@/lib/db/schema"
 import { toColaboradorDTO } from "@/lib/db/mappers"
+import { eq } from "drizzle-orm"
 
 export default async function GestaoPage() {
   const usuario = await getUsuarioLogado()
@@ -19,7 +20,8 @@ export default async function GestaoPage() {
     redirect("/")
   }
 
-  // Buscar todos colaboradores para verificar aniversários de contrato
+  // Buscar colaboradores da própria empresa para verificar aniversários de contrato
+  // (SuperAdmin não chega aqui — a checagem de papel acima já barra esse caso).
   const colaboradoresRows = await db
     .select({
       id: colaboradores.id,
@@ -38,6 +40,7 @@ export default async function GestaoPage() {
       createdAt: colaboradores.createdAt,
     })
     .from(colaboradores)
+    .where(eq(colaboradores.empresaId, usuario.empresa_id!))
     .orderBy(colaboradores.nomeCompleto)
 
   const listaColaboradores = colaboradoresRows.map(toColaboradorDTO)

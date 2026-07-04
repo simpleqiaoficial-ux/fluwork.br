@@ -8,13 +8,18 @@ import { listarEquipes, listarEquipesPorGerente } from "./actions/equipes"
 import { getSession } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { DashboardAnalytics } from "@/components/dashboard-analytics"
-import { SystemControl } from "@/components/system-control"
 
 export default async function Home() {
   const session = await getSession()
 
   if (session?.tipoAcesso === "Colaborador") {
     redirect("/meus-pagamentos")
+  }
+
+  // SuperAdmin não pertence a nenhuma empresa — o painel dele é outro, não esse dashboard
+  // (que hoje mistura dados de todas as empresas quando visto sem escopo de uma só).
+  if (session?.tipoAcesso === "SuperAdmin") {
+    redirect("/admin")
   }
 
   let pedidos: any[] = []
@@ -42,8 +47,6 @@ export default async function Home() {
     console.error("[v0] Erro ao listar equipes:", error)
   }
 
-  const isAdmin = session?.tipoAcesso === "Adm"
-
   let prorrogacoesPendentes = 0
   if (session?.tipoAcesso === "Adm" || session?.tipoAcesso === "Financeiro") {
     try {
@@ -59,12 +62,6 @@ export default async function Home() {
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Visão Geral</h1>
         <p className="text-sm text-muted-foreground">Panorama de contratos, valores e aprovações de prestadores</p>
       </div>
-
-      {isAdmin && (
-        <div className="mb-8">
-          <SystemControl />
-        </div>
-      )}
 
       <DashboardAnalytics pedidos={pedidos} equipes={equipes} prorrogacoesPendentes={prorrogacoesPendentes} />
     </div>

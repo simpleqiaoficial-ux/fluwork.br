@@ -1,6 +1,7 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 import { getDashboardGlobalStats } from "@/app/actions/empresas"
+import { SystemControl } from "@/components/system-control"
 import { Building2, Users, UserCheck, FileSignature, CheckCircle2, Wallet, ShieldCheck, ShieldX } from "lucide-react"
 
 export default async function AdminDashboardPage() {
@@ -29,7 +30,7 @@ export default async function AdminDashboardPage() {
         <p className="text-sm text-muted-foreground mt-1">Visão global de todas as empresas clientes da plataforma</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {cards.map((card) => {
           const Icon = card.icon
           return (
@@ -43,6 +44,8 @@ export default async function AdminDashboardPage() {
           )
         })}
       </div>
+
+      <SystemControl />
     </div>
   )
 }

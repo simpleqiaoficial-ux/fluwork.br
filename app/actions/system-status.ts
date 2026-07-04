@@ -59,7 +59,8 @@ export async function getSystemStatus(): Promise<{
 }
 
 /**
- * Suspende o sistema (apenas Adm)
+ * Suspende o sistema inteiro (apenas SuperAdmin — é um interruptor de manutenção da
+ * plataforma inteira, não algo que o admin de uma empresa cliente deveria controlar).
  */
 export async function suspendSystem(reason: string): Promise<{
   success: boolean
@@ -71,8 +72,8 @@ export async function suspendSystem(reason: string): Promise<{
     return { success: false, error: "Usuário não autenticado" }
   }
 
-  if (session.tipoAcesso !== "Adm") {
-    return { success: false, error: "Apenas administradores podem suspender o sistema" }
+  if (session.tipoAcesso !== "SuperAdmin") {
+    return { success: false, error: "Apenas o time FluWork pode suspender o sistema" }
   }
 
   if (!reason || reason.trim().length < 5) {
@@ -126,7 +127,7 @@ export async function suspendSystem(reason: string): Promise<{
 }
 
 /**
- * Reativa o sistema (apenas Adm)
+ * Reativa o sistema inteiro (apenas SuperAdmin)
  */
 export async function reactivateSystem(): Promise<{
   success: boolean
@@ -138,8 +139,8 @@ export async function reactivateSystem(): Promise<{
     return { success: false, error: "Usuário não autenticado" }
   }
 
-  if (session.tipoAcesso !== "Adm") {
-    return { success: false, error: "Apenas administradores podem reativar o sistema" }
+  if (session.tipoAcesso !== "SuperAdmin") {
+    return { success: false, error: "Apenas o time FluWork pode reativar o sistema" }
   }
 
   try {

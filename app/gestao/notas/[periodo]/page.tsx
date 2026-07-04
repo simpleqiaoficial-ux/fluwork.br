@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
 import { pedidosPagamento } from "@/lib/db/schema"
-import { and, desc, gte, inArray, lt } from "drizzle-orm"
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm"
 import { toPedidoDTO } from "@/lib/db/mappers"
 
 const MESES_NOMES = [
@@ -24,7 +24,7 @@ const MESES_NOMES = [
   "Dezembro",
 ]
 
-async function listarNotasDoPeriodo(ano: number, mes: number) {
+async function listarNotasDoPeriodo(ano: number, mes: number, empresaId: string) {
   // Define o range de datas para o mes
   const dataInicio = new Date(ano, mes - 1, 1)
   const dataFim = new Date(ano, mes, 1)
@@ -32,6 +32,7 @@ async function listarNotasDoPeriodo(ano: number, mes: number) {
   try {
     const rows = await db.query.pedidosPagamento.findMany({
       where: and(
+        eq(pedidosPagamento.empresaId, empresaId),
         inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "nota_recebida", "pago"]),
         gte(pedidosPagamento.createdAt, dataInicio),
         lt(pedidosPagamento.createdAt, dataFim),
@@ -81,7 +82,7 @@ export default async function NotasPeriodoPage({
     redirect("/notas")
   }
 
-  const notas = await listarNotasDoPeriodo(ano, mes)
+  const notas = await listarNotasDoPeriodo(ano, mes, usuario.empresa_id!)
   const mesNome = MESES_NOMES[mes - 1]
 
   return (
