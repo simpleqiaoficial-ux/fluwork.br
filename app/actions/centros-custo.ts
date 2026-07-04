@@ -1,6 +1,6 @@
 "use server"
 
-import { asc, eq } from "drizzle-orm"
+import { and, asc, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { centrosCusto, colaboradores } from "@/lib/db/schema"
 import { toCentroCustoDTO } from "@/lib/db/mappers"
@@ -9,8 +9,15 @@ import { revalidatePath } from "next/cache"
 import type { CentroCusto } from "@/types/colaborador"
 
 export async function listarCentrosCusto(): Promise<CentroCusto[]> {
+  const session = await getSession()
+  if (!session) return []
+
   try {
-    const data = await db.select().from(centrosCusto).orderBy(asc(centrosCusto.numero))
+    const data = await db
+      .select()
+      .from(centrosCusto)
+      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(centrosCusto.empresaId, session.empresaId!))
+      .orderBy(asc(centrosCusto.numero))
 
     return (data || []).map(toCentroCustoDTO) as CentroCusto[]
   } catch (error) {
@@ -27,6 +34,7 @@ export async function criarCentroCusto(dados: { numero: string; nome: string }):
 
   try {
     await db.insert(centrosCusto).values({
+      empresaId: session.empresaId!,
       numero: dados.numero.trim(),
       nome: dados.nome.trim(),
     })
@@ -55,7 +63,7 @@ export async function editarCentroCusto(id: string, dados: { numero: string; nom
         numero: dados.numero.trim(),
         nome: dados.nome.trim(),
       })
-      .where(eq(centrosCusto.id, id))
+      .where(and(eq(centrosCusto.id, id), eq(centrosCusto.empresaId, session.empresaId!)))
   } catch (error: any) {
     if (error?.code === "23505") {
       throw new Error("Já existe um centro de custo com esse número")
@@ -86,7 +94,7 @@ export async function excluirCentroCusto(id: string): Promise<void> {
   }
 
   try {
-    await db.delete(centrosCusto).where(eq(centrosCusto.id, id))
+    await db.delete(centrosCusto).where(and(eq(centrosCusto.id, id), eq(centrosCusto.empresaId, session.empresaId!)))
   } catch (error) {
     console.error("[v0] Erro ao excluir centro de custo:", error)
     throw new Error("Erro ao excluir centro de custo")

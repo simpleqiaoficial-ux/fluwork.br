@@ -58,6 +58,15 @@ export async function acceptTerms(userId: string): Promise<{
     return { success: false, error: "Usuário não identificado" }
   }
 
+  const [colaborador] = await db
+    .select({ empresaId: colaboradores.empresaId })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, userId))
+
+  if (!colaborador?.empresaId) {
+    return { success: false, error: "Usuário sem empresa vinculada" }
+  }
+
   const headersList = await headers()
 
   // Captura informações do request
@@ -114,6 +123,7 @@ export async function acceptTerms(userId: string): Promise<{
     // Cria novo registro
     try {
       await db.insert(userTermsAcceptance).values({
+        empresaId: colaborador.empresaId,
         userId,
         version: CURRENT_TERMS_VERSION,
         accepted: true,
@@ -142,6 +152,15 @@ export async function declineTerms(userId: string): Promise<{
     return { success: false, error: "Usuário não identificado" }
   }
 
+  const [colaborador] = await db
+    .select({ empresaId: colaboradores.empresaId })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, userId))
+
+  if (!colaborador?.empresaId) {
+    return { success: false, error: "Usuário sem empresa vinculada" }
+  }
+
   const headersList = await headers()
 
   const userAgent = headersList.get("user-agent") || null
@@ -152,6 +171,7 @@ export async function declineTerms(userId: string): Promise<{
   // Registra a recusa para auditoria
   try {
     await db.insert(userTermsAcceptance).values({
+      empresaId: colaborador.empresaId,
       userId,
       version: CURRENT_TERMS_VERSION,
       accepted: false,
@@ -183,13 +203,18 @@ export async function listTermsAcceptances(filters?: {
 }> {
   const session = await getSession()
 
-  if (!session || !["Admin", "Financeiro", "Gestor"].includes(session.tipoAcesso)) {
+  // Bug pré-existente corrigido: os valores "Admin"/"Gestor" não existem no enum tipo_acesso
+  // (são "Adm"/"Gerente"), então esse gate nunca autorizava ninguém na prática.
+  if (!session || !["Adm", "Financeiro"].includes(session.tipoAcesso)) {
     return { data: [], error: "Sem permissão para visualizar aceites" }
   }
 
   let acceptances
   try {
     const conditions = []
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(userTermsAcceptance.empresaId, session.empresaId!))
+    }
     if (filters?.version) {
       conditions.push(eq(userTermsAcceptance.version, filters.version))
     }
@@ -251,7 +276,7 @@ export async function getTermsAcceptanceStats(): Promise<{
 }> {
   const session = await getSession()
 
-  if (!session || !["Admin", "Financeiro", "Gestor"].includes(session.tipoAcesso)) {
+  if (!session || !["Adm", "Financeiro"].includes(session.tipoAcesso)) {
     return {
       totalUsers: 0,
       acceptedCurrentVersion: 0,
@@ -260,25 +285,38 @@ export async function getTermsAcceptanceStats(): Promise<{
     }
   }
 
+  const escopoEmpresa =
+    session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!)
+  const escopoEmpresaReajustes =
+    session.tipoAcesso === "SuperAdmin" ? undefined : eq(userTermsAcceptance.empresaId, session.empresaId!)
+
   // Total de usuários ativos
   // NOTA: a tabela `colaboradores` não possui coluna `ativo` (ver lib/db/schema.ts) — o filtro
   // .eq("ativo", true) do código Supabase original era inválido e, na prática, sempre falhava
   // silenciosamente no cliente Supabase (count vinha undefined -> 0), zerando totalUsers e
   // pendingAcceptance em produção. Para não perpetuar esse bug e ainda preservar o "shape" da
   // função, contamos todos os colaboradores aqui.
-  const [{ value: totalUsers }] = await db.select({ value: count() }).from(colaboradores)
+  const [{ value: totalUsers }] = await db.select({ value: count() }).from(colaboradores).where(escopoEmpresa)
 
   // Aceites da versão atual
   const [{ value: acceptedCurrentVersion }] = await db
     .select({ value: count() })
     .from(userTermsAcceptance)
-    .where(and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, true)))
+    .where(
+      escopoEmpresaReajustes
+        ? and(escopoEmpresaReajustes, eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, true))
+        : and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, true)),
+    )
 
   // Recusas da versão atual
   const [{ value: declinedCurrentVersion }] = await db
     .select({ value: count() })
     .from(userTermsAcceptance)
-    .where(and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, false)))
+    .where(
+      escopoEmpresaReajustes
+        ? and(escopoEmpresaReajustes, eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, false))
+        : and(eq(userTermsAcceptance.version, CURRENT_TERMS_VERSION), eq(userTermsAcceptance.accepted, false)),
+    )
 
   return {
     totalUsers: totalUsers || 0,

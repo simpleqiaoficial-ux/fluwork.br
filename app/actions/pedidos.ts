@@ -90,6 +90,7 @@ export async function criarPedido(data: NovoPedido) {
   const dadosPedido =
     data.tipo_pedido === "reembolso_km"
       ? {
+          empresaId: session.empresaId!,
           colaboradorId: data.colaborador_id,
           tipoPedido: data.tipo_pedido,
           horasExtras: "0",
@@ -109,6 +110,7 @@ export async function criarPedido(data: NovoPedido) {
           criadoPorColaboradorId: session.colaboradorId,
         }
       : {
+          empresaId: session.empresaId!,
           colaboradorId: data.colaborador_id,
           tipoPedido: data.tipo_pedido,
           horasExtras: valorTotalHorasExtras.toString(),
@@ -225,8 +227,12 @@ export async function acaoFinanceiro(data: AcaoPedido) {
 }
 
 export async function listarPedidos() {
+  const session = await getSession()
+  if (!session) return []
+
   try {
     const rows = await db.query.pedidosPagamento.findMany({
+      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(pedidosPagamento.empresaId, session.empresaId!),
       orderBy: desc(pedidosPagamento.createdAt),
       with: {
         colaborador: true,
@@ -242,9 +248,15 @@ export async function listarPedidos() {
 }
 
 export async function listarPedidosComFiltros(filtros?: { dataInicio?: string; dataFim?: string }) {
+  const session = await getSession()
+  if (!session) return []
+
   try {
     const conditions = []
 
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     }

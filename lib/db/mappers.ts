@@ -5,10 +5,33 @@
 
 type AnyRow = Record<string, any>
 
+export function toEmpresaDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    razao_social: row.razaoSocial,
+    nome_fantasia: row.nomeFantasia,
+    cnpj: row.cnpj,
+    email: row.email,
+    telefone: row.telefone,
+    endereco: row.endereco,
+    logo_url: row.logoUrl,
+    papel_timbrado_url: row.papelTimbradoUrl,
+    rodape_contrato: row.rodapeContrato,
+    representante_nome: row.representanteNome,
+    representante_documento: row.representanteDocumento,
+    representante_cargo: row.representanteCargo,
+    status: row.status,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }
+}
+
 export function toColaboradorDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     nome_completo: row.nomeCompleto,
     salario: row.salario == null ? row.salario : Number(row.salario),
     cnpj: row.cnpj,
@@ -37,6 +60,7 @@ export function toCentroCustoDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     numero: row.numero,
     nome: row.nome,
     created_at: row.createdAt,
@@ -47,6 +71,7 @@ export function toEquipeDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     nome: row.nome,
     supervisor_id: row.supervisorId,
     created_at: row.createdAt,
@@ -63,6 +88,7 @@ export function toPedidoDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     colaborador_id: row.colaboradorId,
     tipo_pedido: row.tipoPedido,
     horas_extras: row.horasExtras == null ? row.horasExtras : Number(row.horasExtras),
@@ -167,6 +193,7 @@ export function toNotaFiscalDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     pedido_id: row.pedidoId,
     colaborador_id: row.colaboradorId,
     numero_nfse: row.numeroNfse,
@@ -196,6 +223,7 @@ export function toFaturaDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     titulo: row.titulo,
     descricao: row.descricao,
     valor: row.valor == null ? row.valor : Number(row.valor),
@@ -216,6 +244,7 @@ export function toHistoricoReajusteDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     colaborador_id: row.colaboradorId,
     salario_anterior: row.salarioAnterior == null ? row.salarioAnterior : Number(row.salarioAnterior),
     salario_novo: row.salarioNovo == null ? row.salarioNovo : Number(row.salarioNovo),
@@ -239,6 +268,7 @@ export function toTermsAcceptanceDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     user_id: row.userId,
     version: row.version,
     accepted: row.accepted,
@@ -259,6 +289,7 @@ export function toBoletoDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     numero_boleto: row.numeroBoleto,
     banco: row.banco,
     agencia: row.agencia,
@@ -278,6 +309,7 @@ export function toContratoTemplateDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     nome: row.nome,
     slug: row.slug,
     versao: row.versao,
@@ -293,6 +325,7 @@ export function toContratoDTO(row: AnyRow) {
   if (!row) return row
   return {
     id: row.id,
+    empresa_id: row.empresaId,
     template_id: row.templateId,
     numero: row.numero,
     prestador_colaborador_id: row.prestadorColaboradorId,
@@ -321,6 +354,7 @@ export function toContratoDTO(row: AnyRow) {
     criado_por: row.criadoPor,
     created_at: row.createdAt,
     updated_at: row.updatedAt,
+    ...(row.empresa !== undefined && { empresa: row.empresa ? toEmpresaDTO(row.empresa) : row.empresa }),
     ...(row.template !== undefined && { template: row.template ? toContratoTemplateDTO(row.template) : row.template }),
     ...(row.signers !== undefined && {
       signatarios: Array.isArray(row.signers) ? row.signers.map(toContratoSignatarioDTO) : row.signers,

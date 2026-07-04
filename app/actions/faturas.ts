@@ -1,17 +1,26 @@
 "use server"
 
-import { desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { faturas, faturasColaboradores } from "@/lib/db/schema"
 import { toFaturaDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/tenant"
 import type { Fatura, StatusFatura, FaturaFormData } from "@/types/fatura"
 
-export async function getFaturas(colaboradorId?: string, isAdmin?: boolean) {
+// Nota: `isAdmin` não vem mais de quem chama (era um booleano confiado sem checagem contra
+// a sessão real) — a permissão é sempre derivada de `getCurrentUser()` aqui dentro.
+export async function getFaturas(colaboradorId?: string) {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
+  const isAdmin = ["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)
+
   if (isAdmin) {
-    // Admin vê todas as faturas
+    // Admin/Financeiro vê todas as faturas da própria empresa (SuperAdmin vê todas as empresas)
     try {
       const rows = await db.query.faturas.findMany({
+        where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(faturas.empresaId, usuario.empresa_id!),
         with: {
           colaboradores: {
             with: { colaborador: true },
@@ -41,6 +50,9 @@ export async function getFaturas(colaboradorId?: string, isAdmin?: boolean) {
       return []
     }
   } else if (colaboradorId) {
+    // Nunca confia no colaboradorId do caller — só permite o próprio usuário logado.
+    if (colaboradorId !== usuario.id) return []
+
     // Colaborador vê apenas faturas onde está permitido
     let faturaIdsRows
     try {
@@ -77,6 +89,9 @@ export async function getFaturas(colaboradorId?: string, isAdmin?: boolean) {
 }
 
 export async function getFaturaById(id: string) {
+  const usuario = await getCurrentUser()
+  if (!usuario) return null
+
   try {
     const row = await db.query.faturas.findFirst({
       where: eq(faturas.id, id),
@@ -89,6 +104,10 @@ export async function getFaturaById(id: string) {
 
     if (!row) {
       throw new Error("Fatura não encontrada")
+    }
+
+    if (usuario.tipo_acesso !== "SuperAdmin" && row.empresaId !== usuario.empresa_id) {
+      throw new Error("Sem permissão para acessar esta fatura")
     }
 
     // Mapear para o formato esperado
@@ -111,19 +130,19 @@ export async function getFaturaById(id: string) {
   }
 }
 
-export async function createFatura(formData: FaturaFormData, pdfUrl: string, criadorId: string) {
+export async function createFatura(formData: FaturaFormData, pdfUrl: string, _criadorId: string) {
+  // O criadorId de quem chama nunca é confiável (vem do client) — sempre deriva da sessão real.
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    return { success: false, error: "Sem permissão para criar fatura" }
+  }
+
   console.log("[v0] createFatura chamada com:", {
     formData,
     pdfUrl,
-    criadorId,
+    criadorId: usuario.id,
     colaboradoresCount: formData.colaboradores_ids.length,
   })
-
-  // Verificar se criadorId é um UUID válido
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  const criadorIdFinal = uuidRegex.test(criadorId) ? criadorId : null
-
-  console.log("[v0] criadorIdFinal:", criadorIdFinal)
 
   // Criar a fatura
   let fatura
@@ -131,12 +150,13 @@ export async function createFatura(formData: FaturaFormData, pdfUrl: string, cri
     ;[fatura] = await db
       .insert(faturas)
       .values({
+        empresaId: usuario.empresa_id!,
         titulo: formData.titulo,
         descricao: formData.descricao,
         valor: formData.valor != null ? String(formData.valor) : formData.valor,
         dataVencimento: formData.data_vencimento,
         arquivoPdfUrl: pdfUrl,
-        criadoPor: criadorIdFinal,
+        criadoPor: usuario.id,
         status: "pendente",
       })
       .returning()
@@ -196,11 +216,16 @@ export async function createFatura(formData: FaturaFormData, pdfUrl: string, cri
 }
 
 export async function updateFaturaStatus(id: string, status: StatusFatura) {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    return { success: false, error: "Sem permissão" }
+  }
+
   try {
     await db
       .update(faturas)
       .set({ status, updatedAt: new Date() })
-      .where(eq(faturas.id, id))
+      .where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
   } catch (error) {
     console.error("Erro ao atualizar status:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
@@ -211,6 +236,11 @@ export async function updateFaturaStatus(id: string, status: StatusFatura) {
 }
 
 export async function updateFatura(id: string, formData: Partial<FaturaFormData>) {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    return { success: false, error: "Sem permissão" }
+  }
+
   const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
   }
@@ -225,7 +255,10 @@ export async function updateFatura(id: string, formData: Partial<FaturaFormData>
     // colaboradores permitidos ocorram de forma atômica (o código original
     // fazia delete-then-insert sequencial e não-atômico aqui).
     await db.transaction(async (tx) => {
-      await tx.update(faturas).set(updateData).where(eq(faturas.id, id))
+      await tx
+        .update(faturas)
+        .set(updateData)
+        .where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
 
       // Atualizar colaboradores se fornecidos
       if (formData.colaboradores_ids) {
@@ -253,6 +286,11 @@ export async function updateFatura(id: string, formData: Partial<FaturaFormData>
 }
 
 export async function deleteFatura(id: string) {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    return { success: false, error: "Sem permissão" }
+  }
+
   try {
     // Transação: garante que a remoção das permissões e da fatura ocorram de
     // forma atômica (o código original fazia dois deletes sequenciais e
@@ -261,8 +299,8 @@ export async function deleteFatura(id: string) {
       // Primeiro deletar as permissões
       await tx.delete(faturasColaboradores).where(eq(faturasColaboradores.faturaId, id))
 
-      // Depois deletar a fatura
-      await tx.delete(faturas).where(eq(faturas.id, id))
+      // Depois deletar a fatura (só se for da própria empresa)
+      await tx.delete(faturas).where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
     })
   } catch (error) {
     console.error("Erro ao deletar fatura:", error)
@@ -274,11 +312,16 @@ export async function deleteFatura(id: string) {
 }
 
 export async function updateFaturaPdf(id: string, pdfUrl: string) {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    return { success: false, error: "Sem permissão" }
+  }
+
   try {
     await db
       .update(faturas)
       .set({ arquivoPdfUrl: pdfUrl, updatedAt: new Date() })
-      .where(eq(faturas.id, id))
+      .where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
   } catch (error) {
     console.error("Erro ao atualizar PDF:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }

@@ -1,17 +1,23 @@
 "use server"
 
-import { asc, eq } from "drizzle-orm"
+import { and, asc, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { boletos } from "@/lib/db/schema"
 import { toBoletoDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/tenant"
 import type { Boleto, CreateBoletoInput, UpdateBoletoInput } from "@/types/boleto"
 
 export async function listarBoletos() {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const data = await db.query.boletos.findMany({
       with: { centroCusto: true },
-      where: eq(boletos.ativo, true),
+      where: usuario.tipo_acesso === "SuperAdmin"
+        ? eq(boletos.ativo, true)
+        : and(eq(boletos.empresaId, usuario.empresa_id!), eq(boletos.ativo, true)),
       orderBy: asc(boletos.banco),
     })
 
@@ -23,9 +29,13 @@ export async function listarBoletos() {
 }
 
 export async function listarTodosBoletos() {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const data = await db.query.boletos.findMany({
       with: { centroCusto: true },
+      where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(boletos.empresaId, usuario.empresa_id!),
       orderBy: asc(boletos.banco),
     })
 
@@ -54,12 +64,17 @@ export async function criarBoleto(input: CreateBoletoInput) {
     return { success: false, error: "Conta é obrigatória" }
   }
 
+  const usuario = await getCurrentUser()
+  if (!usuario?.empresa_id) {
+    return { success: false, error: "Não autenticado ou sem empresa vinculada" }
+  }
+
   try {
-    // Verificar se o boleto já existe
+    // Verificar se o boleto já existe (dentro da mesma empresa)
     const [existente] = await db
       .select({ id: boletos.id })
       .from(boletos)
-      .where(eq(boletos.numeroBoleto, input.numero_boleto))
+      .where(and(eq(boletos.empresaId, usuario.empresa_id), eq(boletos.numeroBoleto, input.numero_boleto)))
 
     if (existente) {
       return { success: false, error: "Este número de boleto já existe" }
@@ -68,6 +83,7 @@ export async function criarBoleto(input: CreateBoletoInput) {
     const [novoBoleto] = await db
       .insert(boletos)
       .values({
+        empresaId: usuario.empresa_id,
         numeroBoleto: input.numero_boleto.trim(),
         banco: input.banco.trim(),
         agencia: input.agencia.trim(),

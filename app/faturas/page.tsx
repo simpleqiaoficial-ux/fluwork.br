@@ -20,7 +20,6 @@ export default async function FaturasPage() {
   const isFinanceiro = tipoAcesso === "financeiro"
   const canViewFaturas = isAdm || isFinanceiro
   const canManageFaturas = isAdm // Apenas Adm pode criar/editar/deletar
-  const shouldViewAllFaturas = isAdm || isFinanceiro // Adm e Financeiro veem todas as faturas
   const colaboradorId = session.colaboradorId?.toString() || ""
   
   // Se não é Adm nem Financeiro, redirecionar
@@ -28,7 +27,7 @@ export default async function FaturasPage() {
     redirect("/")
   }
   
-  const faturas = await getFaturas(colaboradorId, shouldViewAllFaturas)
+  const faturas = await getFaturas(colaboradorId)
   const colaboradores = canManageFaturas ? await getColaboradores() : []
 
   return (

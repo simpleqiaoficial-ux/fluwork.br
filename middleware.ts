@@ -9,8 +9,17 @@ export async function middleware(request: NextRequest) {
 
   response.headers.set("x-pathname", request.nextUrl.pathname)
 
-  const sessionCookie = request.cookies.get("fluxopay_session")
-  const session = sessionCookie ? JSON.parse(sessionCookie.value) : null
+  let sessionCookie = request.cookies.get("fluxopay_session")
+  let session = sessionCookie ? JSON.parse(sessionCookie.value) : null
+
+  // Sessão criada antes da migração multi-tenant não tem empresaId no cookie — força novo
+  // login em vez de deixar o resto do app quebrar tentando filtrar por empresa undefined.
+  if (session && !("empresaId" in session)) {
+    session = null
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    redirectResponse.cookies.delete("fluxopay_session")
+    return redirectResponse
+  }
 
   const publicRoutes = ["/login", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))

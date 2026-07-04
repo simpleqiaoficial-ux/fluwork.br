@@ -22,24 +22,57 @@ export const tipoAcessoEnum = pgEnum("tipo_acesso", [
   "Gerente",
   "Financeiro",
   "Adm",
+  // Papel do time do FluWork (operador da plataforma SaaS) — enxerga todas as empresas.
+  // Único valor do enum sem empresa_id (ver check constraint em `colaboradores`).
+  "SuperAdmin",
+])
+
+// Empresa cliente (tenant). Tudo que pertence a uma empresa cliente referencia esta tabela
+// via empresa_id — isolamento obrigatório entre empresas, exceto para SuperAdmin.
+export const empresas = pgTable("empresas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  razaoSocial: text("razao_social").notNull(),
+  nomeFantasia: text("nome_fantasia"),
+  cnpj: text("cnpj").notNull().unique(),
+  email: text("email"),
+  telefone: text("telefone"),
+  endereco: text("endereco"),
+  logoUrl: text("logo_url"),
+  papelTimbradoUrl: text("papel_timbrado_url"),
+  rodapeContrato: text("rodape_contrato"),
+  representanteNome: text("representante_nome"),
+  representanteDocumento: text("representante_documento"),
+  representanteCargo: text("representante_cargo"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  check("empresas_status_check", sql`${table.status} IN ('active', 'inactive', 'blocked')`),
 ])
 
 export const centrosCusto = pgTable("centros_custo", {
   id: uuid("id").primaryKey().defaultRandom(),
-  numero: text("numero").notNull().unique(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  numero: text("numero").notNull(),
   nome: text("nome").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-})
+}, (table) => [
+  uniqueIndex("centros_custo_empresa_numero_key").on(table.empresaId, table.numero),
+])
 
 export const equipes = pgTable("equipes", {
   id: uuid("id").primaryKey().defaultRandom(),
-  nome: text("nome").notNull().unique(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
   supervisorId: uuid("supervisor_id").references((): AnyPgColumn => colaboradores.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-})
+}, (table) => [
+  uniqueIndex("equipes_empresa_nome_key").on(table.empresaId, table.nome),
+])
 
 export const colaboradores = pgTable("colaboradores", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
   nomeCompleto: text("nome_completo").notNull(),
   salario: numeric("salario", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -60,10 +93,17 @@ export const colaboradores = pgTable("colaboradores", {
   dataAniversarioContrato: date("data_aniversario_contrato"),
 }, (table) => [
   check("colaboradores_dia_pagamento_check", sql`${table.diaPagamento} IN (1, 15)`),
+  // SuperAdmin é o único papel sem empresa (opera a plataforma inteira); todos os demais
+  // papéis (Adm/Financeiro/Gerente/Supervisor/Colaborador) precisam estar vinculados a uma empresa.
+  check(
+    "colaboradores_empresa_id_check",
+    sql`(${table.tipoAcesso} = 'SuperAdmin') = (${table.empresaId} IS NULL)`,
+  ),
 ])
 
 export const gerentesEquipes = pgTable("gerentes_equipes", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   gerenteId: uuid("gerente_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
   equipeId: uuid("equipe_id").notNull().references(() => equipes.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -73,6 +113,7 @@ export const gerentesEquipes = pgTable("gerentes_equipes", {
 
 export const pedidosPagamento = pgTable("pedidos_pagamento", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
   horasExtras: numeric("horas_extras", { precision: 12, scale: 2 }).default("0"),
   valorKm: numeric("valor_km", { precision: 12, scale: 2 }).default("0"),
@@ -127,6 +168,7 @@ export const pedidosPagamento = pgTable("pedidos_pagamento", {
 
 export const historicoReajustes = pgTable("historico_reajustes", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
   salarioAnterior: numeric("salario_anterior", { precision: 10, scale: 2 }).notNull(),
   salarioNovo: numeric("salario_novo", { precision: 10, scale: 2 }).notNull(),
@@ -141,6 +183,7 @@ export const historicoReajustes = pgTable("historico_reajustes", {
 
 export const notasFiscais = pgTable("notas_fiscais", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   pedidoId: uuid("pedido_id").references(() => pedidosPagamento.id, { onDelete: "cascade" }).unique(),
   colaboradorId: uuid("colaborador_id").references(() => colaboradores.id, { onDelete: "cascade" }),
   numeroNfse: text("numero_nfse").notNull(),
@@ -172,6 +215,7 @@ export const notasFiscais = pgTable("notas_fiscais", {
 
 export const faturas = pgTable("faturas", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   titulo: text("titulo").notNull(),
   descricao: text("descricao"),
   valor: numeric("valor", { precision: 15, scale: 2 }),
@@ -198,6 +242,7 @@ export const faturasColaboradores = pgTable("faturas_colaboradores", {
 
 export const userTermsAcceptance = pgTable("user_terms_acceptance", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   userId: uuid("user_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
   version: varchar("version", { length: 20 }).notNull(),
   accepted: boolean("accepted").notNull().default(false),
@@ -230,7 +275,8 @@ export const systemStatus = pgTable("system_status", {
 // hoje, então o schema segue a DDL real; app/actions/boletos.ts foi corrigido para bater com ela.
 export const boletos = pgTable("boletos", {
   id: uuid("id").primaryKey().defaultRandom(),
-  numeroBoleto: text("numero_boleto").notNull().unique(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  numeroBoleto: text("numero_boleto").notNull(),
   banco: text("banco").notNull(),
   agencia: text("agencia").notNull(),
   conta: text("conta").notNull(),
@@ -241,10 +287,14 @@ export const boletos = pgTable("boletos", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   criadoPor: uuid("criado_por").references(() => colaboradores.id),
-})
+}, (table) => [
+  uniqueIndex("boletos_empresa_numero_key").on(table.empresaId, table.numeroBoleto),
+])
 
 export const auditLog = pgTable("audit_log", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // Nullable: ações de nível plataforma (ex: SuperAdmin bloqueando uma empresa) não têm empresa.
+  empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
   colaboradorId: uuid("colaborador_id").references(() => colaboradores.id),
   acao: text("acao").notNull(),
   tabela: text("tabela"),
@@ -258,18 +308,24 @@ export const auditLog = pgTable("audit_log", {
 
 export const contractTemplates = pgTable("contract_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // Nullable: um template com empresa_id NULL é um modelo global do FluWork, copiável por
+  // qualquer empresa; um template com empresa_id preenchido pertence só àquela empresa.
+  empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
   nome: text("nome").notNull(),
-  slug: text("slug").notNull().unique(),
+  slug: text("slug").notNull(),
   versao: integer("versao").notNull().default(1),
   ativo: boolean("ativo").notNull().default(true),
   corpo: text("corpo").notNull(),
   camposVariaveis: jsonb("campos_variaveis").default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-})
+}, (table) => [
+  uniqueIndex("contract_templates_empresa_slug_key").on(table.empresaId, table.slug),
+])
 
 export const contracts = pgTable("contracts", {
   id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   templateId: uuid("template_id").references(() => contractTemplates.id),
   numero: text("numero").notNull().unique(),
   prestadorColaboradorId: uuid("prestador_colaborador_id").references(() => colaboradores.id, { onDelete: "set null" }),
@@ -368,7 +424,21 @@ export const contractAttachments = pgTable("contract_attachments", {
 
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
+export const empresasRelations = relations(empresas, ({ many }) => ({
+  colaboradores: many(colaboradores),
+  equipes: many(equipes),
+  centrosCusto: many(centrosCusto),
+  pedidos: many(pedidosPagamento),
+  historicoReajustes: many(historicoReajustes),
+  notasFiscais: many(notasFiscais),
+  faturas: many(faturas),
+  boletos: many(boletos),
+  contractTemplates: many(contractTemplates),
+  contracts: many(contracts),
+}))
+
 export const colaboradoresRelations = relations(colaboradores, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [colaboradores.empresaId], references: [empresas.id] }),
   equipe: one(equipes, { fields: [colaboradores.equipeId], references: [equipes.id] }),
   centroCusto: one(centrosCusto, { fields: [colaboradores.centroCustoId], references: [centrosCusto.id] }),
   pedidos: many(pedidosPagamento),
@@ -376,17 +446,24 @@ export const colaboradoresRelations = relations(colaboradores, ({ one, many }) =
 }))
 
 export const equipesRelations = relations(equipes, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [equipes.empresaId], references: [empresas.id] }),
   supervisor: one(colaboradores, { fields: [equipes.supervisorId], references: [colaboradores.id] }),
   colaboradores: many(colaboradores),
   gerentes: many(gerentesEquipes),
 }))
 
+export const centrosCustoRelations = relations(centrosCusto, ({ one }) => ({
+  empresa: one(empresas, { fields: [centrosCusto.empresaId], references: [empresas.id] }),
+}))
+
 export const gerentesEquipesRelations = relations(gerentesEquipes, ({ one }) => ({
+  empresa: one(empresas, { fields: [gerentesEquipes.empresaId], references: [empresas.id] }),
   gerente: one(colaboradores, { fields: [gerentesEquipes.gerenteId], references: [colaboradores.id] }),
   equipe: one(equipes, { fields: [gerentesEquipes.equipeId], references: [equipes.id] }),
 }))
 
 export const pedidosPagamentoRelations = relations(pedidosPagamento, ({ one }) => ({
+  empresa: one(empresas, { fields: [pedidosPagamento.empresaId], references: [empresas.id] }),
   colaborador: one(colaboradores, { fields: [pedidosPagamento.colaboradorId], references: [colaboradores.id] }),
   criadoPorColaborador: one(colaboradores, {
     fields: [pedidosPagamento.criadoPorColaboradorId],
@@ -396,6 +473,7 @@ export const pedidosPagamentoRelations = relations(pedidosPagamento, ({ one }) =
 }))
 
 export const historicoReajustesRelations = relations(historicoReajustes, ({ one }) => ({
+  empresa: one(empresas, { fields: [historicoReajustes.empresaId], references: [empresas.id] }),
   colaborador: one(colaboradores, { fields: [historicoReajustes.colaboradorId], references: [colaboradores.id] }),
   aplicadoPorColaborador: one(colaboradores, {
     fields: [historicoReajustes.aplicadoPor],
@@ -404,11 +482,13 @@ export const historicoReajustesRelations = relations(historicoReajustes, ({ one 
 }))
 
 export const notasFiscaisRelations = relations(notasFiscais, ({ one }) => ({
+  empresa: one(empresas, { fields: [notasFiscais.empresaId], references: [empresas.id] }),
   pedido: one(pedidosPagamento, { fields: [notasFiscais.pedidoId], references: [pedidosPagamento.id] }),
   colaborador: one(colaboradores, { fields: [notasFiscais.colaboradorId], references: [colaboradores.id] }),
 }))
 
-export const faturasRelations = relations(faturas, ({ many }) => ({
+export const faturasRelations = relations(faturas, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [faturas.empresaId], references: [empresas.id] }),
   colaboradores: many(faturasColaboradores),
 }))
 
@@ -418,14 +498,17 @@ export const faturasColaboradoresRelations = relations(faturasColaboradores, ({ 
 }))
 
 export const boletosRelations = relations(boletos, ({ one }) => ({
+  empresa: one(empresas, { fields: [boletos.empresaId], references: [empresas.id] }),
   centroCusto: one(centrosCusto, { fields: [boletos.centroCustoId], references: [centrosCusto.id] }),
 }))
 
-export const contractTemplatesRelations = relations(contractTemplates, ({ many }) => ({
+export const contractTemplatesRelations = relations(contractTemplates, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [contractTemplates.empresaId], references: [empresas.id] }),
   contracts: many(contracts),
 }))
 
 export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [contracts.empresaId], references: [empresas.id] }),
   template: one(contractTemplates, { fields: [contracts.templateId], references: [contractTemplates.id] }),
   prestadorColaborador: one(colaboradores, {
     fields: [contracts.prestadorColaboradorId],

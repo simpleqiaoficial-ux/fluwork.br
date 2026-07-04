@@ -83,6 +83,13 @@ export async function login(email: string, password: string) {
     return { error: "Email ou senha incorretos." }
   }
 
+  // Todo papel exceto SuperAdmin precisa estar vinculado a uma empresa — um colaborador
+  // sem empresa_id nesse caso é um dado inconsistente, não um login válido.
+  if (colaborador.tipoAcesso !== "SuperAdmin" && !colaborador.empresaId) {
+    console.error("[v0] Login bloqueado: colaborador sem empresa_id", { id: colaborador.id })
+    return { error: "Sua conta está com um cadastro incompleto. Contate o administrador." }
+  }
+
   // Clear rate limiting on successful login
   loginAttempts.delete(sanitizedEmail)
 
@@ -91,6 +98,7 @@ export async function login(email: string, password: string) {
     email: colaborador.email!,
     nomeCompleto: colaborador.nomeCompleto,
     tipoAcesso: colaborador.tipoAcesso!,
+    empresaId: colaborador.empresaId,
     cnpj: colaborador.cnpj ?? undefined,
     salario: Number(colaborador.salario),
   })

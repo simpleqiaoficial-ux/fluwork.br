@@ -46,7 +46,7 @@ async function attachBloqueio(rows: any[], dataLimite: Date) {
 }
 
 export async function criarColaborador(data: NovoColaborador) {
-  await checkPermission(["Adm", "Financeiro"])
+  const session = await checkPermission(["Adm", "Financeiro"])
 
   const sanitizedEmail = data.email?.trim().toLowerCase()
   if (!sanitizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
@@ -84,6 +84,7 @@ export async function criarColaborador(data: NovoColaborador) {
     ;[colaborador] = await db
       .insert(colaboradores)
       .values({
+        empresaId: session.empresaId!,
         nomeCompleto: data.nome_completo,
         salario: data.salario.toString(),
         cnpj: data.cnpj,
@@ -195,6 +196,7 @@ export async function listarColaboradores() {
   let rows
   try {
     rows = await db.query.colaboradores.findMany({
+      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
       orderBy: [desc(colaboradores.createdAt)],
       with: { equipe: true },
     })
@@ -207,10 +209,14 @@ export async function listarColaboradores() {
 }
 
 export async function getColaboradores() {
+  const session = await getSession()
+  if (!session) return []
+
   try {
     const data = await db
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
       .from(colaboradores)
+      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!))
       .orderBy(asc(colaboradores.nomeCompleto))
 
     if (!data || data.length === 0) {
@@ -464,6 +470,7 @@ export async function listarColaboradoresComGerente() {
   let rows
   try {
     rows = await db.query.colaboradores.findMany({
+      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
       orderBy: [desc(colaboradores.createdAt)],
       with: { equipe: true },
     })
@@ -476,9 +483,13 @@ export async function listarColaboradoresComGerente() {
 }
 
 export async function exportarColaboradoresExcel() {
+  const session = await getSession()
+  if (!session) throw new Error("Usuário não autenticado")
+
   let data
   try {
     data = await db.query.colaboradores.findMany({
+      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
       orderBy: [asc(colaboradores.nomeCompleto)],
       with: { equipe: true },
     })

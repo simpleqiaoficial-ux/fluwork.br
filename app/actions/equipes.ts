@@ -5,11 +5,16 @@ import { db } from "@/lib/db"
 import { colaboradores, equipes, gerentesEquipes } from "@/lib/db/schema"
 import { toEquipeDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/tenant"
 import type { Equipe, NovaEquipe } from "@/types/equipe"
 
 export async function listarEquipes(): Promise<Equipe[]> {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const rows = await db.query.equipes.findMany({
+      where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(equipes.empresaId, usuario.empresa_id!),
       orderBy: asc(equipes.nome),
       with: {
         supervisor: true,
@@ -37,8 +42,14 @@ export async function listarEquipes(): Promise<Equipe[]> {
 }
 
 export async function criarEquipe(equipe: NovaEquipe): Promise<void> {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    throw new Error("Sem permissão")
+  }
+
   try {
     await db.insert(equipes).values({
+      empresaId: usuario.empresa_id!,
       nome: equipe.nome,
       supervisorId: equipe.supervisor_id,
     })
@@ -51,12 +62,24 @@ export async function criarEquipe(equipe: NovaEquipe): Promise<void> {
 }
 
 export async function atualizarEquipe(id: string, equipe: Partial<NovaEquipe>): Promise<void> {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    throw new Error("Sem permissão")
+  }
+
   try {
     const updateData: Partial<typeof equipes.$inferInsert> = {}
     if (equipe.nome !== undefined) updateData.nome = equipe.nome
     if (equipe.supervisor_id !== undefined) updateData.supervisorId = equipe.supervisor_id
 
-    await db.update(equipes).set(updateData).where(eq(equipes.id, id))
+    await db
+      .update(equipes)
+      .set(updateData)
+      .where(
+        usuario.tipo_acesso === "SuperAdmin"
+          ? eq(equipes.id, id)
+          : and(eq(equipes.id, id), eq(equipes.empresaId, usuario.empresa_id!)),
+      )
   } catch (error) {
     console.error("[v0] Erro ao atualizar equipe:", error)
     throw new Error("Erro ao atualizar equipe")
@@ -66,8 +89,19 @@ export async function atualizarEquipe(id: string, equipe: Partial<NovaEquipe>): 
 }
 
 export async function deletarEquipe(id: string): Promise<void> {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    throw new Error("Sem permissão")
+  }
+
   try {
-    await db.delete(equipes).where(eq(equipes.id, id))
+    await db
+      .delete(equipes)
+      .where(
+        usuario.tipo_acesso === "SuperAdmin"
+          ? eq(equipes.id, id)
+          : and(eq(equipes.id, id), eq(equipes.empresaId, usuario.empresa_id!)),
+      )
   } catch (error) {
     console.error("[v0] Erro ao deletar equipe:", error)
     throw new Error("Erro ao deletar equipe")
@@ -77,11 +111,18 @@ export async function deletarEquipe(id: string): Promise<void> {
 }
 
 export async function listarSupervisores(): Promise<Array<{ id: string; nome_completo: string }>> {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const rows = await db
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto })
       .from(colaboradores)
-      .where(eq(colaboradores.tipoAcesso, "Supervisor"))
+      .where(
+        usuario.tipo_acesso === "SuperAdmin"
+          ? eq(colaboradores.tipoAcesso, "Supervisor")
+          : and(eq(colaboradores.tipoAcesso, "Supervisor"), eq(colaboradores.empresaId, usuario.empresa_id!)),
+      )
       .orderBy(asc(colaboradores.nomeCompleto))
 
     return rows.map((row) => ({ id: row.id, nome_completo: row.nomeCompleto }))
@@ -117,6 +158,11 @@ export async function listarColaboradoresPorEquipe(equipeId: string) {
 }
 
 export async function vincularGerenteEquipe(gerenteId: string, equipeId: string): Promise<void> {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    throw new Error("Sem permissão")
+  }
+
   try {
     const [existing] = await db
       .select()
@@ -128,6 +174,7 @@ export async function vincularGerenteEquipe(gerenteId: string, equipeId: string)
     }
 
     await db.insert(gerentesEquipes).values({
+      empresaId: usuario.empresa_id!,
       gerenteId,
       equipeId,
     })
@@ -176,11 +223,18 @@ export async function listarEquipesPorGerente(gerenteId: string): Promise<Equipe
 }
 
 export async function listarGerentes(): Promise<Array<{ id: string; nome_completo: string }>> {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const rows = await db
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto })
       .from(colaboradores)
-      .where(eq(colaboradores.tipoAcesso, "Gerente"))
+      .where(
+        usuario.tipo_acesso === "SuperAdmin"
+          ? eq(colaboradores.tipoAcesso, "Gerente")
+          : and(eq(colaboradores.tipoAcesso, "Gerente"), eq(colaboradores.empresaId, usuario.empresa_id!)),
+      )
       .orderBy(asc(colaboradores.nomeCompleto))
 
     return rows.map((row) => ({ id: row.id, nome_completo: row.nomeCompleto }))
@@ -193,6 +247,9 @@ export async function listarGerentes(): Promise<Array<{ id: string; nome_complet
 export async function listarColaboradoresSemEquipe(): Promise<
   Array<{ id: string; nome_completo: string; tipo_acesso: string; email: string }>
 > {
+  const usuario = await getCurrentUser()
+  if (!usuario) return []
+
   try {
     const rows = await db
       .select({
@@ -202,7 +259,11 @@ export async function listarColaboradoresSemEquipe(): Promise<
         email: colaboradores.email,
       })
       .from(colaboradores)
-      .where(isNull(colaboradores.equipeId))
+      .where(
+        usuario.tipo_acesso === "SuperAdmin"
+          ? isNull(colaboradores.equipeId)
+          : and(isNull(colaboradores.equipeId), eq(colaboradores.empresaId, usuario.empresa_id!)),
+      )
       .orderBy(asc(colaboradores.nomeCompleto))
 
     return rows.map((row) => ({
@@ -273,12 +334,18 @@ export async function buscarEquipe(equipeId: string): Promise<Equipe | null> {
 }
 
 export async function sincronizarGerentesEquipe(equipeId: string, gerentesIds: string[]): Promise<void> {
+  const usuario = await getCurrentUser()
+  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+    throw new Error("Sem permissão")
+  }
+
   try {
     await db.transaction(async (tx) => {
       await tx.delete(gerentesEquipes).where(eq(gerentesEquipes.equipeId, equipeId))
 
       if (gerentesIds.length > 0) {
         const inserts = gerentesIds.map((gerenteId) => ({
+          empresaId: usuario.empresa_id!,
           gerenteId,
           equipeId,
         }))

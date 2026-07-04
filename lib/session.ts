@@ -5,6 +5,8 @@ export interface SessionData {
   email: string
   nomeCompleto: string
   tipoAcesso: string
+  // null só é válido quando tipoAcesso === "SuperAdmin" (usuário do time FluWork, sem empresa).
+  empresaId: string | null
   cnpj?: string
   salario?: number
 }

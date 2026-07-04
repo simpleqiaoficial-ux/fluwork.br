@@ -35,13 +35,17 @@ function formatarMoeda(valor: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor)
 }
 
-async function getOrCriarTemplatePadrao() {
-  const [existente] = await db.select().from(contractTemplates).where(eq(contractTemplates.slug, TEMPLATE_PADRAO_SLUG))
+async function getOrCriarTemplatePadrao(empresaId: string) {
+  const [existente] = await db
+    .select()
+    .from(contractTemplates)
+    .where(and(eq(contractTemplates.slug, TEMPLATE_PADRAO_SLUG), eq(contractTemplates.empresaId, empresaId)))
   if (existente) return existente
 
   const [novo] = await db
     .insert(contractTemplates)
     .values({
+      empresaId,
       nome: "Prestação de Serviços PJ – Padrão",
       slug: TEMPLATE_PADRAO_SLUG,
       corpo: "Modelo padrão de contrato de prestação de serviços PJ.",
@@ -85,13 +89,17 @@ export interface ContratoFormData {
 }
 
 export async function listarContratos() {
-  await exigirAdmin()
-  const rows = await db.select().from(contracts).orderBy(desc(contracts.createdAt))
+  const usuario = await exigirAdmin()
+  const rows = await db
+    .select()
+    .from(contracts)
+    .where(usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(contracts.empresaId, usuario.empresa_id!))
+    .orderBy(desc(contracts.createdAt))
   return rows.map(toContratoDTO)
 }
 
 export async function getContratoById(id: string) {
-  await exigirAdmin()
+  const usuario = await exigirAdmin()
   const row = await db.query.contracts.findFirst({
     where: eq(contracts.id, id),
     with: {
@@ -101,12 +109,15 @@ export async function getContratoById(id: string) {
     },
   })
   if (!row) return null
+  if (usuario.tipo_acesso !== "SuperAdmin" && row.empresaId !== usuario.empresa_id) {
+    throw new Error("Sem permissão para acessar este contrato")
+  }
   return toContratoDTO(row)
 }
 
 export async function criarContrato(formData: ContratoFormData) {
   const usuario = await exigirAdmin()
-  const template = await getOrCriarTemplatePadrao()
+  const template = await getOrCriarTemplatePadrao(usuario.empresa_id!)
   const numero = await gerarNumeroUnico()
 
   let contrato
@@ -114,6 +125,7 @@ export async function criarContrato(formData: ContratoFormData) {
     ;[contrato] = await db
       .insert(contracts)
       .values({
+        empresaId: usuario.empresa_id!,
         templateId: template.id,
         numero,
         prestadorNome: formData.prestador_nome,
@@ -169,11 +181,14 @@ export async function criarContrato(formData: ContratoFormData) {
 }
 
 export async function enviarContrato(id: string) {
-  await exigirAdmin()
+  const usuario = await exigirAdmin()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || contrato.status !== "draft") {
     return { success: false, error: "Contrato não está em rascunho" }
+  }
+  if (usuario.tipo_acesso !== "SuperAdmin" && contrato.empresaId !== usuario.empresa_id) {
+    return { success: false, error: "Sem permissão para acessar este contrato" }
   }
 
   const [colaboradorExistente] = await db
@@ -237,11 +252,14 @@ export async function enviarContrato(id: string) {
 }
 
 export async function reenviarContrato(id: string) {
-  await exigirAdmin()
+  const usuario = await exigirAdmin()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || !["sent", "viewed", "expired"].includes(contrato.status)) {
     return { success: false, error: "Contrato não pode ser reenviado neste status" }
+  }
+  if (usuario.tipo_acesso !== "SuperAdmin" && contrato.empresaId !== usuario.empresa_id) {
+    return { success: false, error: "Sem permissão para acessar este contrato" }
   }
 
   const [signer] = await db.select().from(contractSigners).where(eq(contractSigners.contractId, id))
@@ -317,6 +335,9 @@ export async function cancelarContrato(id: string, motivo?: string) {
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || ["signed", "cancelled"].includes(contrato.status)) {
     return { success: false, error: "Contrato não pode ser cancelado neste status" }
+  }
+  if (usuario.tipo_acesso !== "SuperAdmin" && contrato.empresaId !== usuario.empresa_id) {
+    return { success: false, error: "Sem permissão para acessar este contrato" }
   }
 
   await db

@@ -1,6 +1,6 @@
 "use server"
 
-import { desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { colaboradores, equipes, historicoReajustes } from "@/lib/db/schema"
 import { toHistoricoReajusteDTO } from "@/lib/db/mappers"
@@ -49,6 +49,7 @@ export async function aplicarReajuste(data: NovoReajuste) {
   await db.transaction(async (tx) => {
     try {
       await tx.insert(historicoReajustes).values({
+        empresaId: session.empresaId!,
         colaboradorId: data.colaborador_id,
         salarioAnterior: salarioAnterior.toString(),
         salarioNovo: salarioNovo.toString(),
@@ -137,7 +138,12 @@ export async function listarHistoricoReajustes(colaboradorId?: string): Promise<
         // Colaborador vê apenas seus próprios reajustes
         whereClause = eq(historicoReajustes.colaboradorId, session.colaboradorId)
       }
-      // Gerente, Financeiro e Adm veem todos
+      // Gerente, Financeiro e Adm veem todos (dentro da própria empresa)
+    }
+
+    if (session.tipoAcesso !== "SuperAdmin") {
+      const escopoEmpresa = eq(historicoReajustes.empresaId, session.empresaId!)
+      whereClause = whereClause ? and(whereClause, escopoEmpresa) : escopoEmpresa
     }
 
     const rows = await db.query.historicoReajustes.findMany({

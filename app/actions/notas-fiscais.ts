@@ -166,11 +166,21 @@ export async function anexarNotaFiscal(
 
   console.log("[v0] Validação passou, inserindo nota fiscal na tabela...")
 
+  const [colaboradorDaNota] = await db
+    .select({ empresaId: colaboradores.empresaId })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, colaboradorId))
+
+  if (!colaboradorDaNota?.empresaId) {
+    return { success: false, error: "Prestador sem empresa vinculada" }
+  }
+
   let data
   try {
     ;[data] = await db
       .insert(notasFiscais)
       .values({
+        empresaId: colaboradorDaNota.empresaId,
         pedidoId: pedidoId,
         colaboradorId: colaboradorId,
         numeroNfse: dados.numero_nfse,
@@ -221,6 +231,9 @@ export async function anexarNotaFiscal(
 
 // Função para listar notas fiscais (para o financeiro)
 export async function listarNotasFiscais() {
+  const session = await getSession()
+  if (!session) return []
+
   try {
     const rows = await db
       .select({
@@ -231,6 +244,7 @@ export async function listarNotasFiscais() {
       .from(notasFiscais)
       .leftJoin(colaboradores, eq(notasFiscais.colaboradorId, colaboradores.id))
       .leftJoin(pedidosPagamento, eq(notasFiscais.pedidoId, pedidosPagamento.id))
+      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(notasFiscais.empresaId, session.empresaId!))
       .orderBy(desc(notasFiscais.createdAt))
 
     return rows.map((row) => ({
@@ -255,17 +269,20 @@ export async function listarNotasFiscais() {
 // Função para aprovar/rejeitar nota manualmente (financeiro)
 export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "rejeitado", observacao?: string) {
   const session = await getSession()
+  if (!session || !["Adm", "Financeiro"].includes(session.tipoAcesso)) {
+    return { success: false, error: "Sem permissão" }
+  }
 
   try {
     await db
       .update(notasFiscais)
       .set({
         status,
-        aprovadoPor: session?.colaboradorId ?? null,
+        aprovadoPor: session.colaboradorId,
         dataAprovacao: new Date(),
         ...(observacao !== undefined && { observacaoFinanceiro: observacao }),
       })
-      .where(eq(notasFiscais.id, notaId))
+      .where(and(eq(notasFiscais.id, notaId), eq(notasFiscais.empresaId, session.empresaId!)))
   } catch (error) {
     console.error("Erro ao atualizar nota fiscal:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
