@@ -254,6 +254,118 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 
+// ---------- Contratos (assinatura eletrônica) ----------
+
+export const contractTemplates = pgTable("contract_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nome: text("nome").notNull(),
+  slug: text("slug").notNull().unique(),
+  versao: integer("versao").notNull().default(1),
+  ativo: boolean("ativo").notNull().default(true),
+  corpo: text("corpo").notNull(),
+  camposVariaveis: jsonb("campos_variaveis").default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+})
+
+export const contracts = pgTable("contracts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateId: uuid("template_id").references(() => contractTemplates.id),
+  numero: text("numero").notNull().unique(),
+  prestadorColaboradorId: uuid("prestador_colaborador_id").references(() => colaboradores.id, { onDelete: "set null" }),
+  prestadorNome: text("prestador_nome").notNull(),
+  prestadorCpfCnpj: text("prestador_cpf_cnpj").notNull(),
+  prestadorEmail: text("prestador_email").notNull(),
+  prestadorEndereco: text("prestador_endereco"),
+  tipoServico: text("tipo_servico").notNull(),
+  valor: numeric("valor", { precision: 12, scale: 2 }).notNull(),
+  prazo: text("prazo").notNull(),
+  dataInicio: date("data_inicio").notNull(),
+  clausulasAdicionais: text("clausulas_adicionais"),
+  status: text("status").notNull().default("draft"),
+  versaoAtual: integer("versao_atual").notNull().default(1),
+  pdfDraftPath: text("pdf_draft_path"),
+  pdfSignedPath: text("pdf_signed_path"),
+  pdfHash: text("pdf_hash"),
+  enviadoEm: timestamp("enviado_em", { withTimezone: true }),
+  expiraEm: timestamp("expira_em", { withTimezone: true }),
+  visualizadoEm: timestamp("visualizado_em", { withTimezone: true }),
+  assinadoEm: timestamp("assinado_em", { withTimezone: true }),
+  recusadoEm: timestamp("recusado_em", { withTimezone: true }),
+  motivoRecusa: text("motivo_recusa"),
+  canceladoEm: timestamp("cancelado_em", { withTimezone: true }),
+  canceladoPor: uuid("cancelado_por").references(() => colaboradores.id),
+  criadoPor: uuid("criado_por").notNull().references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  check(
+    "contracts_status_check",
+    sql`${table.status} IN ('draft','sent','viewed','signed','refused','expired','cancelled')`,
+  ),
+  check("contracts_valor_check", sql`${table.valor} > 0`),
+])
+
+export const contractSigners = pgTable("contract_signers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").references(() => colaboradores.id, { onDelete: "set null" }),
+  papel: text("papel").notNull().default("prestador"),
+  nome: text("nome").notNull(),
+  email: text("email").notNull(),
+  cpfCnpj: text("cpf_cnpj").notNull(),
+  status: text("status").notNull().default("pendente"),
+  tokenHash: text("token_hash").notNull(),
+  tokenExpiraEm: timestamp("token_expira_em", { withTimezone: true }).notNull(),
+  tokenUsadoEm: timestamp("token_usado_em", { withTimezone: true }),
+  primeiraVisualizacaoEm: timestamp("primeira_visualizacao_em", { withTimezone: true }),
+  ipUltimoAcesso: text("ip_ultimo_acesso"),
+  userAgentUltimoAcesso: text("user_agent_ultimo_acesso"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  check("contract_signers_papel_check", sql`${table.papel} IN ('prestador')`),
+  check(
+    "contract_signers_status_check",
+    sql`${table.status} IN ('pendente','visualizado','assinado','recusado','expirado')`,
+  ),
+  uniqueIndex("contract_signers_token_hash_key").on(table.tokenHash),
+])
+
+export const contractSignatureEvents = pgTable("contract_signature_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  signerId: uuid("signer_id").references(() => contractSigners.id, { onDelete: "cascade" }),
+  tipoEvento: text("tipo_evento").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  tokenHash: text("token_hash"),
+  contractVersao: integer("contract_versao"),
+  pdfHash: text("pdf_hash"),
+  emailSnapshot: text("email_snapshot"),
+  detalhes: jsonb("detalhes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check(
+    "contract_signature_events_tipo_check",
+    sql`${table.tipoEvento} IN ('criado','enviado','reenviado','visualizado','aceite_marcado','assinado','recusado','expirado','cancelado')`,
+  ),
+])
+
+export const contractAttachments = pgTable("contract_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  tipo: text("tipo").notNull(),
+  versao: integer("versao").notNull(),
+  objectPath: text("object_path").notNull(),
+  hashSha256: text("hash_sha256").notNull(),
+  tamanhoBytes: integer("tamanho_bytes"),
+  geradoPor: uuid("gerado_por").references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("contract_attachments_tipo_check", sql`${table.tipo} IN ('rascunho','assinado','anexo')`),
+])
+
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
 export const colaboradoresRelations = relations(colaboradores, ({ one, many }) => ({
@@ -307,4 +419,37 @@ export const faturasColaboradoresRelations = relations(faturasColaboradores, ({ 
 
 export const boletosRelations = relations(boletos, ({ one }) => ({
   centroCusto: one(centrosCusto, { fields: [boletos.centroCustoId], references: [centrosCusto.id] }),
+}))
+
+export const contractTemplatesRelations = relations(contractTemplates, ({ many }) => ({
+  contracts: many(contracts),
+}))
+
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  template: one(contractTemplates, { fields: [contracts.templateId], references: [contractTemplates.id] }),
+  prestadorColaborador: one(colaboradores, {
+    fields: [contracts.prestadorColaboradorId],
+    references: [colaboradores.id],
+  }),
+  criadoPorColaborador: one(colaboradores, { fields: [contracts.criadoPor], references: [colaboradores.id] }),
+  canceladoPorColaborador: one(colaboradores, { fields: [contracts.canceladoPor], references: [colaboradores.id] }),
+  signers: many(contractSigners),
+  events: many(contractSignatureEvents),
+  attachments: many(contractAttachments),
+}))
+
+export const contractSignersRelations = relations(contractSigners, ({ one, many }) => ({
+  contract: one(contracts, { fields: [contractSigners.contractId], references: [contracts.id] }),
+  colaborador: one(colaboradores, { fields: [contractSigners.colaboradorId], references: [colaboradores.id] }),
+  events: many(contractSignatureEvents),
+}))
+
+export const contractSignatureEventsRelations = relations(contractSignatureEvents, ({ one }) => ({
+  contract: one(contracts, { fields: [contractSignatureEvents.contractId], references: [contracts.id] }),
+  signer: one(contractSigners, { fields: [contractSignatureEvents.signerId], references: [contractSigners.id] }),
+}))
+
+export const contractAttachmentsRelations = relations(contractAttachments, ({ one }) => ({
+  contract: one(contracts, { fields: [contractAttachments.contractId], references: [contracts.id] }),
+  geradoPorColaborador: one(colaboradores, { fields: [contractAttachments.geradoPor], references: [colaboradores.id] }),
 }))

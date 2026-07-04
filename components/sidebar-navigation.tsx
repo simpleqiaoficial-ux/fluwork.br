@@ -23,6 +23,7 @@ import {
   ChevronsRight,
   ChevronDown,
   Briefcase,
+  FileSignature,
 } from "lucide-react"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
@@ -97,6 +98,10 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: "Contratos",
+    items: [{ href: "/contratos", label: "Contratos", icon: FileSignature, roles: ["Adm", "Financeiro"] }],
+  },
+  {
     label: "Notas Fiscais",
     items: [{ href: "/gestao/notas", label: "Notas Fiscais", icon: FileText, roles: ["Adm", "Financeiro"] }],
   },
@@ -117,6 +122,7 @@ const NAV_GROUPS: NavGroup[] = [
 const COLABORADOR_LINKS: NavItem[] = [
   { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt },
   { href: "/faturas", label: "Faturas", icon: FileText },
+  { href: "/meus-contratos", label: "Meus Contratos", icon: FileSignature },
 ]
 
 const SUPERVISOR_LINKS: NavItem[] = [

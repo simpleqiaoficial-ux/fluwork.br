@@ -274,6 +274,124 @@ export function toBoletoDTO(row: AnyRow) {
   }
 }
 
+export function toContratoTemplateDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    nome: row.nome,
+    slug: row.slug,
+    versao: row.versao,
+    ativo: row.ativo,
+    corpo: row.corpo,
+    campos_variaveis: row.camposVariaveis,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }
+}
+
+export function toContratoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    template_id: row.templateId,
+    numero: row.numero,
+    prestador_colaborador_id: row.prestadorColaboradorId,
+    prestador_nome: row.prestadorNome,
+    prestador_cpf_cnpj: row.prestadorCpfCnpj,
+    prestador_email: row.prestadorEmail,
+    prestador_endereco: row.prestadorEndereco,
+    tipo_servico: row.tipoServico,
+    valor: row.valor == null ? row.valor : Number(row.valor),
+    prazo: row.prazo,
+    data_inicio: row.dataInicio,
+    clausulas_adicionais: row.clausulasAdicionais,
+    status: row.status,
+    versao_atual: row.versaoAtual,
+    pdf_draft_path: row.pdfDraftPath,
+    pdf_signed_path: row.pdfSignedPath,
+    pdf_hash: row.pdfHash,
+    enviado_em: row.enviadoEm,
+    expira_em: row.expiraEm,
+    visualizado_em: row.visualizadoEm,
+    assinado_em: row.assinadoEm,
+    recusado_em: row.recusadoEm,
+    motivo_recusa: row.motivoRecusa,
+    cancelado_em: row.canceladoEm,
+    cancelado_por: row.canceladoPor,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.template !== undefined && { template: row.template ? toContratoTemplateDTO(row.template) : row.template }),
+    ...(row.signers !== undefined && {
+      signatarios: Array.isArray(row.signers) ? row.signers.map(toContratoSignatarioDTO) : row.signers,
+    }),
+    ...(row.events !== undefined && {
+      eventos: Array.isArray(row.events) ? row.events.map(toContratoEventoDTO) : row.events,
+    }),
+    ...(row.attachments !== undefined && {
+      anexos: Array.isArray(row.attachments) ? row.attachments.map(toContratoAnexoDTO) : row.attachments,
+    }),
+    ...(row.criadoPorColaborador !== undefined && {
+      criador: row.criadoPorColaborador
+        ? { nome_completo: row.criadoPorColaborador.nomeCompleto, email: row.criadoPorColaborador.email }
+        : row.criadoPorColaborador,
+    }),
+  }
+}
+
+export function toContratoSignatarioDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    contract_id: row.contractId,
+    colaborador_id: row.colaboradorId,
+    papel: row.papel,
+    nome: row.nome,
+    email: row.email,
+    cpf_cnpj: row.cpfCnpj,
+    status: row.status,
+    token_expira_em: row.tokenExpiraEm,
+    token_usado_em: row.tokenUsadoEm,
+    primeira_visualizacao_em: row.primeiraVisualizacaoEm,
+    ip_ultimo_acesso: row.ipUltimoAcesso,
+    user_agent_ultimo_acesso: row.userAgentUltimoAcesso,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  }
+}
+
+export function toContratoEventoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    contract_id: row.contractId,
+    signer_id: row.signerId,
+    tipo_evento: row.tipoEvento,
+    ip_address: row.ipAddress,
+    user_agent: row.userAgent,
+    contract_versao: row.contractVersao,
+    pdf_hash: row.pdfHash,
+    email_snapshot: row.emailSnapshot,
+    detalhes: row.detalhes,
+    created_at: row.createdAt,
+  }
+}
+
+export function toContratoAnexoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    contract_id: row.contractId,
+    tipo: row.tipo,
+    versao: row.versao,
+    object_path: row.objectPath,
+    hash_sha256: row.hashSha256,
+    tamanho_bytes: row.tamanhoBytes,
+    gerado_por: row.geradoPor,
+    created_at: row.createdAt,
+  }
+}
+
 export function toSystemStatusDTO(row: AnyRow) {
   if (!row) return row
   return {
