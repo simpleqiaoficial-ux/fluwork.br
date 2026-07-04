@@ -98,10 +98,6 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Contratos",
-    items: [{ href: "/contratos", label: "Contratos", icon: FileSignature, roles: ["Adm", "Financeiro"] }],
-  },
-  {
     label: "Notas Fiscais",
     items: [{ href: "/gestao/notas", label: "Notas Fiscais", icon: FileText, roles: ["Adm", "Financeiro"] }],
   },
@@ -118,6 +114,9 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ]
+
+// Módulo próprio, fora do acordeão "Gestão de Prestadores - Financeiro".
+const CONTRATOS_MODULE: NavItem = { href: "/contratos", label: "Contratos", icon: FileSignature, roles: ["Adm", "Financeiro"] }
 
 const COLABORADOR_LINKS: NavItem[] = [
   { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt },
@@ -202,6 +201,12 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     })).filter((group) => group.items.length > 0)
   }, [tipoAcesso])
 
+  // Contratos é um módulo próprio, fora do acordeão "Gestão de Prestadores - Financeiro".
+  const contratosVisivel =
+    tipoAcesso !== "Colaborador" &&
+    tipoAcesso !== "Supervisor" &&
+    (!CONTRATOS_MODULE.roles || CONTRATOS_MODULE.roles.includes(tipoAcesso || ""))
+
   // Mantém aberta a categoria (e o módulo-raiz) que contém a rota atual, sem fechar as demais.
   useEffect(() => {
     const activeGroup = baseGroups.find((group) => group.items.some((item) => itemPath(item.href) === pathname))
@@ -220,7 +225,10 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         .filter((group) => group.items.length > 0)
     : baseGroups
 
-  const flatItems = useMemo(() => baseGroups.flatMap((g) => g.items), [baseGroups])
+  const flatItems = useMemo(
+    () => [...baseGroups.flatMap((g) => g.items), ...(contratosVisivel ? [CONTRATOS_MODULE] : [])],
+    [baseGroups, contratosVisivel],
+  )
 
   const bottomLink: NavItem = { href: "/redefinir-senha", label: "Redefinir Senha", icon: Lock }
 
@@ -286,6 +294,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   // Categorias com 1 item viram link direto; com 2+ itens viram acordeão dentro do módulo.
   const NavGroups = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const isRootOpen = Boolean(q) || rootOpen
+    const contratosMatchesSearch = !q || CONTRATOS_MODULE.label.toLowerCase().includes(q)
 
     return (
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -347,6 +356,10 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
             </div>
           )}
         </div>
+
+        {contratosVisivel && contratosMatchesSearch && (
+          <NavLink item={CONTRATOS_MODULE} onClick={onLinkClick} />
+        )}
       </nav>
     )
   }
