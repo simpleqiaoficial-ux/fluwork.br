@@ -65,16 +65,25 @@ export async function contarPendencias() {
 
         aprovacoes = value || 0
       }
-    } else if (tipoAcesso === "Financeiro" || tipoAcesso === "Adm") {
+    } else if (tipoAcesso === "Financeiro" || tipoAcesso === "Adm" || tipoAcesso === "SuperAdmin") {
+      const escopoEmpresa =
+        tipoAcesso === "SuperAdmin" ? undefined : eq(pedidosPagamento.empresaId, session.empresaId!)
+
       const [{ value: pendentesCount }] = await db
         .select({ value: count() })
         .from(pedidosPagamento)
-        .where(eq(pedidosPagamento.status, "pendente_financeiro"))
+        .where(
+          escopoEmpresa
+            ? and(eq(pedidosPagamento.status, "pendente_financeiro"), escopoEmpresa)
+            : eq(pedidosPagamento.status, "pendente_financeiro"),
+        )
 
       const [{ value: aprovadosCount }] = await db
         .select({ value: count() })
         .from(pedidosPagamento)
-        .where(eq(pedidosPagamento.status, "aprovado"))
+        .where(
+          escopoEmpresa ? and(eq(pedidosPagamento.status, "aprovado"), escopoEmpresa) : eq(pedidosPagamento.status, "aprovado"),
+        )
 
       // Aprovações pendentes no painel financeiro (aguardando aprovação ou pagamento)
       aprovacoes = (pendentesCount || 0) + (aprovadosCount || 0)
@@ -83,7 +92,11 @@ export async function contarPendencias() {
       const [{ value: correcoesCount }] = await db
         .select({ value: count() })
         .from(pedidosPagamento)
-        .where(eq(pedidosPagamento.status, "correcao_solicitada"))
+        .where(
+          escopoEmpresa
+            ? and(eq(pedidosPagamento.status, "correcao_solicitada"), escopoEmpresa)
+            : eq(pedidosPagamento.status, "correcao_solicitada"),
+        )
 
       correcoes = correcoesCount || 0
     }

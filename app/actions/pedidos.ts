@@ -356,6 +356,10 @@ export async function listarPedidosPendentes() {
       conditions.push(inArray(pedidosPagamento.colaboradorId, colaboradorIds))
     }
 
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
+
     const rows = await db.query.pedidosPagamento.findMany({
       where: and(...conditions),
       orderBy: desc(pedidosPagamento.createdAt),
@@ -752,7 +756,7 @@ export async function listarPedidosParaFinanceiro(filtros?: {
     throw new Error("Usuário não autenticado")
   }
 
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Apenas financeiro pode acessar esta página")
   }
 
@@ -760,6 +764,10 @@ export async function listarPedidosParaFinanceiro(filtros?: {
 
   try {
     const conditions = [eq(pedidosPagamento.status, "pendente_financeiro"), eq(pedidosPagamento.notaEmitida, true)]
+
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
 
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
@@ -892,8 +900,10 @@ export async function listarPedidosComNotaPendente() {
     }
 
     conditions.push(inArray(pedidosPagamento.colaboradorId, colaboradorIds))
+  } else if (session.tipoAcesso !== "SuperAdmin") {
+    // Financeiro e Adm veem todos os pedidos da própria empresa (SuperAdmin vê todas as empresas)
+    conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
   }
-  // Financeiro e Adm veem todos os pedidos
 
   try {
     const rows = await db.query.pedidosPagamento.findMany({
@@ -977,17 +987,22 @@ export async function listarSolicitacoesProrrogacao() {
     throw new Error("Usuário não autenticado")
   }
 
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Apenas financeiro pode acessar esta página")
   }
 
   try {
+    const condicoes = [
+      eq(pedidosPagamento.status, "aguardando_prorrogacao"),
+      eq(pedidosPagamento.prorrogacaoSolicitada, true),
+      isNull(pedidosPagamento.prorrogacaoAprovada),
+    ]
+    if (session.tipoAcesso !== "SuperAdmin") {
+      condicoes.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
+
     const rows = await db.query.pedidosPagamento.findMany({
-      where: and(
-        eq(pedidosPagamento.status, "aguardando_prorrogacao"),
-        eq(pedidosPagamento.prorrogacaoSolicitada, true),
-        isNull(pedidosPagamento.prorrogacaoAprovada),
-      ),
+      where: and(...condicoes),
       orderBy: asc(pedidosPagamento.dataSolicitacaoProrrogacao),
       with: {
         colaborador: true,
@@ -1061,7 +1076,7 @@ export async function listarTodosPedidos(filtros?: {
     throw new Error("Usuário não autenticado")
   }
 
-  if (!["Adm", "Gerente", "Financeiro"].includes(session.tipoAcesso)) {
+  if (!["Adm", "Gerente", "Financeiro", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Acesso negado")
   }
 
@@ -1093,6 +1108,9 @@ export async function listarTodosPedidos(filtros?: {
   try {
     const conditions = []
 
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     }
@@ -1222,7 +1240,7 @@ export async function listarPedidosSemNota(filtros?: {
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
   try {
     const conditions = [
@@ -1230,6 +1248,7 @@ export async function listarPedidosSemNota(filtros?: {
       isNull(pedidosPagamento.notaFiscalUrl),
     ]
 
+    if (session.tipoAcesso !== "SuperAdmin") conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
     if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     if (filtros?.dataFim) {
       const d = new Date(filtros.dataFim)
@@ -1276,11 +1295,12 @@ export async function listarPedidosComNota(filtros?: {
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
   try {
     const conditions = [inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "nota_recebida"])]
 
+    if (session.tipoAcesso !== "SuperAdmin") conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
     if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     if (filtros?.dataFim) {
       const d = new Date(filtros.dataFim)
@@ -1331,7 +1351,7 @@ export async function listarNotasEnviadas(filtros?: {
     throw new Error("Usuário não autenticado")
   }
 
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Apenas financeiro pode acessar esta página")
   }
 
@@ -1340,6 +1360,9 @@ export async function listarNotasEnviadas(filtros?: {
   try {
     const conditions = [inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "pago", "nota_recebida"])]
 
+    if (session.tipoAcesso !== "SuperAdmin") {
+      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    }
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     }
@@ -1392,11 +1415,12 @@ export async function listarPedidosPagos(filtros?: {
   const session = await getSession()
 
   if (!session) throw new Error("Usuário não autenticado")
-  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(session.tipoAcesso)) throw new Error("Sem permissão")
 
   try {
     const conditions = [eq(pedidosPagamento.status, "pago")]
 
+    if (session.tipoAcesso !== "SuperAdmin") conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
     if (filtros?.dataInicio) conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
     if (filtros?.dataFim) {
       const d = new Date(filtros.dataFim)
