@@ -41,9 +41,10 @@ function formatarData(data?: string | null): string {
 
 interface ContratosListProps {
   contratos: ContratoRow[]
+  tipoAcesso?: string
 }
 
-export function ContratosList({ contratos }: ContratosListProps) {
+export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
   const router = useRouter()
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
@@ -72,12 +73,23 @@ export function ContratosList({ contratos }: ContratosListProps) {
             Crie, envie e acompanhe contratos assinados eletronicamente
           </p>
         </div>
-        <Link href="/contratos/novo">
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo contrato
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {tipoAcesso === "Adm" && (
+            <Link href="/contratos/configuracoes">
+              <Button size="sm" variant="outline">
+                Configurações
+              </Button>
+            </Link>
+          )}
+          {tipoAcesso !== "SuperAdmin" && (
+            <Link href="/contratos/novo">
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo contrato
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {contratos.length === 0 ? (

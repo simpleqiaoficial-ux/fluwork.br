@@ -10,7 +10,7 @@ export default async function ContratosPage() {
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!["Financeiro", "Adm", "SuperAdmin"].includes(usuario.tipo_acesso)) {
     redirect("/")
   }
 
@@ -18,7 +18,7 @@ export default async function ContratosPage() {
 
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">
-      <ContratosList contratos={contratos as any} />
+      <ContratosList contratos={contratos as any} tipoAcesso={usuario.tipo_acesso} />
     </div>
   )
 }
