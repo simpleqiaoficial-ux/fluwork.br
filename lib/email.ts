@@ -1,5 +1,11 @@
 import { Resend } from "resend"
-import { COMPANY_INFO } from "@/lib/company-info"
+
+// Dados da empresa CLIENTE (contratante), nunca o FluWork — vêm sempre de quem chama.
+interface EmpresaEmail {
+  nome: string
+  razaoSocial: string
+  cnpj: string
+}
 
 function getClient() {
   const apiKey = process.env.RESEND_API_KEY
@@ -20,18 +26,19 @@ export async function sendContratoConviteEmail(params: {
   valorFormatado: string
   signingUrl: string
   expiraEmFormatado: string
+  empresa: EmpresaEmail
 }) {
   const client = getClient()
   await client.emails.send({
     from: getFromAddress(),
     to: params.to,
-    subject: `Contrato para assinatura — ${COMPANY_INFO.marca}`,
+    subject: `Contrato para assinatura — ${params.empresa.nome}`,
     html: `
       <p>Olá, ${params.prestadorNome}.</p>
-      <p>Você recebeu um contrato de prestação de serviços (${params.tipoServico}, valor ${params.valorFormatado}) da ${COMPANY_INFO.marca} para revisar e assinar eletronicamente.</p>
+      <p>Você recebeu um contrato de prestação de serviços (${params.tipoServico}, valor ${params.valorFormatado}) da ${params.empresa.nome} para revisar e assinar eletronicamente.</p>
       <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Visualizar e assinar contrato</a></p>
       <p>Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
-      <p>${COMPANY_INFO.marca} · ${COMPANY_INFO.razaoSocial} · CNPJ ${COMPANY_INFO.cnpj}</p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
     `,
   })
 }
@@ -41,6 +48,7 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
   prestadorNome: string
   numero: string
   pdfBuffer: Buffer
+  empresa: EmpresaEmail
 }) {
   const client = getClient()
   await client.emails.send({
@@ -50,7 +58,7 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
     html: `
       <p>Olá, ${params.prestadorNome}.</p>
       <p>Seu contrato nº ${params.numero} foi assinado com sucesso. Segue em anexo a versão final em PDF.</p>
-      <p>${COMPANY_INFO.marca} · ${COMPANY_INFO.razaoSocial} · CNPJ ${COMPANY_INFO.cnpj}</p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
     `,
     attachments: [
       { filename: `contrato-${params.numero}.pdf`, content: params.pdfBuffer },

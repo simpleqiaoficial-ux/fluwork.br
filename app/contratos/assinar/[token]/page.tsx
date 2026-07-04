@@ -49,7 +49,7 @@ export default async function AssinarContratoPage({ params }: { params: Promise<
 
   if (contrato.status !== "sent" && contrato.status !== "viewed") {
     if (contrato.status === "signed") {
-      const dados = montarDadosContrato(contrato as any)
+      const dados = montarDadosContrato(contrato as any, contrato.empresa as any)
       return (
         <div className="min-h-screen bg-muted/30 py-10 px-4">
           <div className="max-w-2xl mx-auto space-y-4">
@@ -82,7 +82,7 @@ export default async function AssinarContratoPage({ params }: { params: Promise<
     )
   }
 
-  const dados = montarDadosContrato(contrato as any)
+  const dados = montarDadosContrato(contrato as any, contrato.empresa as any)
 
   return (
     <div className="min-h-screen bg-muted/30 py-10 px-4">

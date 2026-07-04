@@ -5,8 +5,8 @@ import { and, eq, inArray } from "drizzle-orm"
 import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { db } from "@/lib/db"
-import { contracts, contractSigners, contractSignatureEvents, contractAttachments, colaboradores } from "@/lib/db/schema"
-import { toContratoDTO, toContratoSignatarioDTO } from "@/lib/db/mappers"
+import { contracts, contractSigners, contractSignatureEvents, contractAttachments, colaboradores, empresas } from "@/lib/db/schema"
+import { toContratoDTO, toContratoSignatarioDTO, toEmpresaDTO } from "@/lib/db/mappers"
 import { hashToken } from "@/lib/contracts/token"
 import { montarDadosContrato } from "@/lib/contracts/montar-dados-contrato"
 import { gerarPdfAssinado } from "@/lib/pdf/contrato-pdf"
@@ -30,7 +30,7 @@ export async function validarTokenAssinatura(token: string) {
 
   const signerRow = await db.query.contractSigners.findFirst({
     where: eq(contractSigners.tokenHash, tokenHash),
-    with: { contract: true },
+    with: { contract: { with: { empresa: true } } },
   })
 
   if (!signerRow || !signerRow.contract) {
@@ -131,7 +131,10 @@ export async function aceitarEAssinarContrato(token: string, confirmEmail: strin
     })
     .where(eq(contractSigners.id, signerRow.id))
 
-  const dados = montarDadosContrato(toContratoDTO(contratoAtualizado) as any, {
+  const [empresaRow] = await db.select().from(empresas).where(eq(empresas.id, contratoAtualizado.empresaId))
+  const empresa = toEmpresaDTO(empresaRow)
+
+  const dados = montarDadosContrato(toContratoDTO(contratoAtualizado) as any, empresa, {
     nome: signerRow.nome,
     cpfCnpj: signerRow.cpfCnpj,
     email: signerRow.email,
@@ -171,6 +174,8 @@ export async function aceitarEAssinarContrato(token: string, confirmEmail: strin
     emailSnapshot: signerRow.email,
   })
 
+  const empresaEmail = { nome: empresa.nome_fantasia || empresa.razao_social, razaoSocial: empresa.razao_social, cnpj: empresa.cnpj }
+
   // E-mails de confirmação são best-effort — não derrubam a assinatura já gravada.
   try {
     await sendContratoAssinadoPrestadorEmail({
@@ -178,6 +183,7 @@ export async function aceitarEAssinarContrato(token: string, confirmEmail: strin
       prestadorNome: signerRow.nome,
       numero: contratoAtualizado.numero,
       pdfBuffer,
+      empresa: empresaEmail,
     })
   } catch (error) {
     console.error("[contratos] Erro ao enviar e-mail de confirmação ao prestador:", error)

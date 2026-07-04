@@ -8,7 +8,11 @@ export function ContratoPreview({ dados }: ContratoPreviewProps) {
   return (
     <div className="rounded-md border bg-card">
       <div className="border-b px-6 py-5 text-center">
-        <p className="text-sm font-semibold tracking-tight">{dados.empresa.marca}</p>
+        {dados.empresa.logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={dados.empresa.logoUrl} alt={dados.empresa.nomeFantasia || dados.empresa.razaoSocial} className="h-10 mx-auto mb-2 object-contain" />
+        )}
+        <p className="text-sm font-semibold tracking-tight">{dados.empresa.nomeFantasia || dados.empresa.razaoSocial}</p>
         <p className="text-xs text-muted-foreground mt-0.5">
           {dados.empresa.razaoSocial} · CNPJ {dados.empresa.cnpj}
         </p>
@@ -55,7 +59,12 @@ export function ContratoPreview({ dados }: ContratoPreviewProps) {
       </div>
 
       <div className="border-t px-6 py-3 text-center text-[11px] text-muted-foreground">
-        {dados.empresa.marca} · {dados.empresa.email} · Contrato nº {dados.numero}
+        {dados.empresa.rodapeContrato || (
+          <>
+            {dados.empresa.nomeFantasia || dados.empresa.razaoSocial}
+            {dados.empresa.email && ` · ${dados.empresa.email}`} · Contrato nº {dados.numero}
+          </>
+        )}
       </div>
     </div>
   )

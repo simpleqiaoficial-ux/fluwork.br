@@ -11,8 +11,9 @@ import {
   contractAttachments,
   contractTemplates,
   colaboradores,
+  empresas,
 } from "@/lib/db/schema"
-import { toContratoDTO } from "@/lib/db/mappers"
+import { toContratoDTO, toEmpresaDTO } from "@/lib/db/mappers"
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { gerarToken, hashToken, gerarExpiracao } from "@/lib/contracts/token"
 import { montarDadosContrato } from "@/lib/contracts/montar-dados-contrato"
@@ -22,6 +23,12 @@ import { sendContratoConviteEmail } from "@/lib/email"
 
 const ADMIN_ROLES = ["Adm", "Financeiro"]
 const TEMPLATE_PADRAO_SLUG = "prestacao-servicos-pj-padrao"
+
+async function getEmpresaOuFalha(empresaId: string) {
+  const [row] = await db.select().from(empresas).where(eq(empresas.id, empresaId))
+  if (!row) throw new Error("Empresa não encontrada")
+  return toEmpresaDTO(row)
+}
 
 async function exigirAdmin() {
   const usuario = await getUsuarioLogado()
@@ -88,6 +95,12 @@ export interface ContratoFormData {
   clausulas_adicionais?: string
 }
 
+// Dados da própria empresa do admin logado — usado pro preview do wizard de novo contrato.
+export async function obterEmpresaAtual() {
+  const usuario = await exigirAdmin()
+  return getEmpresaOuFalha(usuario.empresa_id!)
+}
+
 export async function listarContratos() {
   const usuario = await exigirAdmin()
   const rows = await db
@@ -152,7 +165,8 @@ export async function criarContrato(formData: ContratoFormData) {
   })
 
   try {
-    const dados = montarDadosContrato(toContratoDTO(contrato) as any)
+    const empresa = await getEmpresaOuFalha(usuario.empresa_id!)
+    const dados = montarDadosContrato(toContratoDTO(contrato) as any, empresa)
     const pdfBuffer = await gerarPdfRascunho(dados)
     const objectPath = `contratos/${contrato.id}/v${contrato.versaoAtual}-rascunho.pdf`
     await uploadFile(pdfBuffer, objectPath, "application/pdf")
@@ -234,6 +248,7 @@ export async function enviarContrato(id: string) {
 
   const baseUrl = process.env.APP_BASE_URL || ""
   try {
+    const empresa = await getEmpresaOuFalha(contrato.empresaId)
     await sendContratoConviteEmail({
       to: contrato.prestadorEmail,
       prestadorNome: contrato.prestadorNome,
@@ -241,6 +256,7 @@ export async function enviarContrato(id: string) {
       valorFormatado: formatarMoeda(Number(contrato.valor)),
       signingUrl: `${baseUrl}/contratos/assinar/${token}`,
       expiraEmFormatado: new Intl.DateTimeFormat("pt-BR").format(tokenExpiraEm),
+      empresa: { nome: empresa.nome_fantasia || empresa.razao_social, razaoSocial: empresa.razao_social, cnpj: empresa.cnpj },
     })
   } catch (error) {
     console.error("[contratos] Erro ao enviar e-mail de convite:", error)
@@ -289,6 +305,7 @@ export async function reenviarContrato(id: string) {
 
   const baseUrl = process.env.APP_BASE_URL || ""
   try {
+    const empresa = await getEmpresaOuFalha(contrato.empresaId)
     await sendContratoConviteEmail({
       to: contrato.prestadorEmail,
       prestadorNome: contrato.prestadorNome,
@@ -296,6 +313,7 @@ export async function reenviarContrato(id: string) {
       valorFormatado: formatarMoeda(Number(contrato.valor)),
       signingUrl: `${baseUrl}/contratos/assinar/${token}`,
       expiraEmFormatado: new Intl.DateTimeFormat("pt-BR").format(tokenExpiraEm),
+      empresa: { nome: empresa.nome_fantasia || empresa.razao_social, razaoSocial: empresa.razao_social, cnpj: empresa.cnpj },
     })
   } catch (error) {
     console.error("[contratos] Erro ao reenviar e-mail de convite:", error)

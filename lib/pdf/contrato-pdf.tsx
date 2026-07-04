@@ -1,5 +1,5 @@
 // Server-only — usa @react-pdf/renderer (Node), nunca importar de um client component.
-import { Document, Page, View, Text, StyleSheet, renderToBuffer } from "@react-pdf/renderer"
+import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer"
 import type { DadosContrato } from "@/lib/contracts/montar-dados-contrato"
 
 const styles = StyleSheet.create({
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
     borderBottom: "1 solid #ddd",
     paddingBottom: 8,
   },
+  headerLogo: { height: 28, marginBottom: 4, alignSelf: "center" },
   headerMarca: { fontSize: 12, fontWeight: 700 },
   headerLinha: { fontSize: 8, color: "#666", marginTop: 2 },
   footer: {
@@ -43,7 +44,8 @@ function ContratoDocument({ dados }: { dados: DadosContrato }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header} fixed>
-          <Text style={styles.headerMarca}>{dados.empresa.marca}</Text>
+          {dados.empresa.logoUrl && <Image style={styles.headerLogo} src={dados.empresa.logoUrl} />}
+          <Text style={styles.headerMarca}>{dados.empresa.nomeFantasia || dados.empresa.razaoSocial}</Text>
           <Text style={styles.headerLinha}>
             {dados.empresa.razaoSocial} · CNPJ {dados.empresa.cnpj}
           </Text>

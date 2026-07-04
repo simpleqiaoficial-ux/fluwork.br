@@ -1,5 +1,3 @@
-import { COMPANY_INFO } from "@/lib/company-info"
-
 // Formatação de dados vinda de app/actions (DTOs snake_case, mesmo shape usado no resto do app).
 export interface ContratoParaMontagem {
   numero: string
@@ -15,6 +13,20 @@ export interface ContratoParaMontagem {
   versao_atual: number
 }
 
+// A empresa CLIENTE (contratante real) — nunca o FluWork, que é só o operador da plataforma.
+export interface EmpresaParaMontagem {
+  razao_social: string
+  nome_fantasia?: string | null
+  cnpj: string
+  email?: string | null
+  endereco?: string | null
+  logo_url?: string | null
+  representante_nome?: string | null
+  representante_documento?: string | null
+  representante_cargo?: string | null
+  rodape_contrato?: string | null
+}
+
 export interface AssinaturaParaMontagem {
   nome: string
   cpfCnpj: string
@@ -24,7 +36,18 @@ export interface AssinaturaParaMontagem {
 }
 
 export interface DadosContrato {
-  empresa: typeof COMPANY_INFO
+  empresa: {
+    razaoSocial: string
+    nomeFantasia?: string
+    cnpj: string
+    email?: string
+    endereco: string
+    logoUrl?: string
+    representanteNome?: string
+    representanteDocumento?: string
+    representanteCargo?: string
+    rodapeContrato?: string
+  }
   numero: string
   prestador: {
     nome: string
@@ -72,14 +95,21 @@ function formatarDataHora(data: string | Date): string {
  */
 export function montarDadosContrato(
   contrato: ContratoParaMontagem,
+  empresa: EmpresaParaMontagem,
   assinatura?: AssinaturaParaMontagem,
 ): DadosContrato {
   const valorFormatado = formatarMoeda(contrato.valor)
   const dataInicioFormatada = formatarData(contrato.data_inicio)
   const endereco = contrato.prestador_endereco?.trim() || "Não informado"
+  const enderecoEmpresa = empresa.endereco?.trim() || "não informado"
+  const nomeFantasiaEmpresa = empresa.nome_fantasia?.trim()
+  const representante =
+    empresa.representante_nome?.trim()
+      ? `, neste ato representada por ${empresa.representante_nome.trim()}${empresa.representante_cargo?.trim() ? `, ${empresa.representante_cargo.trim()}` : ""}`
+      : ""
 
   const clausulas = [
-    `CONTRATANTE: ${COMPANY_INFO.razaoSocial}, inscrita no CNPJ sob o nº ${COMPANY_INFO.cnpj}, com nome fantasia ${COMPANY_INFO.nomeFantasia}, com sede em ${COMPANY_INFO.cidadeUf}, doravante denominada CONTRATANTE.`,
+    `CONTRATANTE: ${empresa.razao_social}, inscrita no CNPJ sob o nº ${empresa.cnpj}${nomeFantasiaEmpresa ? `, com nome fantasia ${nomeFantasiaEmpresa}` : ""}, com sede em ${enderecoEmpresa}${representante}, doravante denominada CONTRATANTE.`,
     `CONTRATADO(A): ${contrato.prestador_nome}, inscrito(a) no CPF/CNPJ sob o nº ${contrato.prestador_cpf_cnpj}, e-mail ${contrato.prestador_email}, endereço ${endereco}, doravante denominado(a) CONTRATADO(A).`,
     `CLÁUSULA 1ª — DO OBJETO: O presente contrato tem por objeto a prestação de serviços de ${contrato.tipo_servico} pelo(a) CONTRATADO(A) em favor da CONTRATANTE, na qualidade de prestador(a) de serviços pessoa jurídica, sem vínculo empregatício de qualquer natureza.`,
     `CLÁUSULA 2ª — DO PRAZO: O presente contrato vigorará pelo prazo de ${contrato.prazo}, com início em ${dataInicioFormatada}, podendo ser prorrogado mediante acordo entre as partes.`,
@@ -87,11 +117,22 @@ export function montarDadosContrato(
     `CLÁUSULA 4ª — DAS OBRIGAÇÕES DO(A) CONTRATADO(A): O(A) CONTRATADO(A) obriga-se a prestar os serviços contratados com zelo, diligência e em conformidade com os padrões técnicos aplicáveis, arcando com todos os encargos tributários, previdenciários e trabalhistas decorrentes de sua atividade como prestador(a) autônomo(a)/pessoa jurídica.`,
     `CLÁUSULA 5ª — DA RESCISÃO: O presente contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio por escrito, sem prejuízo das obrigações já constituídas até a data da rescisão.`,
     `CLÁUSULA 6ª — DA CONFIDENCIALIDADE: As partes se comprometem a manter sigilo sobre todas as informações confidenciais a que tiverem acesso em razão da execução deste contrato.`,
-    `CLÁUSULA 7ª — DO FORO: As partes elegem o foro da comarca de ${COMPANY_INFO.cidadeUf} para dirimir quaisquer controvérsias oriundas do presente contrato.`,
+    `CLÁUSULA 7ª — DO FORO: As partes elegem o foro da comarca de ${enderecoEmpresa} para dirimir quaisquer controvérsias oriundas do presente contrato.`,
   ]
 
   const result: DadosContrato = {
-    empresa: COMPANY_INFO,
+    empresa: {
+      razaoSocial: empresa.razao_social,
+      nomeFantasia: nomeFantasiaEmpresa || undefined,
+      cnpj: empresa.cnpj,
+      email: empresa.email || undefined,
+      endereco: enderecoEmpresa,
+      logoUrl: empresa.logo_url || undefined,
+      representanteNome: empresa.representante_nome || undefined,
+      representanteDocumento: empresa.representante_documento || undefined,
+      representanteCargo: empresa.representante_cargo || undefined,
+      rodapeContrato: empresa.rodape_contrato || undefined,
+    },
     numero: contrato.numero,
     prestador: {
       nome: contrato.prestador_nome,

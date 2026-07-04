@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { FileSignature, Check, ArrowLeft, Send } from "lucide-react"
 import { toast } from "sonner"
 import { criarContrato, enviarContrato } from "@/app/actions/contratos"
-import { montarDadosContrato } from "@/lib/contracts/montar-dados-contrato"
+import { montarDadosContrato, type EmpresaParaMontagem } from "@/lib/contracts/montar-dados-contrato"
 import { ContratoPreview } from "@/components/contratos/contrato-preview"
 
 type Passo = "template" | "campos" | "preview"
@@ -27,7 +27,11 @@ const CAMPOS_INICIAIS = {
   clausulas_adicionais: "",
 }
 
-export function NovoContratoWizard() {
+interface NovoContratoWizardProps {
+  empresa: EmpresaParaMontagem
+}
+
+export function NovoContratoWizard({ empresa }: NovoContratoWizardProps) {
   const router = useRouter()
   const [passo, setPasso] = useState<Passo>("template")
   const [campos, setCampos] = useState(CAMPOS_INICIAIS)
@@ -44,19 +48,22 @@ export function NovoContratoWizard() {
     campos.data_inicio
 
   const dadosPreview = camposValidos
-    ? montarDadosContrato({
-        numero: "(gerado ao enviar)",
-        prestador_nome: campos.prestador_nome,
-        prestador_cpf_cnpj: campos.prestador_cpf_cnpj,
-        prestador_email: campos.prestador_email,
-        prestador_endereco: campos.prestador_endereco,
-        tipo_servico: campos.tipo_servico,
-        valor: Number(campos.valor),
-        prazo: campos.prazo,
-        data_inicio: campos.data_inicio,
-        clausulas_adicionais: campos.clausulas_adicionais,
-        versao_atual: 1,
-      })
+    ? montarDadosContrato(
+        {
+          numero: "(gerado ao enviar)",
+          prestador_nome: campos.prestador_nome,
+          prestador_cpf_cnpj: campos.prestador_cpf_cnpj,
+          prestador_email: campos.prestador_email,
+          prestador_endereco: campos.prestador_endereco,
+          tipo_servico: campos.tipo_servico,
+          valor: Number(campos.valor),
+          prazo: campos.prazo,
+          data_inicio: campos.data_inicio,
+          clausulas_adicionais: campos.clausulas_adicionais,
+          versao_atual: 1,
+        },
+        empresa,
+      )
     : null
 
   const handleConfirmarEEnviar = async () => {
