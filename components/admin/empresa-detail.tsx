@@ -8,9 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound } from "lucide-react"
 import { toast } from "sonner"
-import { atualizarEmpresa, atualizarStatusEmpresa } from "@/app/actions/empresas"
+import { atualizarEmpresa, atualizarStatusEmpresa, atualizarCredenciaisUsuario } from "@/app/actions/empresas"
+
+interface UsuarioRow {
+  id: string
+  nome_completo: string
+  email: string | null
+  tipo_acesso: string | null
+}
 
 interface EmpresaDetailProps {
   empresa: any
@@ -20,6 +35,7 @@ interface EmpresaDetailProps {
     contratos_assinados: number
     total_pedidos: number
   }
+  usuarios: UsuarioRow[]
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "success" | "outline" | "destructive" }> = {
@@ -28,7 +44,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "success" | "outli
   blocked: { label: "Bloqueada", variant: "destructive" },
 }
 
-export function EmpresaDetail({ empresa, stats }: EmpresaDetailProps) {
+export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
@@ -39,6 +55,36 @@ export function EmpresaDetail({ empresa, stats }: EmpresaDetailProps) {
     telefone: empresa.telefone || "",
     endereco: empresa.endereco || "",
   })
+
+  const [usuarioEditando, setUsuarioEditando] = useState<UsuarioRow | null>(null)
+  const [credenciais, setCredenciais] = useState({ nome_completo: "", email: "", nova_senha: "" })
+  const [salvandoCredenciais, setSalvandoCredenciais] = useState(false)
+
+  const abrirEdicaoCredenciais = (usuario: UsuarioRow) => {
+    setUsuarioEditando(usuario)
+    setCredenciais({ nome_completo: usuario.nome_completo, email: usuario.email || "", nova_senha: "" })
+  }
+
+  const handleSalvarCredenciais = async () => {
+    if (!usuarioEditando) return
+    setSalvandoCredenciais(true)
+    try {
+      const result = await atualizarCredenciaisUsuario(usuarioEditando.id, {
+        nome_completo: credenciais.nome_completo,
+        email: credenciais.email,
+        nova_senha: credenciais.nova_senha || undefined,
+      })
+      if (result.success) {
+        toast.success("Credenciais atualizadas")
+        setUsuarioEditando(null)
+        router.refresh()
+      } else {
+        toast.error(result.error || "Erro ao atualizar credenciais")
+      }
+    } finally {
+      setSalvandoCredenciais(false)
+    }
+  }
 
   const statusConfig = STATUS_CONFIG[empresa.status] || { label: empresa.status, variant: "outline" as const }
 
@@ -157,6 +203,85 @@ export function EmpresaDetail({ empresa, stats }: EmpresaDetailProps) {
           {loading ? "Salvando..." : "Salvar alterações"}
         </Button>
       </div>
+
+      <div className="rounded-md border">
+        <div className="p-5 pb-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Usuários da empresa</p>
+        </div>
+        {usuarios.length === 0 ? (
+          <p className="p-5 text-sm text-muted-foreground">Nenhum usuário cadastrado nesta empresa.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>E-mail</TableHead>
+                <TableHead>Papel</TableHead>
+                <TableHead className="w-[60px] text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usuarios.map((usuario) => (
+                <TableRow key={usuario.id}>
+                  <TableCell className="font-medium">{usuario.nome_completo}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{usuario.email}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{usuario.tipo_acesso}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => abrirEdicaoCredenciais(usuario)}>
+                      <KeyRound className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      <Dialog open={!!usuarioEditando} onOpenChange={(open) => !open && setUsuarioEditando(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar credenciais</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="cred-nome">Nome completo</Label>
+              <Input
+                id="cred-nome"
+                value={credenciais.nome_completo}
+                onChange={(e) => setCredenciais({ ...credenciais, nome_completo: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cred-email">E-mail</Label>
+              <Input
+                id="cred-email"
+                type="email"
+                value={credenciais.email}
+                onChange={(e) => setCredenciais({ ...credenciais, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cred-senha">Nova senha (opcional)</Label>
+              <Input
+                id="cred-senha"
+                type="password"
+                placeholder="Deixe em branco para manter a senha atual"
+                value={credenciais.nova_senha}
+                onChange={(e) => setCredenciais({ ...credenciais, nova_senha: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUsuarioEditando(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvarCredenciais} disabled={salvandoCredenciais}>
+              {salvandoCredenciais ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

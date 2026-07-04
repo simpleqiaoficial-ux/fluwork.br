@@ -1,6 +1,6 @@
 "use server"
 
-import { and, count, desc, eq } from "drizzle-orm"
+import { and, asc, count, desc, eq, ne } from "drizzle-orm"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { db } from "@/lib/db"
@@ -206,5 +206,82 @@ export async function atualizarStatusEmpresa(id: string, status: "active" | "ina
 
   revalidatePath("/admin/empresas")
   revalidatePath(`/admin/empresas/${id}`)
+  return { success: true }
+}
+
+// ---------- Gestão de usuários de uma empresa (SuperAdmin) ----------
+
+export async function listarUsuariosDaEmpresa(empresaId: string) {
+  await requireSuperAdmin()
+  const rows = await db
+    .select({
+      id: colaboradores.id,
+      nomeCompleto: colaboradores.nomeCompleto,
+      email: colaboradores.email,
+      tipoAcesso: colaboradores.tipoAcesso,
+    })
+    .from(colaboradores)
+    .where(eq(colaboradores.empresaId, empresaId))
+    .orderBy(asc(colaboradores.nomeCompleto))
+
+  return rows.map((row) => ({
+    id: row.id,
+    nome_completo: row.nomeCompleto,
+    email: row.email,
+    tipo_acesso: row.tipoAcesso,
+  }))
+}
+
+export interface CredenciaisFormData {
+  nome_completo?: string
+  email?: string
+  nova_senha?: string
+}
+
+// Edita e-mail/senha/nome de um usuário de qualquer empresa — o e-mail é o identificador de
+// login em toda a plataforma (único globalmente), então checa duplicata excluindo o próprio id.
+export async function atualizarCredenciaisUsuario(userId: string, data: CredenciaisFormData) {
+  await requireSuperAdmin()
+
+  const updateData: Record<string, unknown> = {}
+
+  if (data.nome_completo !== undefined) {
+    updateData.nomeCompleto = data.nome_completo.trim()
+  }
+
+  if (data.email !== undefined) {
+    const sanitizedEmail = data.email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
+      return { success: false, error: "E-mail inválido" }
+    }
+    const [emailExistente] = await db
+      .select({ id: colaboradores.id })
+      .from(colaboradores)
+      .where(and(eq(colaboradores.email, sanitizedEmail), ne(colaboradores.id, userId)))
+    if (emailExistente) {
+      return { success: false, error: "Este e-mail já está em uso por outro usuário" }
+    }
+    updateData.email = sanitizedEmail
+  }
+
+  if (data.nova_senha !== undefined && data.nova_senha.trim()) {
+    if (data.nova_senha.length < 8) {
+      return { success: false, error: "A nova senha deve ter no mínimo 8 caracteres" }
+    }
+    updateData.senhaHash = await bcrypt.hash(data.nova_senha, 10)
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return { success: false, error: "Nada para atualizar" }
+  }
+
+  try {
+    await db.update(colaboradores).set(updateData).where(eq(colaboradores.id, userId))
+  } catch (error) {
+    console.error("[empresas] Erro ao atualizar credenciais do usuário:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Erro ao atualizar credenciais" }
+  }
+
+  revalidatePath("/admin/empresas")
   return { success: true }
 }
