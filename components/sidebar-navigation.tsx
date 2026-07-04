@@ -134,6 +134,13 @@ const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
 ]
 
+// SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os módulos
+// operacionais de uma empresa cliente.
+const SUPERADMIN_LINKS: NavItem[] = [
+  { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
+  { href: "/admin/empresas", label: "Empresas", icon: Building2 },
+]
+
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"
 const ROOT_STORAGE_KEY = "fluwork_root_open"
 const ROOT_LABEL = "Gestão de Prestadores - Financeiro"
@@ -195,6 +202,9 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     if (tipoAcesso === "Supervisor") {
       return [{ label: "", items: SUPERVISOR_LINKS }]
     }
+    if (tipoAcesso === "SuperAdmin") {
+      return [{ label: "", items: SUPERADMIN_LINKS }]
+    }
     return NAV_GROUPS.map((group) => ({
       label: group.label,
       items: group.items.filter((item) => !item.roles || item.roles.includes(tipoAcesso || "")),
@@ -205,6 +215,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const contratosVisivel =
     tipoAcesso !== "Colaborador" &&
     tipoAcesso !== "Supervisor" &&
+    tipoAcesso !== "SuperAdmin" &&
     (!CONTRATOS_MODULE.roles || CONTRATOS_MODULE.roles.includes(tipoAcesso || ""))
 
   // Mantém aberta a categoria (e o módulo-raiz) que contém a rota atual, sem fechar as demais.
@@ -295,6 +306,18 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const NavGroups = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const isRootOpen = Boolean(q) || rootOpen
     const contratosMatchesSearch = !q || CONTRATOS_MODULE.label.toLowerCase().includes(q)
+
+    // SuperAdmin não pertence a nenhuma empresa — sem o acordeão "Gestão de Prestadores -
+    // Financeiro" (que é sobre a operação de UMA empresa cliente), só os links diretos.
+    if (tipoAcesso === "SuperAdmin") {
+      return (
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+          {groups.flatMap((group) => group.items).map((item) => (
+            <NavLink key={item.href} item={item} onClick={onLinkClick} />
+          ))}
+        </nav>
+      )
+    }
 
     return (
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
