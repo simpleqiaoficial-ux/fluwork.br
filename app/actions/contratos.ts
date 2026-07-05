@@ -412,6 +412,32 @@ export async function listarContratosDoUsuario() {
   return rows.filter((r) => r.contract).map((r) => toContratoDTO(r.contract))
 }
 
+// Histórico contratual completo de um colaborador — usado na aba "Contratos" do perfil dele.
+export async function listarContratosDoColaborador(colaboradorId: string) {
+  const usuario = await exigirAdmin()
+
+  const [colaboradorAlvo] = await db
+    .select({ id: colaboradores.id, empresaId: colaboradores.empresaId })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, colaboradorId))
+
+  if (!colaboradorAlvo) return []
+  if (usuario.tipo_acesso !== "SuperAdmin" && colaboradorAlvo.empresaId !== usuario.empresa_id) {
+    throw new Error("Sem permissão para acessar este prestador")
+  }
+
+  const rows = await db.query.contracts.findMany({
+    where: eq(contracts.prestadorColaboradorId, colaboradorId),
+    orderBy: [desc(contracts.createdAt)],
+    with: {
+      amendments: { orderBy: (amendments, { asc }) => [asc(amendments.versao)] },
+      events: { orderBy: [desc(contractSignatureEvents.createdAt)] },
+    },
+  })
+
+  return rows.map(toContratoDTO)
+}
+
 export async function cancelarContrato(id: string, motivo?: string) {
   const usuario = await exigirAdmin()
 

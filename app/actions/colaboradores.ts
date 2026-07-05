@@ -134,6 +134,25 @@ export async function criarColaborador(data: NovoColaborador) {
   return toColaboradorDTO(colaborador)
 }
 
+// Usado no perfil do colaborador (app/cadastros/colaboradores/[id]) — traz um único registro
+// com o mesmo escopo de empresa das demais consultas administrativas deste arquivo.
+export async function getColaboradorById(id: string) {
+  const session = await getSession()
+  if (!session) throw new Error("Usuário não autenticado")
+
+  const row = await db.query.colaboradores.findFirst({
+    where: eq(colaboradores.id, id),
+    with: { equipe: true, centroCusto: true },
+  })
+
+  if (!row) return null
+  if (session.tipoAcesso !== "SuperAdmin" && row.empresaId !== session.empresaId) {
+    throw new Error("Prestador não encontrado")
+  }
+
+  return toColaboradorDTO(row)
+}
+
 export async function listarColaboradores() {
   const session = await getSession()
 

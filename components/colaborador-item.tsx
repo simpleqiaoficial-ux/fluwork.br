@@ -2,13 +2,14 @@
 
 import type { Colaborador } from "@/types/colaborador"
 import { Button } from "@/components/ui/button"
-import { Trash2, User, Pencil, EyeOff } from "lucide-react"
+import { Trash2, User, Pencil, EyeOff, FileSignature } from "lucide-react"
 import { deletarColaborador } from "@/app/actions/colaboradores"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { ColaboradorEditDialog } from "./colaborador-edit-dialog"
 import { formatCurrency } from "@/lib/utils"
 import { PasswordConfirmDialog } from "./password-confirm-dialog"
+import Link from "next/link"
 
 interface ColaboradorItemProps {
   colaborador: Colaborador
@@ -84,6 +85,11 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <Link href={`/cadastros/colaboradores/${colaborador.id}`}>
+            <Button variant="ghost" size="icon" title="Ver contratos">
+              <FileSignature className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </Link>
           {podeGerenciar && (
             <Button variant="ghost" size="icon" onClick={() => setEditDialogOpen(true)}>
               <Pencil className="w-4 h-4 text-primary" />
