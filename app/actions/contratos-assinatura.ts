@@ -1,7 +1,8 @@
 "use server"
 
 import crypto from "crypto"
-import { and, eq, inArray } from "drizzle-orm"
+import bcrypt from "bcryptjs"
+import { and, eq, inArray, isNull } from "drizzle-orm"
 import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { db } from "@/lib/db"
@@ -30,12 +31,14 @@ export async function validarTokenAssinatura(token: string) {
 
   const signerRow = await db.query.contractSigners.findFirst({
     where: eq(contractSigners.tokenHash, tokenHash),
-    with: { contract: { with: { empresa: true } } },
+    with: { contract: { with: { empresa: true } }, colaborador: true },
   })
 
   if (!signerRow || !signerRow.contract) {
     return { ok: false as const, reason: "invalido" as const }
   }
+
+  const precisaDefinirSenha = !!signerRow.colaboradorId && !signerRow.colaborador?.senhaHash
 
   let contrato = signerRow.contract
   const signer = signerRow
@@ -85,16 +88,17 @@ export async function validarTokenAssinatura(token: string) {
     ok: true as const,
     contrato: toContratoDTO(contrato),
     signatario: toContratoSignatarioDTO(signer),
+    precisa_definir_senha: precisaDefinirSenha,
   }
 }
 
-export async function aceitarEAssinarContrato(token: string, confirmEmail: string) {
+export async function aceitarEAssinarContrato(token: string, confirmEmail: string, novaSenha?: string) {
   const tokenHash = hashToken(token)
   const { userAgent, ipAddress } = await capturarRequestInfo()
 
   const signerRow = await db.query.contractSigners.findFirst({
     where: eq(contractSigners.tokenHash, tokenHash),
-    with: { contract: true },
+    with: { contract: true, colaborador: true },
   })
 
   if (!signerRow || !signerRow.contract) {
@@ -107,6 +111,18 @@ export async function aceitarEAssinarContrato(token: string, confirmEmail: strin
 
   if (signerRow.tokenExpiraEm < new Date()) {
     return { success: false, error: "Este link expirou. Solicite um novo envio ao responsável." }
+  }
+
+  // Definição de senha de primeiro acesso — só se aplica quando o colaborador vinculado
+  // ainda não tem senha (evita que alguém reenvie a mesma requisição e troque a senha depois).
+  const precisaDefinirSenha = !!signerRow.colaboradorId && !signerRow.colaborador?.senhaHash
+  if (precisaDefinirSenha) {
+    if (!novaSenha || novaSenha.length < 8) {
+      return { success: false, error: "A senha deve ter no mínimo 8 caracteres" }
+    }
+    if (!/[A-Z]/.test(novaSenha) || !/[a-z]/.test(novaSenha) || !/[0-9]/.test(novaSenha)) {
+      return { success: false, error: "A senha deve conter letras maiúsculas, minúsculas e números" }
+    }
   }
 
   // Guarda otimista: só assina se o contrato ainda estiver pendente de assinatura.
@@ -130,6 +146,24 @@ export async function aceitarEAssinarContrato(token: string, confirmEmail: strin
       updatedAt: new Date(),
     })
     .where(eq(contractSigners.id, signerRow.id))
+
+  if (precisaDefinirSenha && signerRow.colaboradorId) {
+    // Guarda contra dupla submissão: só grava se ainda não tiver senha (evita sobrescrever
+    // uma senha já definida por uma segunda chamada com o mesmo token).
+    const senhaHash = await bcrypt.hash(novaSenha!, 10)
+    await db
+      .update(colaboradores)
+      .set({ senhaHash })
+      .where(and(eq(colaboradores.id, signerRow.colaboradorId), isNull(colaboradores.senhaHash)))
+    await db.insert(contractSignatureEvents).values({
+      contractId: contratoAtualizado.id,
+      signerId: signerRow.id,
+      tipoEvento: "senha_definida",
+      ipAddress,
+      userAgent,
+      contractVersao: contratoAtualizado.versaoAtual,
+    })
+  }
 
   const [empresaRow] = await db.select().from(empresas).where(eq(empresas.id, contratoAtualizado.empresaId))
   const empresa = toEmpresaDTO(empresaRow)

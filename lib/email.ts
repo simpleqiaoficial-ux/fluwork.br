@@ -27,8 +27,14 @@ export async function sendContratoConviteEmail(params: {
   signingUrl: string
   expiraEmFormatado: string
   empresa: EmpresaEmail
+  // Quando true, o mesmo e-mail/link também serve como primeiro acesso à plataforma —
+  // não existe um convite separado (o contrato É a porta de entrada do colaborador).
+  precisaDefinirSenha?: boolean
 }) {
   const client = getClient()
+  const introducaoAcesso = params.precisaDefinirSenha
+    ? `<p>Este também é o seu primeiro acesso à plataforma: ao abrir o link abaixo, você vai definir sua senha e, em seguida, revisar e assinar o contrato.</p>`
+    : ""
   await client.emails.send({
     from: getFromAddress(),
     to: params.to,
@@ -36,7 +42,8 @@ export async function sendContratoConviteEmail(params: {
     html: `
       <p>Olá, ${params.prestadorNome}.</p>
       <p>Você recebeu um contrato de prestação de serviços (${params.tipoServico}, valor ${params.valorFormatado}) da ${params.empresa.nome} para revisar e assinar eletronicamente.</p>
-      <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Visualizar e assinar contrato</a></p>
+      ${introducaoAcesso}
+      <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">${params.precisaDefinirSenha ? "Definir senha e assinar contrato" : "Visualizar e assinar contrato"}</a></p>
       <p>Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
       <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
     `,

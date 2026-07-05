@@ -225,9 +225,44 @@ export async function enviarContrato(id: string) {
   }
 
   const [colaboradorExistente] = await db
-    .select({ id: colaboradores.id })
+    .select({ id: colaboradores.id, empresaId: colaboradores.empresaId, senhaHash: colaboradores.senhaHash })
     .from(colaboradores)
     .where(eq(colaboradores.email, contrato.prestadorEmail))
+
+  // colaboradores.email é único na plataforma inteira (não só por empresa) — se o e-mail já
+  // pertence a um colaborador de OUTRA empresa, não dá pra vincular nem pra criar um novo.
+  if (colaboradorExistente && colaboradorExistente.empresaId && colaboradorExistente.empresaId !== contrato.empresaId) {
+    return { success: false, error: "Este e-mail já está cadastrado em outra empresa da plataforma." }
+  }
+
+  // Contrato é a porta de entrada do colaborador na plataforma: se ainda não existe conta
+  // pra esse e-mail, ela é criada agora (sem senha — definida pelo próprio prestador no link
+  // de assinatura), já vinculada à equipe escolhida no wizard (que já define supervisor/gerente
+  // via equipes.supervisorId/gerentes_equipes, sem precisar de tabela nova).
+  let colaboradorId = colaboradorExistente?.id
+  const precisaDefinirSenha = !colaboradorExistente?.senhaHash
+  if (!colaboradorId) {
+    try {
+      const [novoColaborador] = await db
+        .insert(colaboradores)
+        .values({
+          empresaId: contrato.empresaId,
+          nomeCompleto: contrato.prestadorNome,
+          email: contrato.prestadorEmail,
+          cnpj: contrato.prestadorCpfCnpj,
+          equipeId: contrato.equipeId,
+          salario: contrato.valor,
+          tipoAcesso: "Colaborador",
+          senhaHash: null,
+        })
+        .returning()
+      colaboradorId = novoColaborador.id
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Erro ao criar acesso do prestador" }
+    }
+
+    await db.update(contracts).set({ prestadorColaboradorId: colaboradorId }).where(eq(contracts.id, contrato.id))
+  }
 
   const token = gerarToken()
   const tokenHash = hashToken(token)
@@ -239,7 +274,7 @@ export async function enviarContrato(id: string) {
       .insert(contractSigners)
       .values({
         contractId: contrato.id,
-        colaboradorId: colaboradorExistente?.id,
+        colaboradorId,
         nome: contrato.prestadorNome,
         email: contrato.prestadorEmail,
         cpfCnpj: contrato.prestadorCpfCnpj,
@@ -276,6 +311,7 @@ export async function enviarContrato(id: string) {
       signingUrl: `${baseUrl}/contratos/assinar/${token}`,
       expiraEmFormatado: new Intl.DateTimeFormat("pt-BR").format(tokenExpiraEm),
       empresa: { nome: empresa.nome_fantasia || empresa.razao_social, razaoSocial: empresa.razao_social, cnpj: empresa.cnpj },
+      precisaDefinirSenha,
     })
   } catch (error) {
     console.error("[contratos] Erro ao enviar e-mail de convite:", error)
@@ -299,6 +335,15 @@ export async function reenviarContrato(id: string) {
 
   const [signer] = await db.select().from(contractSigners).where(eq(contractSigners.contractId, id))
   if (!signer) return { success: false, error: "Signatário não encontrado" }
+
+  let precisaDefinirSenha = true
+  if (signer.colaboradorId) {
+    const [colaboradorVinculado] = await db
+      .select({ senhaHash: colaboradores.senhaHash })
+      .from(colaboradores)
+      .where(eq(colaboradores.id, signer.colaboradorId))
+    precisaDefinirSenha = !colaboradorVinculado?.senhaHash
+  }
 
   const token = gerarToken()
   const tokenHash = hashToken(token)
@@ -333,6 +378,7 @@ export async function reenviarContrato(id: string) {
       signingUrl: `${baseUrl}/contratos/assinar/${token}`,
       expiraEmFormatado: new Intl.DateTimeFormat("pt-BR").format(tokenExpiraEm),
       empresa: { nome: empresa.nome_fantasia || empresa.razao_social, razaoSocial: empresa.razao_social, cnpj: empresa.cnpj },
+      precisaDefinirSenha,
     })
   } catch (error) {
     console.error("[contratos] Erro ao reenviar e-mail de convite:", error)

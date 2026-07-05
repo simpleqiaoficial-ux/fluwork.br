@@ -45,7 +45,7 @@ export default async function AssinarContratoPage({ params }: { params: Promise<
     )
   }
 
-  const { contrato, signatario } = resultado
+  const { contrato, signatario, precisa_definir_senha } = resultado
 
   if (contrato.status !== "sent" && contrato.status !== "viewed") {
     if (contrato.status === "signed") {
@@ -88,7 +88,7 @@ export default async function AssinarContratoPage({ params }: { params: Promise<
     <div className="min-h-screen bg-muted/30 py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-4">
         <ContratoPreview dados={dados} />
-        <ContratoAssinaturaForm token={token} emailSignatario={signatario.email} />
+        <ContratoAssinaturaForm token={token} emailSignatario={signatario.email} precisaDefinirSenha={precisa_definir_senha} />
       </div>
     </div>
   )
