@@ -125,6 +125,7 @@ export async function getContratoById(id: string) {
       signers: true,
       events: { orderBy: [desc(contractSignatureEvents.createdAt)] },
       criadoPorColaborador: true,
+      amendments: { orderBy: (amendments, { asc }) => [asc(amendments.versao)] },
     },
   })
   if (!row) return null

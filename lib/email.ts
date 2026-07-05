@@ -50,6 +50,30 @@ export async function sendContratoConviteEmail(params: {
   })
 }
 
+export async function sendAditivoConviteEmail(params: {
+  to: string
+  prestadorNome: string
+  numeroContrato: string
+  tipoAditivoLabel: string
+  signingUrl: string
+  expiraEmFormatado: string
+  empresa: EmpresaEmail
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `${params.tipoAditivoLabel} — contrato ${params.numeroContrato} · ${params.empresa.nome}`,
+    html: `
+      <p>Olá, ${params.prestadorNome}.</p>
+      <p>A ${params.empresa.nome} enviou um termo aditivo (${params.tipoAditivoLabel}) referente ao seu contrato nº ${params.numeroContrato} para revisar e assinar eletronicamente.</p>
+      <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Visualizar e assinar aditivo</a></p>
+      <p>Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
+    `,
+  })
+}
+
 export async function sendContratoAssinadoPrestadorEmail(params: {
   to: string
   prestadorNome: string

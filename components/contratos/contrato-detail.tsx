@@ -20,6 +20,7 @@ import { Progress } from "@/components/ui/progress"
 import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock, RotateCw, Archive, FileEdit, FileSignature } from "lucide-react"
 import { toast } from "sonner"
 import { reenviarContrato, cancelarContrato } from "@/app/actions/contratos"
+import { AditivoSection } from "@/components/contratos/aditivo-section"
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
@@ -207,6 +208,8 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
           )}
         </div>
       )}
+
+      <AditivoSection contractId={contrato.id} contratoStatus={contrato.status} aditivos={contrato.aditivos || []} />
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Histórico</p>
