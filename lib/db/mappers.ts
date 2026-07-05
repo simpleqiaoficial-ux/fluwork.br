@@ -3,6 +3,8 @@
 // client, que retornava as colunas Postgres cruas). Mantém o contrato de dados idêntico
 // ao anterior para não quebrar nenhum componente durante a migração para Drizzle.
 
+import { calcularSituacaoVigencia } from "@/lib/contracts/vigencia"
+
 type AnyRow = Record<string, any>
 
 export function toEmpresaDTO(row: AnyRow) {
@@ -329,6 +331,7 @@ export function toContratoDTO(row: AnyRow) {
     template_id: row.templateId,
     numero: row.numero,
     prestador_colaborador_id: row.prestadorColaboradorId,
+    equipe_id: row.equipeId,
     prestador_nome: row.prestadorNome,
     prestador_cpf_cnpj: row.prestadorCpfCnpj,
     prestador_email: row.prestadorEmail,
@@ -337,8 +340,14 @@ export function toContratoDTO(row: AnyRow) {
     valor: row.valor == null ? row.valor : Number(row.valor),
     prazo: row.prazo,
     data_inicio: row.dataInicio,
+    data_termino: row.dataTermino,
+    renovacao_automatica: row.renovacaoAutomatica,
+    tipo_renovacao: row.tipoRenovacao,
+    periodo_renovacao_meses: row.periodoRenovacaoMeses,
+    data_ultima_renovacao: row.dataUltimaRenovacao,
     clausulas_adicionais: row.clausulasAdicionais,
     status: row.status,
+    situacao_vigencia: calcularSituacaoVigencia({ status: row.status, dataInicio: row.dataInicio, dataTermino: row.dataTermino }),
     versao_atual: row.versaoAtual,
     pdf_draft_path: row.pdfDraftPath,
     pdf_signed_path: row.pdfSignedPath,
@@ -356,6 +365,9 @@ export function toContratoDTO(row: AnyRow) {
     updated_at: row.updatedAt,
     ...(row.empresa !== undefined && { empresa: row.empresa ? toEmpresaDTO(row.empresa) : row.empresa }),
     ...(row.template !== undefined && { template: row.template ? toContratoTemplateDTO(row.template) : row.template }),
+    ...(row.equipe !== undefined && {
+      equipe: row.equipe ? { id: row.equipe.id, nome: row.equipe.nome } : row.equipe,
+    }),
     ...(row.signers !== undefined && {
       signatarios: Array.isArray(row.signers) ? row.signers.map(toContratoSignatarioDTO) : row.signers,
     }),
@@ -364,6 +376,9 @@ export function toContratoDTO(row: AnyRow) {
     }),
     ...(row.attachments !== undefined && {
       anexos: Array.isArray(row.attachments) ? row.attachments.map(toContratoAnexoDTO) : row.attachments,
+    }),
+    ...(row.amendments !== undefined && {
+      aditivos: Array.isArray(row.amendments) ? row.amendments.map(toContratoAditivoDTO) : row.amendments,
     }),
     ...(row.criadoPorColaborador !== undefined && {
       criador: row.criadoPorColaborador
@@ -378,6 +393,7 @@ export function toContratoSignatarioDTO(row: AnyRow) {
   return {
     id: row.id,
     contract_id: row.contractId,
+    amendment_id: row.amendmentId,
     colaborador_id: row.colaboradorId,
     papel: row.papel,
     nome: row.nome,
@@ -399,7 +415,9 @@ export function toContratoEventoDTO(row: AnyRow) {
   return {
     id: row.id,
     contract_id: row.contractId,
+    amendment_id: row.amendmentId,
     signer_id: row.signerId,
+    ator_colaborador_id: row.atorColaboradorId,
     tipo_evento: row.tipoEvento,
     ip_address: row.ipAddress,
     user_agent: row.userAgent,
@@ -423,6 +441,38 @@ export function toContratoAnexoDTO(row: AnyRow) {
     tamanho_bytes: row.tamanhoBytes,
     gerado_por: row.geradoPor,
     created_at: row.createdAt,
+  }
+}
+
+export function toContratoAditivoDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    contract_id: row.contractId,
+    tipo: row.tipo,
+    versao: row.versao,
+    descricao: row.descricao,
+    campos_alterados: row.camposAlterados,
+    novo_valor: row.novoValor == null ? row.novoValor : Number(row.novoValor),
+    nova_data_termino: row.novaDataTermino,
+    novas_clausulas: row.novasClausulas,
+    status: row.status,
+    enviado_em: row.enviadoEm,
+    visualizado_em: row.visualizadoEm,
+    assinado_em: row.assinadoEm,
+    recusado_em: row.recusadoEm,
+    motivo_recusa: row.motivoRecusa,
+    cancelado_em: row.canceladoEm,
+    pdf_path: row.pdfPath,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.signers !== undefined && {
+      signatarios: Array.isArray(row.signers) ? row.signers.map(toContratoSignatarioDTO) : row.signers,
+    }),
+    ...(row.events !== undefined && {
+      eventos: Array.isArray(row.events) ? row.events.map(toContratoEventoDTO) : row.events,
+    }),
   }
 }
 

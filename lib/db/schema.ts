@@ -329,6 +329,9 @@ export const contracts = pgTable("contracts", {
   templateId: uuid("template_id").references(() => contractTemplates.id),
   numero: text("numero").notNull().unique(),
   prestadorColaboradorId: uuid("prestador_colaborador_id").references(() => colaboradores.id, { onDelete: "set null" }),
+  // Equipe pretendida pro prestador — usada pra derivar supervisor/gerente na hora de
+  // auto-provisionar o colaborador (ver enviarContrato) e como filtro de busca (seção 10 do CLM).
+  equipeId: uuid("equipe_id").references(() => equipes.id, { onDelete: "set null" }),
   prestadorNome: text("prestador_nome").notNull(),
   prestadorCpfCnpj: text("prestador_cpf_cnpj").notNull(),
   prestadorEmail: text("prestador_email").notNull(),
@@ -337,6 +340,13 @@ export const contracts = pgTable("contracts", {
   valor: numeric("valor", { precision: 12, scale: 2 }).notNull(),
   prazo: text("prazo").notNull(),
   dataInicio: date("data_inicio").notNull(),
+  // Vigência real do contrato — usada por lib/contracts/vigencia.ts pra calcular a
+  // sinalização visual (Vigente/Vence em X dias/Vencido) sem precisar de job agendado.
+  dataTermino: date("data_termino"),
+  renovacaoAutomatica: boolean("renovacao_automatica").notNull().default(false),
+  tipoRenovacao: text("tipo_renovacao"),
+  periodoRenovacaoMeses: integer("periodo_renovacao_meses"),
+  dataUltimaRenovacao: timestamp("data_ultima_renovacao", { withTimezone: true }),
   clausulasAdicionais: text("clausulas_adicionais"),
   status: text("status").notNull().default("draft"),
   versaoAtual: integer("versao_atual").notNull().default(1),
@@ -357,14 +367,58 @@ export const contracts = pgTable("contracts", {
 }, (table) => [
   check(
     "contracts_status_check",
-    sql`${table.status} IN ('draft','sent','viewed','signed','refused','expired','cancelled')`,
+    // 'archived' é o único status novo persistido pelo CLM — os demais estados de vigência
+    // (Vigente/Vence em X dias/Vencido) são calculados em lib/contracts/vigencia.ts, nunca gravados.
+    sql`${table.status} IN ('draft','sent','viewed','signed','refused','expired','cancelled','archived')`,
   ),
   check("contracts_valor_check", sql`${table.valor} > 0`),
+  check(
+    "contracts_tipo_renovacao_check",
+    sql`${table.tipoRenovacao} IS NULL OR ${table.tipoRenovacao} IN ('automatica','mediante_aviso','sem_renovacao')`,
+  ),
+])
+
+// Aditivo contratual — nunca substitui o contrato base, gera sua própria versão em
+// contract_attachments e passa pelo mesmo pipeline de assinatura (contract_signers/
+// contract_signature_events), só que escopado via amendment_id em vez de ser o documento principal.
+export const contractAmendments = pgTable("contract_amendments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  tipo: text("tipo").notNull(),
+  versao: integer("versao").notNull(),
+  descricao: text("descricao"),
+  camposAlterados: jsonb("campos_alterados").default({}),
+  novoValor: numeric("novo_valor", { precision: 12, scale: 2 }),
+  novaDataTermino: date("nova_data_termino"),
+  novasClausulas: text("novas_clausulas"),
+  status: text("status").notNull().default("draft"),
+  enviadoEm: timestamp("enviado_em", { withTimezone: true }),
+  visualizadoEm: timestamp("visualizado_em", { withTimezone: true }),
+  assinadoEm: timestamp("assinado_em", { withTimezone: true }),
+  recusadoEm: timestamp("recusado_em", { withTimezone: true }),
+  motivoRecusa: text("motivo_recusa"),
+  canceladoEm: timestamp("cancelado_em", { withTimezone: true }),
+  pdfPath: text("pdf_path"),
+  criadoPor: uuid("criado_por").notNull().references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  check(
+    "contract_amendments_tipo_check",
+    sql`${table.tipo} IN ('aditivo_salarial','aditivo_clausulas','renovacao','outro')`,
+  ),
+  check(
+    "contract_amendments_status_check",
+    sql`${table.status} IN ('draft','sent','viewed','signed','refused','expired','cancelled')`,
+  ),
 ])
 
 export const contractSigners = pgTable("contract_signers", {
   id: uuid("id").primaryKey().defaultRandom(),
   contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  // Nulo = assinatura do contrato base; preenchido = assinatura de um aditivo específico
+  // deste mesmo contrato (mesmo pipeline de token/e-mail, documento diferente).
+  amendmentId: uuid("amendment_id").references(() => contractAmendments.id, { onDelete: "cascade" }),
   colaboradorId: uuid("colaborador_id").references(() => colaboradores.id, { onDelete: "set null" }),
   papel: text("papel").notNull().default("prestador"),
   nome: text("nome").notNull(),
@@ -391,7 +445,11 @@ export const contractSigners = pgTable("contract_signers", {
 export const contractSignatureEvents = pgTable("contract_signature_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  amendmentId: uuid("amendment_id").references(() => contractAmendments.id, { onDelete: "cascade" }),
   signerId: uuid("signer_id").references(() => contractSigners.id, { onDelete: "cascade" }),
+  // Quem do lado admin disparou o evento (criar/enviar/cancelar/renovar/arquivar) — o signatário
+  // (prestador) já é rastreado via signerId/ipAddress; isso cobre a auditoria do lado empresa (seção 13 do CLM).
+  atorColaboradorId: uuid("ator_colaborador_id").references(() => colaboradores.id),
   tipoEvento: text("tipo_evento").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
@@ -404,7 +462,7 @@ export const contractSignatureEvents = pgTable("contract_signature_events", {
 }, (table) => [
   check(
     "contract_signature_events_tipo_check",
-    sql`${table.tipoEvento} IN ('criado','enviado','reenviado','visualizado','aceite_marcado','assinado','recusado','expirado','cancelado')`,
+    sql`${table.tipoEvento} IN ('criado','enviado','reenviado','visualizado','aceite_marcado','assinado','recusado','expirado','cancelado','vigencia_iniciada','aditivo_criado','aditivo_enviado','aditivo_assinado','aditivo_recusado','renovado','encerrado','arquivado','senha_definida')`,
   ),
 ])
 
@@ -510,6 +568,7 @@ export const contractTemplatesRelations = relations(contractTemplates, ({ one, m
 export const contractsRelations = relations(contracts, ({ one, many }) => ({
   empresa: one(empresas, { fields: [contracts.empresaId], references: [empresas.id] }),
   template: one(contractTemplates, { fields: [contracts.templateId], references: [contractTemplates.id] }),
+  equipe: one(equipes, { fields: [contracts.equipeId], references: [equipes.id] }),
   prestadorColaborador: one(colaboradores, {
     fields: [contracts.prestadorColaboradorId],
     references: [colaboradores.id],
@@ -519,17 +578,31 @@ export const contractsRelations = relations(contracts, ({ one, many }) => ({
   signers: many(contractSigners),
   events: many(contractSignatureEvents),
   attachments: many(contractAttachments),
+  amendments: many(contractAmendments),
+}))
+
+export const contractAmendmentsRelations = relations(contractAmendments, ({ one, many }) => ({
+  contract: one(contracts, { fields: [contractAmendments.contractId], references: [contracts.id] }),
+  criadoPorColaborador: one(colaboradores, { fields: [contractAmendments.criadoPor], references: [colaboradores.id] }),
+  signers: many(contractSigners),
+  events: many(contractSignatureEvents),
 }))
 
 export const contractSignersRelations = relations(contractSigners, ({ one, many }) => ({
   contract: one(contracts, { fields: [contractSigners.contractId], references: [contracts.id] }),
+  amendment: one(contractAmendments, { fields: [contractSigners.amendmentId], references: [contractAmendments.id] }),
   colaborador: one(colaboradores, { fields: [contractSigners.colaboradorId], references: [colaboradores.id] }),
   events: many(contractSignatureEvents),
 }))
 
 export const contractSignatureEventsRelations = relations(contractSignatureEvents, ({ one }) => ({
   contract: one(contracts, { fields: [contractSignatureEvents.contractId], references: [contracts.id] }),
+  amendment: one(contractAmendments, {
+    fields: [contractSignatureEvents.amendmentId],
+    references: [contractAmendments.id],
+  }),
   signer: one(contractSigners, { fields: [contractSignatureEvents.signerId], references: [contractSigners.id] }),
+  ator: one(colaboradores, { fields: [contractSignatureEvents.atorColaboradorId], references: [colaboradores.id] }),
 }))
 
 export const contractAttachmentsRelations = relations(contractAttachments, ({ one }) => ({
