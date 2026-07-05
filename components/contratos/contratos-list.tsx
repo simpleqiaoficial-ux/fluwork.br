@@ -9,6 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, ChevronRight, FileSignature } from "lucide-react"
 import { toast } from "sonner"
 
+interface SituacaoVigencia {
+  chave: string
+  label: string
+  cor: "verde" | "amarelo" | "laranja" | "vermelho" | "cinza"
+  emoji: string
+  diasRestantes: number | null
+}
+
 interface ContratoRow {
   id: string
   numero: string
@@ -18,6 +26,7 @@ interface ContratoRow {
   status: string
   enviado_em?: string | null
   assinado_em?: string | null
+  situacao_vigencia?: SituacaoVigencia
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
@@ -26,8 +35,17 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   viewed: { label: "Visualizado", variant: "warning" },
   signed: { label: "Assinado", variant: "success" },
   refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Expirado", variant: "destructive" },
+  expired: { label: "Link expirado", variant: "destructive" },
   cancelled: { label: "Cancelado", variant: "outline" },
+  archived: { label: "Arquivado", variant: "secondary" },
+}
+
+const VIGENCIA_VARIANT: Record<SituacaoVigencia["cor"], "success" | "warning" | "destructive" | "outline"> = {
+  verde: "success",
+  amarelo: "warning",
+  laranja: "warning",
+  vermelho: "destructive",
+  cinza: "outline",
 }
 
 function formatarMoeda(valor: number): string {
@@ -141,7 +159,14 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
                       {formatarMoeda(contrato.valor)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                        {contrato.situacao_vigencia && contrato.situacao_vigencia.chave !== "sem_vigencia" && (
+                          <Badge variant={VIGENCIA_VARIANT[contrato.situacao_vigencia.cor]}>
+                            {contrato.situacao_vigencia.emoji} {contrato.situacao_vigencia.label}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                       {formatarData(contrato.assinado_em || contrato.enviado_em)}

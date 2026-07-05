@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileSignature, Check, ArrowLeft, Send } from "lucide-react"
 import { toast } from "sonner"
 import { criarContrato, enviarContrato } from "@/app/actions/contratos"
@@ -25,13 +27,19 @@ const CAMPOS_INICIAIS = {
   prazo: "",
   data_inicio: "",
   clausulas_adicionais: "",
+  equipe_id: "",
+  data_termino: "",
+  renovacao_automatica: false,
+  tipo_renovacao: "" as "" | "automatica" | "mediante_aviso" | "sem_renovacao",
+  periodo_renovacao_meses: "",
 }
 
 interface NovoContratoWizardProps {
   empresa: EmpresaParaMontagem
+  equipes: Array<{ id: string; nome: string }>
 }
 
-export function NovoContratoWizard({ empresa }: NovoContratoWizardProps) {
+export function NovoContratoWizard({ empresa, equipes }: NovoContratoWizardProps) {
   const router = useRouter()
   const [passo, setPasso] = useState<Passo>("template")
   const [campos, setCampos] = useState(CAMPOS_INICIAIS)
@@ -79,6 +87,11 @@ export function NovoContratoWizard({ empresa }: NovoContratoWizardProps) {
         prazo: campos.prazo,
         data_inicio: campos.data_inicio,
         clausulas_adicionais: campos.clausulas_adicionais || undefined,
+        equipe_id: campos.equipe_id || undefined,
+        data_termino: campos.data_termino || undefined,
+        renovacao_automatica: campos.renovacao_automatica,
+        tipo_renovacao: campos.tipo_renovacao || undefined,
+        periodo_renovacao_meses: campos.periodo_renovacao_meses ? Number(campos.periodo_renovacao_meses) : undefined,
       })
 
       if (!resultCriar.success || !resultCriar.id) {
@@ -237,6 +250,86 @@ export function NovoContratoWizard({ empresa }: NovoContratoWizardProps) {
                   onChange={(e) => setCampos({ ...campos, data_inicio: e.target.value })}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="data_termino">Data de término (opcional)</Label>
+                <Input
+                  id="data_termino"
+                  type="date"
+                  value={campos.data_termino}
+                  onChange={(e) => setCampos({ ...campos, data_termino: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipe">Equipe do prestador (opcional)</Label>
+                <Select
+                  value={campos.equipe_id || "nenhuma"}
+                  onValueChange={(v) => setCampos({ ...campos, equipe_id: v === "nenhuma" ? "" : v })}
+                >
+                  <SelectTrigger id="equipe">
+                    <SelectValue placeholder="Selecione uma equipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nenhuma">Sem equipe por enquanto</SelectItem>
+                    {equipes.map((equipe) => (
+                      <SelectItem key={equipe.id} value={equipe.id}>
+                        {equipe.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Se o prestador ainda não tiver acesso à plataforma, a equipe define seu supervisor e gerente automaticamente.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tipo_renovacao">Renovação</Label>
+                <Select
+                  value={campos.tipo_renovacao || "sem_renovacao"}
+                  onValueChange={(v) => setCampos({ ...campos, tipo_renovacao: v as typeof campos.tipo_renovacao })}
+                >
+                  <SelectTrigger id="tipo_renovacao">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sem_renovacao">Sem renovação</SelectItem>
+                    <SelectItem value="automatica">Automática</SelectItem>
+                    <SelectItem value="mediante_aviso">Mediante aviso prévio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {campos.tipo_renovacao && campos.tipo_renovacao !== "sem_renovacao" && (
+                <div className="space-y-2">
+                  <Label htmlFor="periodo_renovacao_meses">Período de renovação (meses)</Label>
+                  <Input
+                    id="periodo_renovacao_meses"
+                    type="number"
+                    min="1"
+                    placeholder="Ex: 12"
+                    value={campos.periodo_renovacao_meses}
+                    onChange={(e) => setCampos({ ...campos, periodo_renovacao_meses: e.target.value })}
+                  />
+                </div>
+              )}
+
+              {campos.tipo_renovacao === "automatica" && (
+                <div className="flex items-center justify-between rounded-md border p-3 sm:col-span-2">
+                  <div>
+                    <Label htmlFor="renovacao_automatica">Renovar automaticamente ao vencer</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Sinaliza que este contrato deve ser renovado sem necessidade de novo aditivo manual.
+                    </p>
+                  </div>
+                  <Switch
+                    id="renovacao_automatica"
+                    checked={campos.renovacao_automatica}
+                    onCheckedChange={(checked) => setCampos({ ...campos, renovacao_automatica: checked })}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="clausulas_adicionais">Cláusulas adicionais (opcional)</Label>

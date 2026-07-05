@@ -12,6 +12,7 @@ import {
   contractTemplates,
   colaboradores,
   empresas,
+  equipes,
 } from "@/lib/db/schema"
 import { toContratoDTO, toEmpresaDTO } from "@/lib/db/mappers"
 import { getUsuarioLogado } from "@/lib/auth-utils"
@@ -93,6 +94,11 @@ export interface ContratoFormData {
   prazo: string
   data_inicio: string
   clausulas_adicionais?: string
+  equipe_id?: string
+  data_termino?: string
+  renovacao_automatica?: boolean
+  tipo_renovacao?: "automatica" | "mediante_aviso" | "sem_renovacao"
+  periodo_renovacao_meses?: number
 }
 
 // Dados da própria empresa do admin logado — usado pro preview do wizard de novo contrato.
@@ -133,6 +139,14 @@ export async function criarContrato(formData: ContratoFormData) {
   const template = await getOrCriarTemplatePadrao(usuario.empresa_id!)
   const numero = await gerarNumeroUnico()
 
+  // Nunca confiar que equipe_id vindo do formulário pertence à empresa de quem está criando.
+  if (formData.equipe_id && usuario.tipo_acesso !== "SuperAdmin") {
+    const [equipeAlvo] = await db.select({ empresaId: equipes.empresaId }).from(equipes).where(eq(equipes.id, formData.equipe_id))
+    if (!equipeAlvo || equipeAlvo.empresaId !== usuario.empresa_id) {
+      return { success: false, error: "Equipe inválida" }
+    }
+  }
+
   let contrato
   try {
     ;[contrato] = await db
@@ -141,6 +155,7 @@ export async function criarContrato(formData: ContratoFormData) {
         empresaId: usuario.empresa_id!,
         templateId: template.id,
         numero,
+        equipeId: formData.equipe_id || null,
         prestadorNome: formData.prestador_nome,
         prestadorCpfCnpj: formData.prestador_cpf_cnpj,
         prestadorEmail: formData.prestador_email,
@@ -149,6 +164,10 @@ export async function criarContrato(formData: ContratoFormData) {
         valor: String(formData.valor),
         prazo: formData.prazo,
         dataInicio: formData.data_inicio,
+        dataTermino: formData.data_termino || null,
+        renovacaoAutomatica: formData.renovacao_automatica ?? false,
+        tipoRenovacao: formData.tipo_renovacao || null,
+        periodoRenovacaoMeses: formData.periodo_renovacao_meses ?? null,
         clausulasAdicionais: formData.clausulas_adicionais || null,
         status: "draft",
         criadoPor: usuario.id,

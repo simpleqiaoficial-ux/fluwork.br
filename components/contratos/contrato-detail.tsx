@@ -16,7 +16,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock, RotateCw, Archive, FileEdit, FileSignature } from "lucide-react"
 import { toast } from "sonner"
 import { reenviarContrato, cancelarContrato } from "@/app/actions/contratos"
 
@@ -26,8 +27,23 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   viewed: { label: "Visualizado", variant: "warning" },
   signed: { label: "Assinado", variant: "success" },
   refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Expirado", variant: "destructive" },
+  expired: { label: "Link expirado", variant: "destructive" },
   cancelled: { label: "Cancelado", variant: "outline" },
+  archived: { label: "Arquivado", variant: "secondary" },
+}
+
+const VIGENCIA_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline"> = {
+  verde: "success",
+  amarelo: "warning",
+  laranja: "warning",
+  vermelho: "destructive",
+  cinza: "outline",
+}
+
+const RENOVACAO_LABEL: Record<string, string> = {
+  automatica: "Automática",
+  mediante_aviso: "Mediante aviso prévio",
+  sem_renovacao: "Sem renovação",
 }
 
 const EVENTO_CONFIG: Record<string, { label: string; icon: typeof FileText }> = {
@@ -40,6 +56,15 @@ const EVENTO_CONFIG: Record<string, { label: string; icon: typeof FileText }> = 
   recusado: { label: "Recusado pelo prestador", icon: XCircle },
   expirado: { label: "Link expirado", icon: Clock },
   cancelado: { label: "Cancelado", icon: Ban },
+  vigencia_iniciada: { label: "Vigência iniciada", icon: FileSignature },
+  aditivo_criado: { label: "Aditivo criado", icon: FileEdit },
+  aditivo_enviado: { label: "Aditivo enviado para assinatura", icon: Send },
+  aditivo_assinado: { label: "Aditivo assinado", icon: PenLine },
+  aditivo_recusado: { label: "Aditivo recusado", icon: XCircle },
+  renovado: { label: "Contrato renovado", icon: RotateCw },
+  encerrado: { label: "Vigência encerrada", icon: Ban },
+  arquivado: { label: "Contrato arquivado", icon: Archive },
+  senha_definida: { label: "Senha de acesso definida", icon: PenLine },
 }
 
 function formatarMoeda(valor: number): string {
@@ -157,6 +182,31 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
           )}
         </div>
       </div>
+
+      {contrato.situacao_vigencia && contrato.situacao_vigencia.chave !== "sem_vigencia" && (
+        <div className="rounded-md border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Vigência</p>
+            <Badge variant={VIGENCIA_VARIANT[contrato.situacao_vigencia.cor]}>
+              {contrato.situacao_vigencia.emoji} {contrato.situacao_vigencia.label}
+            </Badge>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3 text-sm">
+            <p><span className="text-muted-foreground">Término: </span>{new Intl.DateTimeFormat("pt-BR").format(new Date(contrato.data_termino))}</p>
+            <p>
+              <span className="text-muted-foreground">Dias restantes: </span>
+              {contrato.situacao_vigencia.diasRestantes !== null ? `${contrato.situacao_vigencia.diasRestantes} dias` : "—"}
+            </p>
+            <p><span className="text-muted-foreground">Renovação: </span>{RENOVACAO_LABEL[contrato.tipo_renovacao || ""] || "Sem renovação"}</p>
+          </div>
+          {contrato.situacao_vigencia.percentualDecorrido !== null && (
+            <div className="space-y-1">
+              <Progress value={contrato.situacao_vigencia.percentualDecorrido} className="h-2" />
+              <p className="text-xs text-muted-foreground">{contrato.situacao_vigencia.percentualDecorrido}% da vigência decorrida</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Histórico</p>
