@@ -21,6 +21,7 @@ import { montarDadosContrato } from "@/lib/contracts/montar-dados-contrato"
 import { gerarPdfRascunho } from "@/lib/pdf/contrato-pdf"
 import { uploadFile } from "@/lib/gcs"
 import { sendContratoConviteEmail } from "@/lib/email"
+import { calcularSituacaoVigencia } from "@/lib/contracts/vigencia"
 
 const ADMIN_ROLES = ["Adm", "Financeiro"]
 const TEMPLATE_PADRAO_SLUG = "prestacao-servicos-pj-padrao"
@@ -115,6 +116,64 @@ export async function listarContratos() {
     .where(usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(contracts.empresaId, usuario.empresa_id!))
     .orderBy(desc(contracts.createdAt))
   return rows.map(toContratoDTO)
+}
+
+// KPIs do dashboard de contratos — vigência é sempre recalculada aqui (nunca lida de uma
+// coluna de status persistida), então não existe job/cron mantendo esses números "frescos".
+export interface ContratosDashboardStats {
+  ativos: number
+  vencendo_90: number
+  vencendo_60: number
+  vencendo_30: number
+  vencidos: number
+  aguardando_assinatura: number
+  cancelados: number
+  renovados_no_mes: number
+}
+
+export async function getContratosDashboardStats(): Promise<ContratosDashboardStats> {
+  const usuario = await exigirAdmin()
+  const rows = await db
+    .select()
+    .from(contracts)
+    .where(usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(contracts.empresaId, usuario.empresa_id!))
+
+  const stats: ContratosDashboardStats = {
+    ativos: 0,
+    vencendo_90: 0,
+    vencendo_60: 0,
+    vencendo_30: 0,
+    vencidos: 0,
+    aguardando_assinatura: 0,
+    cancelados: 0,
+    renovados_no_mes: 0,
+  }
+
+  const hoje = new Date()
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+
+  for (const row of rows) {
+    if (row.status === "sent" || row.status === "viewed") stats.aguardando_assinatura++
+    if (row.status === "cancelled") stats.cancelados++
+
+    if (row.status === "signed") {
+      const situacao = calcularSituacaoVigencia({ status: row.status, dataInicio: row.dataInicio, dataTermino: row.dataTermino })
+      if (situacao.chave === "vencido") {
+        stats.vencidos++
+      } else {
+        stats.ativos++
+      }
+      if (situacao.diasRestantes !== null && situacao.diasRestantes >= 0) {
+        if (situacao.diasRestantes <= 90) stats.vencendo_90++
+        if (situacao.diasRestantes <= 60) stats.vencendo_60++
+        if (situacao.diasRestantes <= 30) stats.vencendo_30++
+      }
+    }
+
+    if (row.dataUltimaRenovacao && row.dataUltimaRenovacao >= inicioMes) stats.renovados_no_mes++
+  }
+
+  return stats
 }
 
 export async function getContratoById(id: string) {

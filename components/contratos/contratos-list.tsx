@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, ChevronRight, FileSignature } from "lucide-react"
+import { Plus, ChevronRight, FileSignature, Search } from "lucide-react"
 import { toast } from "sonner"
 
 interface SituacaoVigencia {
@@ -21,13 +23,31 @@ interface ContratoRow {
   id: string
   numero: string
   prestador_nome: string
+  prestador_cpf_cnpj?: string
   tipo_servico: string
   valor: number
   status: string
   enviado_em?: string | null
   assinado_em?: string | null
+  data_ultima_renovacao?: string | null
   situacao_vigencia?: SituacaoVigencia
 }
+
+type QuickFilter = "todos" | "hoje" | "semana" | "mes" | "vencendo_7" | "vencendo_30" | "vencendo_60" | "vencendo_90" | "vencidos" | "renovados" | "pendentes"
+
+const QUICK_FILTERS: Array<{ key: QuickFilter; label: string }> = [
+  { key: "todos", label: "Todos" },
+  { key: "pendentes", label: "Pendentes de assinatura" },
+  { key: "hoje", label: "Hoje" },
+  { key: "semana", label: "Esta semana" },
+  { key: "mes", label: "Este mês" },
+  { key: "vencendo_7", label: "Vencendo em 7 dias" },
+  { key: "vencendo_30", label: "Vencendo em 30 dias" },
+  { key: "vencendo_60", label: "Vencendo em 60 dias" },
+  { key: "vencendo_90", label: "Vencendo em 90 dias" },
+  { key: "vencidos", label: "Vencidos" },
+  { key: "renovados", label: "Renovados" },
+]
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
@@ -65,6 +85,57 @@ interface ContratosListProps {
 export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
   const router = useRouter()
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [busca, setBusca] = useState("")
+  const [statusFiltro, setStatusFiltro] = useState("todos")
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("todos")
+
+  const contratosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase()
+    const hoje = new Date()
+    hoje.setHours(0, 0, 0, 0)
+    const inicioSemana = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+
+    return contratos.filter((contrato) => {
+      if (termo) {
+        const alvo = `${contrato.numero} ${contrato.prestador_nome} ${contrato.tipo_servico} ${contrato.prestador_cpf_cnpj || ""}`.toLowerCase()
+        if (!alvo.includes(termo)) return false
+      }
+
+      if (statusFiltro !== "todos" && contrato.status !== statusFiltro) return false
+
+      switch (quickFilter) {
+        case "pendentes":
+          return ["sent", "viewed"].includes(contrato.status)
+        case "hoje": {
+          const referencia = contrato.assinado_em || contrato.enviado_em
+          return !!referencia && new Date(referencia) >= hoje
+        }
+        case "semana": {
+          const referencia = contrato.assinado_em || contrato.enviado_em
+          return !!referencia && new Date(referencia) >= inicioSemana
+        }
+        case "mes": {
+          const referencia = contrato.assinado_em || contrato.enviado_em
+          return !!referencia && new Date(referencia) >= inicioMes
+        }
+        case "vencendo_7":
+          return contrato.situacao_vigencia?.diasRestantes != null && contrato.situacao_vigencia.diasRestantes <= 7 && contrato.situacao_vigencia.diasRestantes >= 0
+        case "vencendo_30":
+          return contrato.situacao_vigencia?.diasRestantes != null && contrato.situacao_vigencia.diasRestantes <= 30 && contrato.situacao_vigencia.diasRestantes >= 0
+        case "vencendo_60":
+          return contrato.situacao_vigencia?.diasRestantes != null && contrato.situacao_vigencia.diasRestantes <= 60 && contrato.situacao_vigencia.diasRestantes >= 0
+        case "vencendo_90":
+          return contrato.situacao_vigencia?.diasRestantes != null && contrato.situacao_vigencia.diasRestantes <= 90 && contrato.situacao_vigencia.diasRestantes >= 0
+        case "vencidos":
+          return contrato.situacao_vigencia?.chave === "vencido"
+        case "renovados":
+          return !!contrato.data_ultima_renovacao
+        default:
+          return true
+      }
+    })
+  }, [contratos, busca, statusFiltro, quickFilter])
 
   const reenviar = async (id: string) => {
     setLoadingId(id)
@@ -125,7 +196,51 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
           </Link>
         </div>
       ) : (
-        <div className="rounded-lg border overflow-hidden">
+        <>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por número, prestador, CPF/CNPJ ou serviço..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFiltro} onValueChange={setStatusFiltro}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                {Object.entries(STATUS_CONFIG).map(([value, config]) => (
+                  <SelectItem key={value} value={value}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_FILTERS.map((filtro) => (
+              <Button
+                key={filtro.key}
+                size="sm"
+                variant={quickFilter === filtro.key ? "default" : "outline"}
+                className="h-7 text-xs"
+                onClick={() => setQuickFilter(filtro.key)}
+              >
+                {filtro.label}
+              </Button>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            {contratosFiltrados.length} de {contratos.length} contrato{contratos.length !== 1 ? "s" : ""}
+          </p>
+
+          <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -139,7 +254,14 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contratos.map((contrato) => {
+              {contratosFiltrados.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
+                    Nenhum contrato encontrado com estes filtros.
+                  </TableCell>
+                </TableRow>
+              ) : (
+              contratosFiltrados.map((contrato) => {
                 const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
                 const podeReenviar = ["sent", "viewed", "expired"].includes(contrato.status)
                 return (
@@ -193,10 +315,12 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
                     </TableCell>
                   </TableRow>
                 )
-              })}
+              })
+              )}
             </TableBody>
           </Table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   )
