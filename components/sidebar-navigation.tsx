@@ -143,6 +143,8 @@ const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin/dados/colaboradores", label: "Colaboradores (todas)", icon: Users },
   { href: "/admin/dados/contratos", label: "Contratos (todas)", icon: FileSignature },
   { href: "/admin/dados/pedidos", label: "Pedidos (todas)", icon: DollarSign },
+  { href: "/admin/dados/faturas", label: "Faturas (todas)", icon: Receipt },
+  { href: "/admin/dados/notas-fiscais", label: "Notas fiscais (todas)", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]
 

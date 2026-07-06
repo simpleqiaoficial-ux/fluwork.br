@@ -6,6 +6,7 @@ import { faturas, faturasColaboradores } from "@/lib/db/schema"
 import { toFaturaDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/tenant"
+import { registrarAuditoria } from "@/lib/audit"
 import type { Fatura, StatusFatura, FaturaFormData } from "@/types/fatura"
 
 // Nota: `isAdmin` não vem mais de quem chama (era um booleano confiado sem checagem contra
@@ -217,21 +218,36 @@ export async function createFatura(formData: FaturaFormData, pdfUrl: string, _cr
 
 export async function updateFaturaStatus(id: string, status: StatusFatura) {
   const usuario = await getCurrentUser()
-  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+  if (!usuario || !["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)) {
     return { success: false, error: "Sem permissão" }
   }
 
+  // `usuario.empresa_id!` é null pro SuperAdmin — `eq(coluna, null)` nunca bate em SQL
+  // (precisaria de IS NULL), então sem este branch o update simplesmente não afetava
+  // nenhuma linha quando chamado pelo SuperAdmin.
+  const escopo = usuario.tipo_acesso === "SuperAdmin" ? eq(faturas.id, id) : and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!))
+
   try {
-    await db
-      .update(faturas)
-      .set({ status, updatedAt: new Date() })
-      .where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
+    await db.update(faturas).set({ status, updatedAt: new Date() }).where(escopo)
   } catch (error) {
     console.error("Erro ao atualizar status:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
+  if (usuario.tipo_acesso === "SuperAdmin") {
+    const [fatura] = await db.select({ empresaId: faturas.empresaId }).from(faturas).where(eq(faturas.id, id))
+    await registrarAuditoria({
+      colaboradorId: usuario.id,
+      empresaId: fatura?.empresaId ?? null,
+      acao: "fatura_status_alterado",
+      tabela: "faturas",
+      registroId: id,
+      detalhes: { novo_status: status },
+    })
+  }
+
   revalidatePath("/faturas")
+  revalidatePath("/admin/dados/faturas")
   return { success: true }
 }
 
@@ -287,8 +303,14 @@ export async function updateFatura(id: string, formData: Partial<FaturaFormData>
 
 export async function deleteFatura(id: string) {
   const usuario = await getCurrentUser()
-  if (!usuario || !["Adm", "Financeiro"].includes(usuario.tipo_acesso)) {
+  if (!usuario || !["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)) {
     return { success: false, error: "Sem permissão" }
+  }
+
+  const escopo = usuario.tipo_acesso === "SuperAdmin" ? eq(faturas.id, id) : and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!))
+  const [faturaAlvo] = await db.select({ empresaId: faturas.empresaId }).from(faturas).where(escopo)
+  if (!faturaAlvo) {
+    return { success: false, error: "Fatura não encontrada" }
   }
 
   try {
@@ -299,15 +321,26 @@ export async function deleteFatura(id: string) {
       // Primeiro deletar as permissões
       await tx.delete(faturasColaboradores).where(eq(faturasColaboradores.faturaId, id))
 
-      // Depois deletar a fatura (só se for da própria empresa)
-      await tx.delete(faturas).where(and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!)))
+      // Depois deletar a fatura (só se estiver no escopo permitido)
+      await tx.delete(faturas).where(escopo)
     })
   } catch (error) {
     console.error("Erro ao deletar fatura:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
+  if (usuario.tipo_acesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: usuario.id,
+      empresaId: faturaAlvo.empresaId,
+      acao: "fatura_excluida",
+      tabela: "faturas",
+      registroId: id,
+    })
+  }
+
   revalidatePath("/faturas")
+  revalidatePath("/admin/dados/faturas")
   return { success: true }
 }
 

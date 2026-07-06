@@ -1,10 +1,12 @@
 "use server"
 
 import { and, desc, eq, ne, or } from "drizzle-orm"
+import { revalidatePath } from "next/cache"
 import { db } from "@/lib/db"
 import { colaboradores, notasFiscais, pedidosPagamento } from "@/lib/db/schema"
 import { toNotaFiscalDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
+import { registrarAuditoria } from "@/lib/audit"
 import type { DadosNotaFiscal, ResultadoValidacao } from "@/types/nota-fiscal"
 import { limparCpfCnpj } from "@/lib/nfse-parser"
 
@@ -269,9 +271,13 @@ export async function listarNotasFiscais() {
 // Função para aprovar/rejeitar nota manualmente (financeiro)
 export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "rejeitado", observacao?: string) {
   const session = await getSession()
-  if (!session || !["Adm", "Financeiro"].includes(session.tipoAcesso)) {
+  if (!session || !["Adm", "Financeiro", "SuperAdmin"].includes(session.tipoAcesso)) {
     return { success: false, error: "Sem permissão" }
   }
+
+  // `session.empresaId` é null pro SuperAdmin — `eq(coluna, null)` nunca bate em SQL.
+  const escopo =
+    session.tipoAcesso === "SuperAdmin" ? eq(notasFiscais.id, notaId) : and(eq(notasFiscais.id, notaId), eq(notasFiscais.empresaId, session.empresaId!))
 
   try {
     await db
@@ -282,11 +288,54 @@ export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "
         dataAprovacao: new Date(),
         ...(observacao !== undefined && { observacaoFinanceiro: observacao }),
       })
-      .where(and(eq(notasFiscais.id, notaId), eq(notasFiscais.empresaId, session.empresaId!)))
+      .where(escopo)
   } catch (error) {
     console.error("Erro ao atualizar nota fiscal:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 
+  if (session.tipoAcesso === "SuperAdmin") {
+    const [nota] = await db.select({ empresaId: notasFiscais.empresaId }).from(notasFiscais).where(eq(notasFiscais.id, notaId))
+    await registrarAuditoria({
+      colaboradorId: session.colaboradorId,
+      empresaId: nota?.empresaId ?? null,
+      acao: "nota_fiscal_status_alterado",
+      tabela: "notas_fiscais",
+      registroId: notaId,
+      detalhes: { novo_status: status },
+    })
+    revalidatePath("/admin/dados/notas-fiscais")
+  }
+
+  return { success: true }
+}
+
+// Exclusão de nota fiscal só existe pelo painel SuperAdmin (não há fluxo de exclusão
+// pro Adm da própria empresa hoje) — usada pra limpeza de dados de teste/erro.
+export async function excluirNotaFiscalAdmin(notaId: string) {
+  const session = await getSession()
+  if (!session || session.tipoAcesso !== "SuperAdmin") {
+    return { success: false, error: "Sem permissão" }
+  }
+
+  const [nota] = await db.select({ empresaId: notasFiscais.empresaId, pedidoId: notasFiscais.pedidoId }).from(notasFiscais).where(eq(notasFiscais.id, notaId))
+  if (!nota) return { success: false, error: "Nota fiscal não encontrada" }
+
+  try {
+    await db.delete(notasFiscais).where(eq(notasFiscais.id, notaId))
+  } catch (error) {
+    console.error("Erro ao excluir nota fiscal:", error)
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
+  }
+
+  await registrarAuditoria({
+    colaboradorId: session.colaboradorId,
+    empresaId: nota.empresaId,
+    acao: "nota_fiscal_excluida",
+    tabela: "notas_fiscais",
+    registroId: notaId,
+  })
+
+  revalidatePath("/admin/dados/notas-fiscais")
   return { success: true }
 }
