@@ -24,6 +24,7 @@ import {
   ChevronDown,
   Briefcase,
   FileSignature,
+  ScrollText,
 } from "lucide-react"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
@@ -139,6 +140,7 @@ const SUPERVISOR_LINKS: NavItem[] = [
 const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
+  { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]
 
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"

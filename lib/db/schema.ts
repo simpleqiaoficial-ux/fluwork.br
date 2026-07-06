@@ -307,7 +307,10 @@ export const auditLog = pgTable("audit_log", {
   detalhes: jsonb("detalhes"),
   ipAddress: text("ip_address"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-})
+}, (table) => [
+  index("audit_log_empresa_id_idx").on(table.empresaId),
+  index("audit_log_created_at_idx").on(table.createdAt),
+])
 
 // ---------- Contratos (assinatura eletrônica) ----------
 
@@ -514,6 +517,11 @@ export const equipesRelations = relations(equipes, ({ one, many }) => ({
   supervisor: one(colaboradores, { fields: [equipes.supervisorId], references: [colaboradores.id] }),
   colaboradores: many(colaboradores),
   gerentes: many(gerentesEquipes),
+}))
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  empresa: one(empresas, { fields: [auditLog.empresaId], references: [empresas.id] }),
+  colaborador: one(colaboradores, { fields: [auditLog.colaboradorId], references: [colaboradores.id] }),
 }))
 
 export const centrosCustoRelations = relations(centrosCusto, ({ one }) => ({

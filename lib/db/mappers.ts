@@ -490,3 +490,24 @@ export function toSystemStatusDTO(row: AnyRow) {
     updated_at: row.updatedAt,
   }
 }
+
+export function toAuditLogDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    empresa_id: row.empresaId,
+    colaborador_id: row.colaboradorId,
+    acao: row.acao,
+    tabela: row.tabela,
+    registro_id: row.registroId,
+    detalhes: row.detalhes,
+    ip_address: row.ipAddress,
+    created_at: row.createdAt,
+    ...(row.empresa !== undefined && {
+      empresa: row.empresa ? { id: row.empresa.id, nome: row.empresa.nomeFantasia || row.empresa.razaoSocial } : row.empresa,
+    }),
+    ...(row.colaborador !== undefined && {
+      colaborador: row.colaborador ? { id: row.colaborador.id, nome_completo: row.colaborador.nomeCompleto } : row.colaborador,
+    }),
+  }
+}

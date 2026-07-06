@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import { empresas, colaboradores, contracts, pedidosPagamento } from "@/lib/db/schema"
 import { toEmpresaDTO, toColaboradorDTO } from "@/lib/db/mappers"
 import { requireSuperAdmin } from "@/lib/tenant"
+import { registrarAuditoria } from "@/lib/audit"
 
 export interface EmpresaFormData {
   razao_social: string
@@ -102,7 +103,7 @@ export async function getDashboardGlobalStats() {
 
 // Cria a empresa cliente e já vincula o primeiro usuário EMPRESA_ADMIN (papel "Adm") a ela.
 export async function criarEmpresaComAdmin(empresa: EmpresaFormData, admin: PrimeiroAdminFormData) {
-  await requireSuperAdmin()
+  const usuario = await requireSuperAdmin()
 
   if (!empresa.razao_social.trim() || !empresa.cnpj.trim()) {
     return { success: false, error: "Razão social e CNPJ são obrigatórios" }
@@ -167,12 +168,21 @@ export async function criarEmpresaComAdmin(empresa: EmpresaFormData, admin: Prim
     return { success: false, error: error instanceof Error ? error.message : "Erro ao criar empresa" }
   }
 
+  await registrarAuditoria({
+    colaboradorId: usuario.id,
+    empresaId: novaEmpresa.id,
+    acao: "empresa_criada",
+    tabela: "empresas",
+    registroId: novaEmpresa.id,
+    detalhes: { razao_social: novaEmpresa.razaoSocial, admin_email: novoAdmin.email },
+  })
+
   revalidatePath("/admin/empresas")
   return { success: true, empresa: toEmpresaDTO(novaEmpresa), admin: toColaboradorDTO(novoAdmin) }
 }
 
 export async function atualizarEmpresa(id: string, data: Partial<EmpresaFormData>) {
-  await requireSuperAdmin()
+  const usuario = await requireSuperAdmin()
 
   const updateData: Record<string, unknown> = { updatedAt: new Date() }
   if (data.razao_social !== undefined) updateData.razaoSocial = data.razao_social.trim()
@@ -189,13 +199,22 @@ export async function atualizarEmpresa(id: string, data: Partial<EmpresaFormData
     return { success: false, error: error instanceof Error ? error.message : "Erro ao atualizar empresa" }
   }
 
+  await registrarAuditoria({
+    colaboradorId: usuario.id,
+    empresaId: id,
+    acao: "empresa_atualizada",
+    tabela: "empresas",
+    registroId: id,
+    detalhes: data as Record<string, unknown>,
+  })
+
   revalidatePath("/admin/empresas")
   revalidatePath(`/admin/empresas/${id}`)
   return { success: true }
 }
 
 export async function atualizarStatusEmpresa(id: string, status: "active" | "inactive" | "blocked") {
-  await requireSuperAdmin()
+  const usuario = await requireSuperAdmin()
 
   try {
     await db.update(empresas).set({ status, updatedAt: new Date() }).where(eq(empresas.id, id))
@@ -203,6 +222,15 @@ export async function atualizarStatusEmpresa(id: string, status: "active" | "ina
     console.error("[empresas] Erro ao atualizar status da empresa:", error)
     return { success: false, error: error instanceof Error ? error.message : "Erro ao atualizar status" }
   }
+
+  await registrarAuditoria({
+    colaboradorId: usuario.id,
+    empresaId: id,
+    acao: "empresa_status_alterado",
+    tabela: "empresas",
+    registroId: id,
+    detalhes: { novo_status: status },
+  })
 
   revalidatePath("/admin/empresas")
   revalidatePath(`/admin/empresas/${id}`)
@@ -241,7 +269,7 @@ export interface CredenciaisFormData {
 // Edita e-mail/senha/nome de um usuário de qualquer empresa — o e-mail é o identificador de
 // login em toda a plataforma (único globalmente), então checa duplicata excluindo o próprio id.
 export async function atualizarCredenciaisUsuario(userId: string, data: CredenciaisFormData) {
-  await requireSuperAdmin()
+  const usuario = await requireSuperAdmin()
 
   const updateData: Record<string, unknown> = {}
 
@@ -281,6 +309,17 @@ export async function atualizarCredenciaisUsuario(userId: string, data: Credenci
     console.error("[empresas] Erro ao atualizar credenciais do usuário:", error)
     return { success: false, error: error instanceof Error ? error.message : "Erro ao atualizar credenciais" }
   }
+
+  const [alvo] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, userId))
+  await registrarAuditoria({
+    colaboradorId: usuario.id,
+    empresaId: alvo?.empresaId ?? null,
+    acao: "credenciais_usuario_atualizadas",
+    tabela: "colaboradores",
+    registroId: userId,
+    // Nunca logar a senha em texto puro — só o fato de que foi trocada.
+    detalhes: { nome_alterado: data.nome_completo !== undefined, email_alterado: data.email !== undefined, senha_alterada: !!data.nova_senha },
+  })
 
   revalidatePath("/admin/empresas")
   return { success: true }
