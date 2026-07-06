@@ -8,9 +8,46 @@ import { listarEquipes, listarEquipesPorGerente } from "./actions/equipes"
 import { getSession } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { DashboardAnalytics } from "@/components/dashboard-analytics"
+import { LandingPage } from "@/components/landing/landing-page"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
+  description:
+    "FluWork é o ecossistema empresarial que conecta, organiza e impulsiona sua operação: financeiro, prestadores de serviço, EHS, medicina ocupacional, documentos e muito mais, em uma única plataforma.",
+  keywords: [
+    "ecossistema empresarial",
+    "plataforma de gestão empresarial",
+    "gestão de prestadores de serviço",
+    "EHS",
+    "medicina ocupacional",
+    "ASO",
+    "gestão de documentos",
+    "dashboard executivo",
+    "software de gestão",
+  ],
+  openGraph: {
+    title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
+    description:
+      "Uma plataforma completa para conectar, organizar e impulsionar sua empresa. Módulos de financeiro, prestadores, EHS, ASO, documentos e muito mais.",
+    type: "website",
+    locale: "pt_BR",
+    siteName: "FluWork",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
+    description: "Uma plataforma completa para conectar, organizar e impulsionar sua empresa.",
+  },
+  robots: { index: true, follow: true },
+}
 
 export default async function Home() {
   const session = await getSession()
+
+  if (!session) {
+    return <LandingPage />
+  }
 
   if (session?.tipoAcesso === "Colaborador") {
     redirect("/meus-pagamentos")

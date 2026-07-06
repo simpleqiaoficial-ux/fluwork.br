@@ -42,9 +42,14 @@ export default async function RootLayout({
   const pathname = headersList.get("x-pathname") || ""
 
   const isAuthPage = pathname === "/login" || pathname === "/setup" || pathname === "/faq" || pathname === "/termos" || pathname === "/privacidade"
+  // "/" sem sessão é a landing page pública (marketing) — não deve ganhar sidebar/header do
+  // app autenticado (ela tem seu próprio header/rodapé). Com sessão, "/" continua sendo o
+  // dashboard normal, com todo o chrome de sempre.
+  const isMarketingPage = pathname === "/" && !session
+  const isChromeless = isAuthPage || isMarketingPage
 
   let empresaNome: string | undefined
-  if (!isAuthPage && session) {
+  if (!isChromeless && session) {
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
     } else if (session.tipoAcesso === "SuperAdmin") {
@@ -64,13 +69,13 @@ export default async function RootLayout({
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-background">
         <ValoresVisibilityProvider>
-          {!isAuthPage && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
+          {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
 
           <div
-            className={cn("min-h-screen transition-[padding] duration-150", !isAuthPage && "lg:pl-[var(--sidebar-w,16rem)]")}
+            className={cn("min-h-screen transition-[padding] duration-150", !isChromeless && "lg:pl-[var(--sidebar-w,16rem)]")}
           >
             {impersonando && <ImpersonationBanner empresaNome={empresaNome || "Empresa"} />}
-            {!isAuthPage && session && (
+            {!isChromeless && session && (
               <UserHeader
                 nomeCompleto={session.nomeCompleto}
                 email={session.email}
@@ -79,12 +84,12 @@ export default async function RootLayout({
                 empresaNome={empresaNome}
               />
             )}
-            <main className={cn("transition-all duration-300", !isAuthPage && session && "pt-14 lg:pt-0", !isAuthPage && !session && "pt-14 lg:pt-0")}>
-              {!isAuthPage && session ? (
+            <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0")}>
+              {!isChromeless && session ? (
                 <SystemStatusProvider tipoAcesso={session.tipoAcesso}>
                   <AutoLogoutProvider>
-                    <TermsAcceptanceProvider 
-                      isAuthenticated={!!session} 
+                    <TermsAcceptanceProvider
+                      isAuthenticated={!!session}
                       userName={session.nomeCompleto}
                       userId={session.colaboradorId}
                     >

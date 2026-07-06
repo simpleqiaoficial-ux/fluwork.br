@@ -21,11 +21,14 @@ export async function middleware(request: NextRequest) {
     return redirectResponse
   }
 
-  const publicRoutes = ["/login", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
+  const publicRoutes = ["/login", "/register", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+  // "/" é a landing page pública (marketing) quando não há sessão — usa comparação exata
+  // (não startsWith) pra não acabar liberando toda rota do app sem querer.
+  const isPublicRoot = request.nextUrl.pathname === "/"
 
   // Se não estiver logado e tentar acessar rota protegida, redirecionar para login
-  if (!session && !isPublicRoute) {
+  if (!session && !isPublicRoute && !isPublicRoot) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
