@@ -12,20 +12,25 @@ export async function middleware(request: NextRequest) {
   let sessionCookie = request.cookies.get("fluxopay_session")
   let session = sessionCookie ? JSON.parse(sessionCookie.value) : null
 
-  // Sessão criada antes da migração multi-tenant não tem empresaId no cookie — força novo
-  // login em vez de deixar o resto do app quebrar tentando filtrar por empresa undefined.
-  if (session && !("empresaId" in session)) {
-    session = null
-    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
-    redirectResponse.cookies.delete("fluxopay_session")
-    return redirectResponse
-  }
-
   const publicRoutes = ["/login", "/register", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
   // "/" é a landing page pública (marketing) quando não há sessão — usa comparação exata
   // (não startsWith) pra não acabar liberando toda rota do app sem querer.
   const isPublicRoot = request.nextUrl.pathname === "/"
+
+  // Sessão criada antes da migração multi-tenant não tem empresaId no cookie — invalida em
+  // vez de deixar o resto do app quebrar tentando filtrar por empresa undefined. Só força
+  // redirect pra /login se o destino não for uma rota pública (senão a própria landing page
+  // em "/" nunca aparecia pra quem tinha esse cookie antigo no navegador).
+  if (session && !("empresaId" in session)) {
+    session = null
+    if (!isPublicRoute && !isPublicRoot) {
+      const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+      redirectResponse.cookies.delete("fluxopay_session")
+      return redirectResponse
+    }
+    response.cookies.delete("fluxopay_session")
+  }
 
   // Se não estiver logado e tentar acessar rota protegida, redirecionar para login
   if (!session && !isPublicRoute && !isPublicRoot) {
