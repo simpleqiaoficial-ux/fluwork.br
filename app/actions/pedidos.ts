@@ -2,12 +2,13 @@
 
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, equipes, gerentesEquipes, pedidosPagamento } from "@/lib/db/schema"
+import { colaboradores, equipes, gerentesEquipes, pedidosPagamento, notasFiscais } from "@/lib/db/schema"
 import { toPedidoDTO } from "@/lib/db/mappers"
 import type { NovoPedido, AcaoPedido } from "@/types/pedido"
 import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
 import { uploadFile } from "@/lib/gcs"
+import { registrarAuditoria } from "@/lib/audit"
 
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
@@ -409,7 +410,27 @@ export async function listarPedidosParaCorrecao() {
   }
 }
 
+// Não tinha checagem de permissão nenhuma antes (nem sessão, nem papel, nem empresa) —
+// qualquer chamada conseguia excluir qualquer pedido de qualquer empresa. Adicionado o
+// mesmo padrão de gate + escopo por empresa usado no resto do arquivo.
 export async function deletarPedido(id: string) {
+  const session = await getSession()
+  if (!session || !["Adm", "Financeiro", "SuperAdmin"].includes(session.tipoAcesso)) {
+    throw new Error("Você não tem permissão para excluir pedidos")
+  }
+
+  const [pedido] = await db.select().from(pedidosPagamento).where(eq(pedidosPagamento.id, id))
+  if (!pedido) throw new Error("Pedido não encontrado")
+  if (session.tipoAcesso !== "SuperAdmin" && pedido.empresaId !== session.empresaId) {
+    throw new Error("Pedido não encontrado")
+  }
+
+  // notas_fiscais.pedido_id tem onDelete: cascade — excluir o pedido apaga a nota vinculada.
+  const [notaVinculada] = await db.select({ id: notasFiscais.id }).from(notasFiscais).where(eq(notasFiscais.pedidoId, id)).limit(1)
+  if (notaVinculada) {
+    throw new Error("Não é possível excluir: este pedido tem uma nota fiscal vinculada. Remova a nota fiscal primeiro.")
+  }
+
   try {
     await db.delete(pedidosPagamento).where(eq(pedidosPagamento.id, id))
   } catch (error) {
@@ -417,7 +438,18 @@ export async function deletarPedido(id: string) {
     throw new Error("Erro ao deletar pedido")
   }
 
+  if (session.tipoAcesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: session.colaboradorId,
+      empresaId: pedido.empresaId,
+      acao: "pedido_excluido",
+      tabela: "pedidos_pagamento",
+      registroId: id,
+    })
+  }
+
   revalidatePath("/pedidos")
+  revalidatePath("/admin/dados/pedidos")
 }
 
 export async function listarPedidosPorSupervisor(supervisorId: string) {

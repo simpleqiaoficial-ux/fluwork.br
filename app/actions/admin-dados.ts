@@ -116,6 +116,71 @@ export async function listarContratosAdmin(filtro: ContratosAdminFiltro = {}) {
   }
 }
 
+export interface PedidosAdminFiltro {
+  empresaId?: string
+  busca?: string
+  page?: number
+}
+
+const PAGE_SIZE_PEDIDOS = 25
+
+// Espelho cross-empresa de pedidos de pagamento — só leitura + exclusão (sem edição de
+// campo: status é regido pelo fluxo de aprovação Gerente→Financeiro já existente).
+export async function listarPedidosAdmin(filtro: PedidosAdminFiltro = {}) {
+  await requireSuperAdmin()
+
+  const condicoes = []
+  if (filtro.empresaId) condicoes.push(eq(pedidosPagamento.empresaId, filtro.empresaId))
+  if (filtro.busca?.trim()) {
+    condicoes.push(ilike(colaboradores.nomeCompleto, `%${filtro.busca.trim()}%`))
+  }
+  const where = condicoes.length > 0 ? and(...condicoes) : undefined
+  const page = Math.max(1, filtro.page || 1)
+
+  const [rows, totalRows] = await Promise.all([
+    db
+      .select({
+        id: pedidosPagamento.id,
+        valorTotal: pedidosPagamento.valorTotal,
+        status: pedidosPagamento.status,
+        createdAt: pedidosPagamento.createdAt,
+        empresaId: pedidosPagamento.empresaId,
+        empresaNome: empresas.nomeFantasia,
+        empresaRazaoSocial: empresas.razaoSocial,
+        colaboradorNome: colaboradores.nomeCompleto,
+      })
+      .from(pedidosPagamento)
+      .leftJoin(empresas, eq(pedidosPagamento.empresaId, empresas.id))
+      .leftJoin(colaboradores, eq(pedidosPagamento.colaboradorId, colaboradores.id))
+      .where(where)
+      .orderBy(desc(pedidosPagamento.createdAt))
+      .limit(PAGE_SIZE_PEDIDOS)
+      .offset((page - 1) * PAGE_SIZE_PEDIDOS),
+    db
+      .select({ value: count() })
+      .from(pedidosPagamento)
+      .leftJoin(colaboradores, eq(pedidosPagamento.colaboradorId, colaboradores.id))
+      .where(where),
+  ])
+
+  const total = totalRows[0]?.value || 0
+
+  return {
+    registros: rows.map((row) => ({
+      id: row.id,
+      valor_total: row.valorTotal == null ? row.valorTotal : Number(row.valorTotal),
+      status: row.status,
+      created_at: row.createdAt,
+      empresa_id: row.empresaId,
+      empresa_nome: row.empresaNome || row.empresaRazaoSocial,
+      colaborador_nome: row.colaboradorNome,
+    })),
+    total,
+    page,
+    total_paginas: Math.max(1, Math.ceil(total / PAGE_SIZE_PEDIDOS)),
+  }
+}
+
 // Impacto de excluir um colaborador — mostrado antes da confirmação de exclusão, pra
 // avisar exatamente o que seria apagado em cascata (ver comentário em deletarColaborador).
 export async function getImpactoExclusaoColaborador(id: string) {
