@@ -4,6 +4,7 @@ import {
   boolean,
   check,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -99,6 +100,7 @@ export const colaboradores = pgTable("colaboradores", {
     "colaboradores_empresa_id_check",
     sql`(${table.tipoAcesso} = 'SuperAdmin') = (${table.empresaId} IS NULL)`,
   ),
+  index("colaboradores_empresa_id_idx").on(table.empresaId),
 ])
 
 export const gerentesEquipes = pgTable("gerentes_equipes", {
@@ -164,6 +166,7 @@ export const pedidosPagamento = pgTable("pedidos_pagamento", {
     sql`${table.status} IN ('pendente_gerente', 'pendente_financeiro', 'aprovado', 'recusado', 'correcao', 'pago', 'aguardando_prorrogacao', 'prorrogacao_negada', 'nota_recebida')`,
   ),
   check("pedidos_pagamento_tipo_pedido_check", sql`${table.tipoPedido} IN ('completo', 'reembolso_km')`),
+  index("pedidos_pagamento_empresa_id_idx").on(table.empresaId),
 ])
 
 export const historicoReajustes = pgTable("historico_reajustes", {
@@ -211,6 +214,7 @@ export const notasFiscais = pgTable("notas_fiscais", {
   check("notas_fiscais_competencia_ano_check", sql`${table.competenciaAno} >= 2020`),
   check("notas_fiscais_valor_servico_check", sql`${table.valorServico} > 0`),
   check("notas_fiscais_status_check", sql`${table.status} IN ('pendente', 'aprovado', 'rejeitado')`),
+  index("notas_fiscais_empresa_id_idx").on(table.empresaId),
 ])
 
 export const faturas = pgTable("faturas", {
@@ -227,6 +231,7 @@ export const faturas = pgTable("faturas", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 }, (table) => [
   check("faturas_status_check", sql`${table.status} IN ('pendente', 'pago', 'vencido')`),
+  index("faturas_empresa_id_idx").on(table.empresaId),
 ])
 
 export const faturasColaboradores = pgTable("faturas_colaboradores", {
@@ -376,6 +381,7 @@ export const contracts = pgTable("contracts", {
     "contracts_tipo_renovacao_check",
     sql`${table.tipoRenovacao} IS NULL OR ${table.tipoRenovacao} IN ('automatica','mediante_aviso','sem_renovacao')`,
   ),
+  index("contracts_empresa_id_idx").on(table.empresaId),
 ])
 
 // Aditivo contratual — nunca substitui o contrato base, gera sua própria versão em
