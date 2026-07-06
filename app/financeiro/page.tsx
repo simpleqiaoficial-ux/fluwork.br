@@ -1,5 +1,6 @@
 import { listarPedidosSemNota, listarPedidosComNota, listarSolicitacoesProrrogacao } from "@/app/actions/pedidos"
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina } from "@/lib/tenant"
 import { PedidosSemNotaList } from "@/components/pedidos-sem-nota-list"
 import { MarcarPagoList } from "@/components/marcar-pago-list"
 import { SolicitacoesProrrogacaoList } from "@/components/solicitacoes-prorrogacao-list"
@@ -24,7 +25,7 @@ export default async function FinanceiroPage({
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 

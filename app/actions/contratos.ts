@@ -23,6 +23,7 @@ import { uploadFile } from "@/lib/gcs"
 import { sendContratoConviteEmail } from "@/lib/email"
 import { calcularSituacaoVigencia } from "@/lib/contracts/vigencia"
 import { registrarAuditoria } from "@/lib/audit"
+import { getEffectiveEmpresaId, assertNaoImpersonando } from "@/lib/tenant"
 
 // SuperAdmin já é tratado como bypass em todo ponto que faz `usuario.tipo_acesso ===
 // "SuperAdmin" ? undefined : eq(empresaId, ...)` neste arquivo — faltava só deixar passar
@@ -114,10 +115,11 @@ export async function obterEmpresaAtual() {
 
 export async function listarContratos() {
   const usuario = await exigirAdmin()
+  const empresaEfetiva = getEffectiveEmpresaId(usuario)
   const rows = await db
     .select()
     .from(contracts)
-    .where(usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(contracts.empresaId, usuario.empresa_id!))
+    .where(empresaEfetiva === null ? undefined : eq(contracts.empresaId, empresaEfetiva))
     .orderBy(desc(contracts.createdAt))
   return rows.map(toContratoDTO)
 }
@@ -137,10 +139,11 @@ export interface ContratosDashboardStats {
 
 export async function getContratosDashboardStats(): Promise<ContratosDashboardStats> {
   const usuario = await exigirAdmin()
+  const empresaEfetiva = getEffectiveEmpresaId(usuario)
   const rows = await db
     .select()
     .from(contracts)
-    .where(usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(contracts.empresaId, usuario.empresa_id!))
+    .where(empresaEfetiva === null ? undefined : eq(contracts.empresaId, empresaEfetiva))
 
   const stats: ContratosDashboardStats = {
     ativos: 0,
@@ -200,6 +203,7 @@ export async function getContratoById(id: string) {
 
 export async function criarContrato(formData: ContratoFormData) {
   const usuario = await exigirAdmin()
+  await assertNaoImpersonando()
   const template = await getOrCriarTemplatePadrao(usuario.empresa_id!)
   const numero = await gerarNumeroUnico()
 
@@ -280,6 +284,7 @@ export async function criarContrato(formData: ContratoFormData) {
 
 export async function enviarContrato(id: string) {
   const usuario = await exigirAdmin()
+  await assertNaoImpersonando()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || contrato.status !== "draft") {
@@ -390,6 +395,7 @@ export async function enviarContrato(id: string) {
 
 export async function reenviarContrato(id: string) {
   const usuario = await exigirAdmin()
+  await assertNaoImpersonando()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || !["sent", "viewed", "expired"].includes(contrato.status)) {
@@ -507,6 +513,7 @@ export async function listarContratosDoColaborador(colaboradorId: string) {
 
 export async function cancelarContrato(id: string, motivo?: string) {
   const usuario = await exigirAdmin()
+  await assertNaoImpersonando()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato || ["signed", "cancelled"].includes(contrato.status)) {
@@ -549,6 +556,7 @@ export async function cancelarContrato(id: string, motivo?: string) {
 // lista principal) — diferente da vigência computada, esse é o único status novo persistido.
 export async function arquivarContrato(id: string) {
   const usuario = await exigirAdmin()
+  await assertNaoImpersonando()
 
   const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
   if (!contrato) return { success: false, error: "Contrato não encontrado" }

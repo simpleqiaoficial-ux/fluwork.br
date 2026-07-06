@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { faturas, faturasColaboradores } from "@/lib/db/schema"
 import { toFaturaDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
-import { getCurrentUser } from "@/lib/tenant"
+import { getCurrentUser, getEffectiveEmpresaId, assertNaoImpersonando } from "@/lib/tenant"
 import { registrarAuditoria } from "@/lib/audit"
 import type { Fatura, StatusFatura, FaturaFormData } from "@/types/fatura"
 
@@ -18,10 +18,12 @@ export async function getFaturas(colaboradorId?: string) {
   const isAdmin = ["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)
 
   if (isAdmin) {
-    // Admin/Financeiro vê todas as faturas da própria empresa (SuperAdmin vê todas as empresas)
+    // Admin/Financeiro vê todas as faturas da própria empresa (SuperAdmin vê todas as empresas,
+    // ou só a empresa que está impersonando, se estiver em modo "visualizar como empresa")
     try {
+      const empresaEfetiva = getEffectiveEmpresaId(usuario)
       const rows = await db.query.faturas.findMany({
-        where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(faturas.empresaId, usuario.empresa_id!),
+        where: empresaEfetiva === null ? undefined : eq(faturas.empresaId, empresaEfetiva),
         with: {
           colaboradores: {
             with: { colaborador: true },
@@ -221,6 +223,7 @@ export async function updateFaturaStatus(id: string, status: StatusFatura) {
   if (!usuario || !["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)) {
     return { success: false, error: "Sem permissão" }
   }
+  await assertNaoImpersonando()
 
   // `usuario.empresa_id!` é null pro SuperAdmin — `eq(coluna, null)` nunca bate em SQL
   // (precisaria de IS NULL), então sem este branch o update simplesmente não afetava
@@ -306,6 +309,7 @@ export async function deleteFatura(id: string) {
   if (!usuario || !["Adm", "Financeiro", "SuperAdmin"].includes(usuario.tipo_acesso)) {
     return { success: false, error: "Sem permissão" }
   }
+  await assertNaoImpersonando()
 
   const escopo = usuario.tipo_acesso === "SuperAdmin" ? eq(faturas.id, id) : and(eq(faturas.id, id), eq(faturas.empresaId, usuario.empresa_id!))
   const [faturaAlvo] = await db.select({ empresaId: faturas.empresaId }).from(faturas).where(escopo)

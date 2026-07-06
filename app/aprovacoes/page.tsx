@@ -1,5 +1,6 @@
 import { listarPedidosPendentes } from "@/app/actions/pedidos"
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina } from "@/lib/tenant"
 import { AprovacoesList } from "@/components/aprovacoes-list"
 import { redirect } from "next/navigation"
 
@@ -10,7 +11,7 @@ export default async function AprovacoesPage() {
     redirect("/login")
   }
 
-  if (!["Gerente", "Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Gerente", "Financeiro", "Adm"])) {
     redirect("/")
   }
 

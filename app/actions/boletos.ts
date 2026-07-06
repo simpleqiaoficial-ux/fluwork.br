@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { boletos } from "@/lib/db/schema"
 import { toBoletoDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
-import { getCurrentUser } from "@/lib/tenant"
+import { getCurrentUser, getEffectiveEmpresaId } from "@/lib/tenant"
 import type { Boleto, CreateBoletoInput, UpdateBoletoInput } from "@/types/boleto"
 
 export async function listarBoletos() {
@@ -13,11 +13,12 @@ export async function listarBoletos() {
   if (!usuario) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaId(usuario)
     const data = await db.query.boletos.findMany({
       with: { centroCusto: true },
-      where: usuario.tipo_acesso === "SuperAdmin"
+      where: empresaEfetiva === null
         ? eq(boletos.ativo, true)
-        : and(eq(boletos.empresaId, usuario.empresa_id!), eq(boletos.ativo, true)),
+        : and(eq(boletos.empresaId, empresaEfetiva), eq(boletos.ativo, true)),
       orderBy: asc(boletos.banco),
     })
 
@@ -33,9 +34,10 @@ export async function listarTodosBoletos() {
   if (!usuario) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaId(usuario)
     const data = await db.query.boletos.findMany({
       with: { centroCusto: true },
-      where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(boletos.empresaId, usuario.empresa_id!),
+      where: empresaEfetiva === null ? undefined : eq(boletos.empresaId, empresaEfetiva),
       orderBy: asc(boletos.banco),
     })
 

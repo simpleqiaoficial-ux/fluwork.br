@@ -1,4 +1,5 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { getSession, type SessionData } from "@/lib/session"
 
 // Helpers centrais de isolamento multi-tenant. Toda Server Action que lê/escreve dado de
 // empresa cliente deve passar por um destes em vez de reimplementar a checagem na mão —
@@ -43,8 +44,8 @@ export async function requireCompanyAccess(empresaId: string): Promise<UsuarioAu
 export interface TenantScope {
   usuario: UsuarioAutenticado
   isSuperAdmin: boolean
-  /** null apenas quando isSuperAdmin — nesse caso o chamador decide se filtra por alguma
-   *  empresa específica (ex: painel "entrar na empresa X") ou busca todas. */
+  /** null apenas quando isSuperAdmin e não está impersonando — nesse caso o chamador decide
+   *  se filtra por alguma empresa específica ou busca todas. */
   empresaId: string | null
 }
 
@@ -55,7 +56,51 @@ export interface TenantScope {
 export async function getTenantScope(): Promise<TenantScope> {
   const usuario = await requireUser()
   const isSuperAdmin = usuario.tipo_acesso === "SuperAdmin"
-  return { usuario, isSuperAdmin, empresaId: isSuperAdmin ? null : usuario.empresa_id }
+  return { usuario, isSuperAdmin, empresaId: getEffectiveEmpresaId(usuario) }
+}
+
+/**
+ * Empresa "efetiva" pra escopo de leitura: a própria empresa do usuário, ou — se ele for
+ * SuperAdmin — `null` (vê tudo) a menos que esteja em modo "visualizar como empresa", caso
+ * em que passa a enxergar só aquela empresa. Substitui o padrão espalhado
+ * `usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(empresaId, usuario.empresa_id!)`
+ * em ~15 Server Actions — a diferença é só que aqui o SuperAdmin impersonando deixa de cair
+ * no branch "undefined" (ver todos os pontos que usam esse padrão).
+ */
+export function getEffectiveEmpresaId(usuario: Pick<UsuarioAutenticado, "tipo_acesso" | "empresa_id"> & { view_as_empresa_id?: string | null }): string | null {
+  if (usuario.tipo_acesso !== "SuperAdmin") return usuario.empresa_id
+  return usuario.view_as_empresa_id ?? null
+}
+
+/** Mesma ideia de `getEffectiveEmpresaId`, mas a partir do objeto de sessão cru (camelCase) —
+ *  usado nos Server Actions que checam `session.tipoAcesso`/`session.empresaId` direto em vez
+ *  de passar por `getUsuarioLogado()`. */
+export function getEffectiveEmpresaIdFromSession(session: Pick<SessionData, "tipoAcesso" | "empresaId" | "viewAsEmpresaId">): string | null {
+  if (session.tipoAcesso !== "SuperAdmin") return session.empresaId
+  return session.viewAsEmpresaId ?? null
+}
+
+/**
+ * Bloqueia mutação quando o SuperAdmin está em modo "visualizar como empresa" (somente
+ * leitura). Chamar no início de toda função de escrita que — por causa do espelho do banco
+ * (Fases 3–6) — já deixa "SuperAdmin" passar no gate de papel; sem isso, impersonar uma
+ * empresa também daria acesso de escrita aos dados dela.
+ */
+export async function assertNaoImpersonando(): Promise<void> {
+  const session = await getSession()
+  if (session?.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
+    throw new Error("Ação bloqueada: você está em modo de visualização (somente leitura)")
+  }
+}
+
+/**
+ * Guard de página (não de Server Action): true se o usuário tem um dos papéis exigidos, OU
+ * se é o SuperAdmin visualizando como uma empresa (somente leitura) — usado nos `page.tsx`
+ * hoje restritos a Adm/Financeiro/etc, que sem isso rejeitariam o SuperAdmin impersonando.
+ */
+export function podeVisualizarPagina(usuario: UsuarioAutenticado, papeis: string[]): boolean {
+  if (papeis.includes(usuario.tipo_acesso)) return true
+  return usuario.tipo_acesso === "SuperAdmin" && !!usuario.view_as_empresa_id
 }
 
 /**

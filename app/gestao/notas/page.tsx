@@ -1,11 +1,15 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina, getEffectiveEmpresaId } from "@/lib/tenant"
 import { redirect } from "next/navigation"
 import { NotasMesesList } from "@/components/notas-meses-list"
 import { db } from "@/lib/db"
 import { pedidosPagamento } from "@/lib/db/schema"
-import { and, desc, inArray, isNotNull } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm"
 
-async function listarMesesComNotas() {
+// `empresaId` nunca tinha filtro nenhum aqui — todo Adm/Financeiro de qualquer empresa via
+// os meses com notas de TODAS as empresas da plataforma. Corrigido escopando por empresa
+// (ou pela empresa impersonada, se for o SuperAdmin em modo "visualizar como").
+async function listarMesesComNotas(empresaId: string | null) {
   try {
     const rows = await db
       .select({ createdAt: pedidosPagamento.createdAt, status: pedidosPagamento.status })
@@ -14,6 +18,7 @@ async function listarMesesComNotas() {
         and(
           inArray(pedidosPagamento.status, ["pendente_financeiro", "aprovado", "nota_recebida", "pago"]),
           isNotNull(pedidosPagamento.notaFiscalUrl),
+          empresaId === null ? undefined : eq(pedidosPagamento.empresaId, empresaId),
         ),
       )
       .orderBy(desc(pedidosPagamento.createdAt))
@@ -66,11 +71,11 @@ export default async function NotasPage() {
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 
-  const meses = await listarMesesComNotas()
+  const meses = await listarMesesComNotas(getEffectiveEmpresaId(usuario))
 
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">

@@ -16,9 +16,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound } from "lucide-react"
+import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye } from "lucide-react"
 import { toast } from "sonner"
 import { atualizarEmpresa, atualizarStatusEmpresa, atualizarCredenciaisUsuario } from "@/app/actions/empresas"
+import { iniciarVisualizacaoComoEmpresa } from "@/app/actions/impersonation"
 
 interface UsuarioRow {
   id: string
@@ -59,6 +60,18 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
   const [usuarioEditando, setUsuarioEditando] = useState<UsuarioRow | null>(null)
   const [credenciais, setCredenciais] = useState({ nome_completo: "", email: "", nova_senha: "" })
   const [salvandoCredenciais, setSalvandoCredenciais] = useState(false)
+  const [entrando, setEntrando] = useState(false)
+
+  // Em caso de sucesso, iniciarVisualizacaoComoEmpresa chama redirect() (que lança um erro
+  // especial do Next.js e nunca retorna) — só tratamos explicitamente o caminho de erro.
+  const handleVisualizarComoEmpresa = async () => {
+    setEntrando(true)
+    const result = await iniciarVisualizacaoComoEmpresa(empresa.id)
+    if (result && !result.success) {
+      toast.error(result.error || "Erro ao iniciar visualização")
+      setEntrando(false)
+    }
+  }
 
   const abrirEdicaoCredenciais = (usuario: UsuarioRow) => {
     setUsuarioEditando(usuario)
@@ -141,6 +154,10 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleVisualizarComoEmpresa} disabled={entrando}>
+              <Eye className="h-4 w-4" />
+              {entrando ? "Entrando..." : "Visualizar como esta empresa"}
+            </Button>
             <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
             <Select value={empresa.status} onValueChange={handleStatusChange} disabled={loading}>
               <SelectTrigger className="w-36 h-8 text-xs">

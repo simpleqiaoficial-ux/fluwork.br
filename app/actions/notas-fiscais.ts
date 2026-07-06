@@ -7,6 +7,7 @@ import { colaboradores, notasFiscais, pedidosPagamento } from "@/lib/db/schema"
 import { toNotaFiscalDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
 import { registrarAuditoria } from "@/lib/audit"
+import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
 import type { DadosNotaFiscal, ResultadoValidacao } from "@/types/nota-fiscal"
 import { limparCpfCnpj } from "@/lib/nfse-parser"
 
@@ -237,6 +238,7 @@ export async function listarNotasFiscais() {
   if (!session) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaIdFromSession(session)
     const rows = await db
       .select({
         nota: notasFiscais,
@@ -246,7 +248,7 @@ export async function listarNotasFiscais() {
       .from(notasFiscais)
       .leftJoin(colaboradores, eq(notasFiscais.colaboradorId, colaboradores.id))
       .leftJoin(pedidosPagamento, eq(notasFiscais.pedidoId, pedidosPagamento.id))
-      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(notasFiscais.empresaId, session.empresaId!))
+      .where(empresaEfetiva === null ? undefined : eq(notasFiscais.empresaId, empresaEfetiva))
       .orderBy(desc(notasFiscais.createdAt))
 
     return rows.map((row) => ({
@@ -274,6 +276,7 @@ export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "
   if (!session || !["Adm", "Financeiro", "SuperAdmin"].includes(session.tipoAcesso)) {
     return { success: false, error: "Sem permissão" }
   }
+  await assertNaoImpersonando()
 
   // `session.empresaId` é null pro SuperAdmin — `eq(coluna, null)` nunca bate em SQL.
   const escopo =
@@ -317,6 +320,7 @@ export async function excluirNotaFiscalAdmin(notaId: string) {
   if (!session || session.tipoAcesso !== "SuperAdmin") {
     return { success: false, error: "Sem permissão" }
   }
+  await assertNaoImpersonando()
 
   const [nota] = await db.select({ empresaId: notasFiscais.empresaId, pedidoId: notasFiscais.pedidoId }).from(notasFiscais).where(eq(notasFiscais.id, notaId))
   if (!nota) return { success: false, error: "Nota fiscal não encontrada" }

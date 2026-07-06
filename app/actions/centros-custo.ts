@@ -6,6 +6,7 @@ import { centrosCusto, colaboradores } from "@/lib/db/schema"
 import { toCentroCustoDTO } from "@/lib/db/mappers"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
+import { getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
 import type { CentroCusto } from "@/types/colaborador"
 
 export async function listarCentrosCusto(): Promise<CentroCusto[]> {
@@ -13,10 +14,11 @@ export async function listarCentrosCusto(): Promise<CentroCusto[]> {
   if (!session) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaIdFromSession(session)
     const data = await db
       .select()
       .from(centrosCusto)
-      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(centrosCusto.empresaId, session.empresaId!))
+      .where(empresaEfetiva === null ? undefined : eq(centrosCusto.empresaId, empresaEfetiva))
       .orderBy(asc(centrosCusto.numero))
 
     return (data || []).map(toCentroCustoDTO) as CentroCusto[]

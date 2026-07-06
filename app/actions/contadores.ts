@@ -4,6 +4,7 @@ import { and, count, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { colaboradores, gerentesEquipes, pedidosPagamento } from "@/lib/db/schema"
 import { getSession } from "@/lib/session"
+import { getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
 
 export async function contarPendencias() {
   const session = await getSession()
@@ -66,8 +67,8 @@ export async function contarPendencias() {
         aprovacoes = value || 0
       }
     } else if (tipoAcesso === "Financeiro" || tipoAcesso === "Adm" || tipoAcesso === "SuperAdmin") {
-      const escopoEmpresa =
-        tipoAcesso === "SuperAdmin" ? undefined : eq(pedidosPagamento.empresaId, session.empresaId!)
+      const empresaEfetivaContador = getEffectiveEmpresaIdFromSession(session)
+      const escopoEmpresa = empresaEfetivaContador === null ? undefined : eq(pedidosPagamento.empresaId, empresaEfetivaContador)
 
       const [{ value: pendentesCount }] = await db
         .select({ value: count() })

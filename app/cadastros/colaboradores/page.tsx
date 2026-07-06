@@ -2,6 +2,7 @@ import { ColaboradorForm } from "@/components/colaborador-form"
 import { ColaboradoresList } from "@/components/colaboradores-list"
 import { Suspense } from "react"
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina } from "@/lib/tenant"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShieldAlert } from "lucide-react"
@@ -13,7 +14,7 @@ export default async function ColaboradoresPage() {
     redirect("/login")
   }
 
-  if (usuario.tipo_acesso !== "Adm" && usuario.tipo_acesso !== "Financeiro") {
+  if (!podeVisualizarPagina(usuario, ["Adm", "Financeiro"])) {
     return (
       <div className="container mx-auto py-8 px-4 max-w-4xl">
         <Card className="border-destructive">

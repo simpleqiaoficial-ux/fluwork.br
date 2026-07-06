@@ -1,4 +1,5 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina } from "@/lib/tenant"
 import { redirect } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -51,7 +52,7 @@ export default async function FiscalPage() {
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 

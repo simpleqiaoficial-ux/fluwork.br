@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
 import { uploadFile } from "@/lib/gcs"
 import { registrarAuditoria } from "@/lib/audit"
+import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
 
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
@@ -232,8 +233,9 @@ export async function listarPedidos() {
   if (!session) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaIdFromSession(session)
     const rows = await db.query.pedidosPagamento.findMany({
-      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(pedidosPagamento.empresaId, session.empresaId!),
+      where: empresaEfetiva === null ? undefined : eq(pedidosPagamento.empresaId, empresaEfetiva),
       orderBy: desc(pedidosPagamento.createdAt),
       with: {
         colaborador: true,
@@ -255,8 +257,9 @@ export async function listarPedidosComFiltros(filtros?: { dataInicio?: string; d
   try {
     const conditions = []
 
-    if (session.tipoAcesso !== "SuperAdmin") {
-      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    const empresaEfetivaFiltros = getEffectiveEmpresaIdFromSession(session)
+    if (empresaEfetivaFiltros !== null) {
+      conditions.push(eq(pedidosPagamento.empresaId, empresaEfetivaFiltros))
     }
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))
@@ -418,6 +421,7 @@ export async function deletarPedido(id: string) {
   if (!session || !["Adm", "Financeiro", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Você não tem permissão para excluir pedidos")
   }
+  await assertNaoImpersonando()
 
   const [pedido] = await db.select().from(pedidosPagamento).where(eq(pedidosPagamento.id, id))
   if (!pedido) throw new Error("Pedido não encontrado")
@@ -1140,8 +1144,9 @@ export async function listarTodosPedidos(filtros?: {
   try {
     const conditions = []
 
-    if (session.tipoAcesso !== "SuperAdmin") {
-      conditions.push(eq(pedidosPagamento.empresaId, session.empresaId!))
+    const empresaEfetivaFiltros = getEffectiveEmpresaIdFromSession(session)
+    if (empresaEfetivaFiltros !== null) {
+      conditions.push(eq(pedidosPagamento.empresaId, empresaEfetivaFiltros))
     }
     if (filtros?.dataInicio) {
       conditions.push(gte(pedidosPagamento.createdAt, new Date(filtros.dataInicio)))

@@ -1,4 +1,5 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina, getEffectiveEmpresaId } from "@/lib/tenant"
 import { redirect } from "next/navigation"
 import { NotasPeriodoList } from "@/components/notas-periodo-list"
 import Link from "next/link"
@@ -69,7 +70,7 @@ export default async function NotasPeriodoPage({
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 
@@ -82,7 +83,7 @@ export default async function NotasPeriodoPage({
     redirect("/notas")
   }
 
-  const notas = await listarNotasDoPeriodo(ano, mes, usuario.empresa_id!)
+  const notas = await listarNotasDoPeriodo(ano, mes, getEffectiveEmpresaId(usuario)!)
   const mesNome = MESES_NOMES[mes - 1]
 
   return (

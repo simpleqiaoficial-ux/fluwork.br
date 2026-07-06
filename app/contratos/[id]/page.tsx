@@ -1,4 +1,5 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina } from "@/lib/tenant"
 import { redirect, notFound } from "next/navigation"
 import { getContratoById } from "@/app/actions/contratos"
 import { ContratoDetail } from "@/components/contratos/contrato-detail"
@@ -10,7 +11,7 @@ export default async function ContratoDetailPage({ params }: { params: Promise<{
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 

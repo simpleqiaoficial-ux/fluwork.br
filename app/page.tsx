@@ -17,8 +17,9 @@ export default async function Home() {
   }
 
   // SuperAdmin não pertence a nenhuma empresa — o painel dele é outro, não esse dashboard
-  // (que hoje mistura dados de todas as empresas quando visto sem escopo de uma só).
-  if (session?.tipoAcesso === "SuperAdmin") {
+  // (que hoje mistura dados de todas as empresas quando visto sem escopo de uma só) — exceto
+  // quando está "visualizando como empresa", caso em que este é exatamente o dashboard certo.
+  if (session?.tipoAcesso === "SuperAdmin" && !session.viewAsEmpresaId) {
     redirect("/admin")
   }
 

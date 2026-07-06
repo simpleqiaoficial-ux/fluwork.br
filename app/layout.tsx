@@ -14,6 +14,7 @@ import { AutoLogoutProvider } from "@/components/auto-logout-provider"
 import { ValoresVisibilityProvider } from "@/contexts/valores-visibility-context"
 import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
 import { SystemStatusProvider } from "@/components/system-status-provider"
+import { ImpersonationBanner } from "@/components/impersonation-banner"
 import cn from "classnames"
 
 const geistSans = Geist({
@@ -44,7 +45,9 @@ export default async function RootLayout({
 
   let empresaNome: string | undefined
   if (!isAuthPage && session) {
-    if (session.tipoAcesso === "SuperAdmin") {
+    if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
+      empresaNome = session.viewAsEmpresaNome || "Empresa"
+    } else if (session.tipoAcesso === "SuperAdmin") {
       empresaNome = "Painel FluWork"
     } else if (session.empresaId) {
       const [empresa] = await db
@@ -55,6 +58,8 @@ export default async function RootLayout({
     }
   }
 
+  const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
+
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-background">
@@ -64,6 +69,7 @@ export default async function RootLayout({
           <div
             className={cn("min-h-screen transition-[padding] duration-150", !isAuthPage && "lg:pl-[var(--sidebar-w,16rem)]")}
           >
+            {impersonando && <ImpersonationBanner empresaNome={empresaNome || "Empresa"} />}
             {!isAuthPage && session && (
               <UserHeader
                 nomeCompleto={session.nomeCompleto}

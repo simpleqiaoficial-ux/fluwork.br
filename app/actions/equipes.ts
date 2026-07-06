@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { colaboradores, equipes, gerentesEquipes } from "@/lib/db/schema"
 import { toEquipeDTO } from "@/lib/db/mappers"
 import { revalidatePath } from "next/cache"
-import { getCurrentUser } from "@/lib/tenant"
+import { getCurrentUser, getEffectiveEmpresaId } from "@/lib/tenant"
 import type { Equipe, NovaEquipe } from "@/types/equipe"
 
 export async function listarEquipes(): Promise<Equipe[]> {
@@ -13,8 +13,9 @@ export async function listarEquipes(): Promise<Equipe[]> {
   if (!usuario) return []
 
   try {
+    const empresaEfetiva = getEffectiveEmpresaId(usuario)
     const rows = await db.query.equipes.findMany({
-      where: usuario.tipo_acesso === "SuperAdmin" ? undefined : eq(equipes.empresaId, usuario.empresa_id!),
+      where: empresaEfetiva === null ? undefined : eq(equipes.empresaId, empresaEfetiva),
       orderBy: asc(equipes.nome),
       with: {
         supervisor: true,
@@ -119,9 +120,9 @@ export async function listarSupervisores(): Promise<Array<{ id: string; nome_com
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto })
       .from(colaboradores)
       .where(
-        usuario.tipo_acesso === "SuperAdmin"
+        getEffectiveEmpresaId(usuario) === null
           ? eq(colaboradores.tipoAcesso, "Supervisor")
-          : and(eq(colaboradores.tipoAcesso, "Supervisor"), eq(colaboradores.empresaId, usuario.empresa_id!)),
+          : and(eq(colaboradores.tipoAcesso, "Supervisor"), eq(colaboradores.empresaId, getEffectiveEmpresaId(usuario)!)),
       )
       .orderBy(asc(colaboradores.nomeCompleto))
 
@@ -231,9 +232,9 @@ export async function listarGerentes(): Promise<Array<{ id: string; nome_complet
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto })
       .from(colaboradores)
       .where(
-        usuario.tipo_acesso === "SuperAdmin"
+        getEffectiveEmpresaId(usuario) === null
           ? eq(colaboradores.tipoAcesso, "Gerente")
-          : and(eq(colaboradores.tipoAcesso, "Gerente"), eq(colaboradores.empresaId, usuario.empresa_id!)),
+          : and(eq(colaboradores.tipoAcesso, "Gerente"), eq(colaboradores.empresaId, getEffectiveEmpresaId(usuario)!)),
       )
       .orderBy(asc(colaboradores.nomeCompleto))
 
@@ -260,9 +261,9 @@ export async function listarColaboradoresSemEquipe(): Promise<
       })
       .from(colaboradores)
       .where(
-        usuario.tipo_acesso === "SuperAdmin"
+        getEffectiveEmpresaId(usuario) === null
           ? isNull(colaboradores.equipeId)
-          : and(isNull(colaboradores.equipeId), eq(colaboradores.empresaId, usuario.empresa_id!)),
+          : and(isNull(colaboradores.equipeId), eq(colaboradores.empresaId, getEffectiveEmpresaId(usuario)!)),
       )
       .orderBy(asc(colaboradores.nomeCompleto))
 

@@ -8,6 +8,7 @@ import type { NovoColaborador } from "@/types/colaborador"
 import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
 import { registrarAuditoria } from "@/lib/audit"
+import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
 import bcrypt from "bcryptjs"
 
 async function checkPermission(requiredRoles: string[]) {
@@ -20,6 +21,10 @@ async function checkPermission(requiredRoles: string[]) {
   if (!requiredRoles.includes(session.tipoAcesso)) {
     throw new Error("Você não tem permissão para realizar esta ação")
   }
+
+  // Todas as funções deste arquivo que passam por aqui são mutações — bloqueia quando o
+  // SuperAdmin está em modo "visualizar como empresa" (somente leitura).
+  await assertNaoImpersonando()
 
   return session
 }
@@ -236,7 +241,7 @@ export async function listarColaboradores() {
   let rows
   try {
     rows = await db.query.colaboradores.findMany({
-      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
+      where: getEffectiveEmpresaIdFromSession(session) === null ? undefined : eq(colaboradores.empresaId, getEffectiveEmpresaIdFromSession(session)!),
       orderBy: [desc(colaboradores.createdAt)],
       with: { equipe: true },
     })
@@ -256,7 +261,7 @@ export async function getColaboradores() {
     const data = await db
       .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
       .from(colaboradores)
-      .where(session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!))
+      .where(getEffectiveEmpresaIdFromSession(session) === null ? undefined : eq(colaboradores.empresaId, getEffectiveEmpresaIdFromSession(session)!))
       .orderBy(asc(colaboradores.nomeCompleto))
 
     if (!data || data.length === 0) {
@@ -572,7 +577,7 @@ export async function listarColaboradoresComGerente() {
   let rows
   try {
     rows = await db.query.colaboradores.findMany({
-      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
+      where: getEffectiveEmpresaIdFromSession(session) === null ? undefined : eq(colaboradores.empresaId, getEffectiveEmpresaIdFromSession(session)!),
       orderBy: [desc(colaboradores.createdAt)],
       with: { equipe: true },
     })
@@ -591,7 +596,7 @@ export async function exportarColaboradoresExcel() {
   let data
   try {
     data = await db.query.colaboradores.findMany({
-      where: session.tipoAcesso === "SuperAdmin" ? undefined : eq(colaboradores.empresaId, session.empresaId!),
+      where: getEffectiveEmpresaIdFromSession(session) === null ? undefined : eq(colaboradores.empresaId, getEffectiveEmpresaIdFromSession(session)!),
       orderBy: [asc(colaboradores.nomeCompleto)],
       with: { equipe: true },
     })

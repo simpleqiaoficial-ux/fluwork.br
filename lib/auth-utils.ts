@@ -10,8 +10,12 @@ export async function getUsuarioLogado() {
   if (!session) return null
 
   const [colaborador] = await db.select().from(colaboradores).where(eq(colaboradores.id, session.colaboradorId))
+  if (!colaborador) return null
 
-  return colaborador ? toColaboradorDTO(colaborador) : null
+  // view_as_empresa_id só existe na sessão (não é uma coluna de colaboradores) — anexado
+  // aqui pra todo call site que já usa getUsuarioLogado() poder checar via
+  // lib/tenant.ts:getEffectiveEmpresaId sem precisar ler a sessão de novo.
+  return { ...toColaboradorDTO(colaborador), view_as_empresa_id: session.viewAsEmpresaId ?? null }
 }
 
 export function podeAcessarRota(tipoAcesso: string, rota: string): boolean {

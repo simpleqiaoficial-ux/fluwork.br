@@ -1,4 +1,5 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
+import { podeVisualizarPagina, getEffectiveEmpresaId } from "@/lib/tenant"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,12 +17,12 @@ export default async function GestaoPage() {
     redirect("/login")
   }
 
-  if (!["Financeiro", "Adm"].includes(usuario.tipo_acesso)) {
+  if (!podeVisualizarPagina(usuario, ["Financeiro", "Adm"])) {
     redirect("/")
   }
 
-  // Buscar colaboradores da própria empresa para verificar aniversários de contrato
-  // (SuperAdmin não chega aqui — a checagem de papel acima já barra esse caso).
+  // Buscar colaboradores da empresa (a própria, ou a impersonada pelo SuperAdmin) pra
+  // verificar aniversários de contrato.
   const colaboradoresRows = await db
     .select({
       id: colaboradores.id,
@@ -40,7 +41,7 @@ export default async function GestaoPage() {
       createdAt: colaboradores.createdAt,
     })
     .from(colaboradores)
-    .where(eq(colaboradores.empresaId, usuario.empresa_id!))
+    .where(eq(colaboradores.empresaId, getEffectiveEmpresaId(usuario)!))
     .orderBy(colaboradores.nomeCompleto)
 
   const listaColaboradores = colaboradoresRows.map(toColaboradorDTO)
