@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock, RotateCw, Archive, FileEdit, FileSignature } from "lucide-react"
 import { toast } from "sonner"
-import { reenviarContrato, cancelarContrato } from "@/app/actions/contratos"
+import { reenviarContrato, cancelarContrato, arquivarContrato } from "@/app/actions/contratos"
 import { AditivoSection } from "@/components/contratos/aditivo-section"
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
@@ -90,7 +90,25 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
   const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
   const podeReenviar = ["sent", "viewed", "expired"].includes(contrato.status)
   const podeCancelar = !["signed", "cancelled"].includes(contrato.status)
+  const podeArquivar =
+    ["cancelled", "refused", "expired"].includes(contrato.status) ||
+    (contrato.status === "signed" && contrato.situacao_vigencia?.chave === "vencido")
   const signatario = contrato.signatarios?.[0]
+
+  const handleArquivar = async () => {
+    setLoading(true)
+    try {
+      const result = await arquivarContrato(contrato.id)
+      if (result.success) {
+        toast.success("Contrato arquivado")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Erro ao arquivar")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleReenviar = async () => {
     setLoading(true)
@@ -157,6 +175,12 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
               <Button size="sm" variant="ghost" className="gap-2 text-destructive hover:text-destructive" onClick={() => setCancelOpen(true)}>
                 <XCircle className="h-4 w-4" />
                 Cancelar
+              </Button>
+            )}
+            {podeArquivar && (
+              <Button size="sm" variant="ghost" className="gap-2" disabled={loading} onClick={handleArquivar}>
+                <Archive className="h-4 w-4" />
+                Arquivar
               </Button>
             )}
           </div>

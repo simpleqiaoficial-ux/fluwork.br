@@ -241,6 +241,7 @@ export async function criarContrato(formData: ContratoFormData) {
     contractId: contrato.id,
     tipoEvento: "criado",
     contractVersao: contrato.versaoAtual,
+    atorColaboradorId: usuario.id,
   })
 
   try {
@@ -358,6 +359,7 @@ export async function enviarContrato(id: string) {
     tipoEvento: "enviado",
     tokenHash,
     contractVersao: contrato.versaoAtual,
+    atorColaboradorId: usuario.id,
   })
 
   const baseUrl = process.env.APP_BASE_URL || ""
@@ -425,6 +427,7 @@ export async function reenviarContrato(id: string) {
     tipoEvento: "reenviado",
     tokenHash,
     contractVersao: contrato.versaoAtual,
+    atorColaboradorId: usuario.id,
   })
 
   const baseUrl = process.env.APP_BASE_URL || ""
@@ -519,6 +522,41 @@ export async function cancelarContrato(id: string, motivo?: string) {
     tipoEvento: "cancelado",
     contractVersao: contrato.versaoAtual,
     detalhes: motivo ? { motivo } : undefined,
+    atorColaboradorId: usuario.id,
+  })
+
+  revalidatePath("/contratos")
+  revalidatePath(`/contratos/${id}`)
+  return { success: true }
+}
+
+// Arquivar é uma decisão manual do admin (organizar contratos encerrados/cancelados fora da
+// lista principal) — diferente da vigência computada, esse é o único status novo persistido.
+export async function arquivarContrato(id: string) {
+  const usuario = await exigirAdmin()
+
+  const [contrato] = await db.select().from(contracts).where(eq(contracts.id, id))
+  if (!contrato) return { success: false, error: "Contrato não encontrado" }
+  if (usuario.tipo_acesso !== "SuperAdmin" && contrato.empresaId !== usuario.empresa_id) {
+    return { success: false, error: "Sem permissão para acessar este contrato" }
+  }
+  if (!["cancelled", "refused", "expired", "signed"].includes(contrato.status)) {
+    return { success: false, error: "Só é possível arquivar contratos encerrados, cancelados, recusados ou expirados" }
+  }
+  if (contrato.status === "signed") {
+    const situacao = calcularSituacaoVigencia({ status: contrato.status, dataInicio: contrato.dataInicio, dataTermino: contrato.dataTermino })
+    if (situacao.chave !== "vencido") {
+      return { success: false, error: "Só é possível arquivar um contrato assinado depois que a vigência encerrar" }
+    }
+  }
+
+  await db.update(contracts).set({ status: "archived", updatedAt: new Date() }).where(eq(contracts.id, id))
+
+  await db.insert(contractSignatureEvents).values({
+    contractId: id,
+    tipoEvento: "arquivado",
+    contractVersao: contrato.versaoAtual,
+    atorColaboradorId: usuario.id,
   })
 
   revalidatePath("/contratos")
