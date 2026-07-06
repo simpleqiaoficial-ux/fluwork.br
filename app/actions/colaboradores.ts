@@ -2,11 +2,12 @@
 
 import { and, asc, desc, eq, gte, inArray, ne, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, equipes, gerentesEquipes, pedidosPagamento, centrosCusto } from "@/lib/db/schema"
+import { colaboradores, equipes, gerentesEquipes, pedidosPagamento, centrosCusto, historicoReajustes, notasFiscais } from "@/lib/db/schema"
 import { toColaboradorDTO } from "@/lib/db/mappers"
 import type { NovoColaborador } from "@/types/colaborador"
 import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
+import { registrarAuditoria } from "@/lib/audit"
 import bcrypt from "bcryptjs"
 
 async function checkPermission(requiredRoles: string[]) {
@@ -274,40 +275,47 @@ export async function getColaboradores() {
 }
 
 export async function deletarColaborador(id: string) {
-  const session = await checkPermission(["Adm", "Financeiro"])
+  const session = await checkPermission(["Adm", "Financeiro", "SuperAdmin"])
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(id)) {
     throw new Error("ID inválido")
   }
 
+  let empresaAlvoId: string | null = null
   if (session.tipoAcesso !== "SuperAdmin") {
     const [alvo] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, id))
     if (!alvo || alvo.empresaId !== session.empresaId) {
       throw new Error("Prestador não encontrado")
     }
+    empresaAlvoId = alvo.empresaId
   }
 
-  let pedidos
+  // Checa toda tabela com FK pra colaborador_id que ou (a) tem onDelete: cascade — apagaria
+  // esse histórico em silêncio (pedidos_pagamento.colaborador_id, historico_reajustes,
+  // notas_fiscais) — ou (b) não tem onDelete configurado — geraria um erro cru de FK do
+  // Postgres em vez de uma mensagem clara (pedidos_pagamento.criado_por_colaborador_id, o
+  // único vínculo que a checagem original cobria).
   try {
-    pedidos = await db
-      .select({ id: pedidosPagamento.id })
-      .from(pedidosPagamento)
-      .where(eq(pedidosPagamento.criadoPorColaboradorId, id))
-      .limit(1)
-  } catch (pedidosError) {
-    console.error("[v0] Erro ao verificar pedidos do colaborador:", pedidosError)
-    throw new Error("Erro ao verificar pedidos do prestador")
-  }
-
-  if (pedidos && pedidos.length > 0) {
-    throw new Error(
-      "Não é possível deletar este colaborador porque ele possui pedidos associados. Para manter o histórico, o colaborador será mantido no sistema.",
-    )
+    const [[pedidoDono], [pedidoCriador], [reajuste], [nota]] = await Promise.all([
+      db.select({ id: pedidosPagamento.id }).from(pedidosPagamento).where(eq(pedidosPagamento.colaboradorId, id)).limit(1),
+      db.select({ id: pedidosPagamento.id }).from(pedidosPagamento).where(eq(pedidosPagamento.criadoPorColaboradorId, id)).limit(1),
+      db.select({ id: historicoReajustes.id }).from(historicoReajustes).where(eq(historicoReajustes.colaboradorId, id)).limit(1),
+      db.select({ id: notasFiscais.id }).from(notasFiscais).where(eq(notasFiscais.colaboradorId, id)).limit(1),
+    ])
+    if (pedidoDono || pedidoCriador || reajuste || nota) {
+      throw new Error(
+        "Não é possível deletar este colaborador porque ele possui pedidos, reajustes ou notas fiscais associados. Para manter o histórico, o colaborador será mantido no sistema.",
+      )
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Não é possível deletar")) throw error
+    console.error("[v0] Erro ao verificar vínculos do colaborador:", error)
+    throw new Error("Erro ao verificar vínculos do prestador")
   }
 
   const [colaborador] = await db
-    .select({ userId: colaboradores.userId })
+    .select({ userId: colaboradores.userId, empresaId: colaboradores.empresaId })
     .from(colaboradores)
     .where(eq(colaboradores.id, id))
 
@@ -322,20 +330,31 @@ export async function deletarColaborador(id: string) {
     throw new Error("Erro ao deletar prestador")
   }
 
+  if (session.tipoAcesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: session.colaboradorId,
+      empresaId: empresaAlvoId ?? colaborador.empresaId,
+      acao: "colaborador_excluido",
+      tabela: "colaboradores",
+      registroId: id,
+    })
+  }
+
   revalidatePath("/colaboradores")
+  revalidatePath("/admin/dados/colaboradores")
 }
 
 export async function atualizarColaborador(id: string, data: Partial<NovoColaborador>) {
-  const session = await checkPermission(["Adm", "Financeiro"])
+  const session = await checkPermission(["Adm", "Financeiro", "SuperAdmin"])
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(id)) {
     throw new Error("ID inválido")
   }
 
+  const [alvoAtual] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, id))
   if (session.tipoAcesso !== "SuperAdmin") {
-    const [alvo] = await db.select({ empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, id))
-    if (!alvo || alvo.empresaId !== session.empresaId) {
+    if (!alvoAtual || alvoAtual.empresaId !== session.empresaId) {
       throw new Error("Prestador não encontrado")
     }
   }
@@ -424,10 +443,22 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
     throw new Error("Erro ao atualizar prestador. Por favor, tente novamente.")
   }
 
+  if (session.tipoAcesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: session.colaboradorId,
+      empresaId: alvoAtual?.empresaId ?? null,
+      acao: "colaborador_atualizado",
+      tabela: "colaboradores",
+      registroId: id,
+      detalhes: { campos_alterados: Object.keys(updateData).filter((k) => k !== "senhaHash") },
+    })
+  }
+
   revalidatePath("/colaboradores")
   revalidatePath("/cadastros/colaboradores")
   revalidatePath("/gestao")
   revalidatePath("/cadastros/equipes")
+  revalidatePath("/admin/dados/colaboradores")
   revalidatePath("/", "layout")
 }
 

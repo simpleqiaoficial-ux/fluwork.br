@@ -140,6 +140,7 @@ const SUPERVISOR_LINKS: NavItem[] = [
 const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
+  { href: "/admin/dados/colaboradores", label: "Colaboradores (todas)", icon: Users },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]
 
