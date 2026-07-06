@@ -22,8 +22,12 @@ import { gerarPdfRascunho } from "@/lib/pdf/contrato-pdf"
 import { uploadFile } from "@/lib/gcs"
 import { sendContratoConviteEmail } from "@/lib/email"
 import { calcularSituacaoVigencia } from "@/lib/contracts/vigencia"
+import { registrarAuditoria } from "@/lib/audit"
 
-const ADMIN_ROLES = ["Adm", "Financeiro"]
+// SuperAdmin já é tratado como bypass em todo ponto que faz `usuario.tipo_acesso ===
+// "SuperAdmin" ? undefined : eq(empresaId, ...)` neste arquivo — faltava só deixar passar
+// aqui na entrada, senão o SuperAdmin nunca chegava a essas funções pra usar esse bypass.
+const ADMIN_ROLES = ["Adm", "Financeiro", "SuperAdmin"]
 const TEMPLATE_PADRAO_SLUG = "prestacao-servicos-pj-padrao"
 
 async function getEmpresaOuFalha(empresaId: string) {
@@ -525,6 +529,17 @@ export async function cancelarContrato(id: string, motivo?: string) {
     atorColaboradorId: usuario.id,
   })
 
+  if (usuario.tipo_acesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: usuario.id,
+      empresaId: contrato.empresaId,
+      acao: "contrato_cancelado",
+      tabela: "contracts",
+      registroId: id,
+      detalhes: motivo ? { motivo } : undefined,
+    })
+  }
+
   revalidatePath("/contratos")
   revalidatePath(`/contratos/${id}`)
   return { success: true }
@@ -558,6 +573,16 @@ export async function arquivarContrato(id: string) {
     contractVersao: contrato.versaoAtual,
     atorColaboradorId: usuario.id,
   })
+
+  if (usuario.tipo_acesso === "SuperAdmin") {
+    await registrarAuditoria({
+      colaboradorId: usuario.id,
+      empresaId: contrato.empresaId,
+      acao: "contrato_arquivado",
+      tabela: "contracts",
+      registroId: id,
+    })
+  }
 
   revalidatePath("/contratos")
   revalidatePath(`/contratos/${id}`)

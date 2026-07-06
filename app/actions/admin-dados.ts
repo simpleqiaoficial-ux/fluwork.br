@@ -2,7 +2,8 @@
 
 import { and, count, desc, eq, ilike, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, empresas, equipes, pedidosPagamento, historicoReajustes, notasFiscais } from "@/lib/db/schema"
+import { colaboradores, empresas, equipes, pedidosPagamento, historicoReajustes, notasFiscais, contracts } from "@/lib/db/schema"
+import { toContratoDTO } from "@/lib/db/mappers"
 import { requireSuperAdmin } from "@/lib/tenant"
 
 const PAGE_SIZE = 25
@@ -69,6 +70,49 @@ export async function listarColaboradoresAdmin(filtro: ColaboradoresAdminFiltro 
     total,
     page,
     total_paginas: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+  }
+}
+
+export interface ContratosAdminFiltro {
+  empresaId?: string
+  busca?: string
+  page?: number
+}
+
+// Espelho cross-empresa de contratos — só leitura + reaproveita cancelarContrato/
+// arquivarContrato já existentes (nunca edição de campo livre de status, que quebraria
+// o fluxo de assinatura).
+export async function listarContratosAdmin(filtro: ContratosAdminFiltro = {}) {
+  await requireSuperAdmin()
+
+  const condicoes = []
+  if (filtro.empresaId) condicoes.push(eq(contracts.empresaId, filtro.empresaId))
+  if (filtro.busca?.trim()) {
+    const termo = `%${filtro.busca.trim()}%`
+    condicoes.push(or(ilike(contracts.numero, termo), ilike(contracts.prestadorNome, termo), ilike(contracts.prestadorCpfCnpj, termo)))
+  }
+  const where = condicoes.length > 0 ? and(...condicoes) : undefined
+  const page = Math.max(1, filtro.page || 1)
+  const PAGE_SIZE_CONTRATOS = 25
+
+  const [rows, totalRows] = await Promise.all([
+    db.query.contracts.findMany({
+      where,
+      orderBy: [desc(contracts.createdAt)],
+      limit: PAGE_SIZE_CONTRATOS,
+      offset: (page - 1) * PAGE_SIZE_CONTRATOS,
+      with: { empresa: true },
+    }),
+    db.select({ value: count() }).from(contracts).where(where),
+  ])
+
+  const total = totalRows[0]?.value || 0
+
+  return {
+    registros: rows.map(toContratoDTO),
+    total,
+    page,
+    total_paginas: Math.max(1, Math.ceil(total / PAGE_SIZE_CONTRATOS)),
   }
 }
 
