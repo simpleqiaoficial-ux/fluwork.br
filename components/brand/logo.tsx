@@ -9,9 +9,9 @@ interface LogoProps {
 }
 
 /** Logo oficial do FluWork — um só componente reutilizado em toda a marca (sidebar, landing, login). */
-export function Logo({ className, iconClassName, showWordmark = true, size = 28 }: LogoProps) {
+export function Logo({ className, iconClassName, showWordmark = true, size = 36 }: LogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
+    <span className={cn("inline-flex flex-col items-center gap-0.5", className)}>
       <img
         src="/fluwork-logo.png"
         alt="FluWork"
@@ -21,9 +21,7 @@ export function Logo({ className, iconClassName, showWordmark = true, size = 28 
         style={{ width: size, height: size }}
       />
       {showWordmark && (
-        <span className="text-base font-semibold tracking-tight text-foreground">
-          Flu<span className="text-primary">Work</span>
-        </span>
+        <span className="text-xs font-semibold leading-none tracking-tight text-primary">FluWork</span>
       )}
     </span>
   )

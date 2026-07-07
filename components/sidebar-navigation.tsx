@@ -417,7 +417,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         <div className={cn("flex items-center h-16 px-4 border-b", collapsed && "lg:justify-center lg:px-0")}>
           {collapsed ? (
             <Link href="/" className="flex items-center justify-center">
-              <Logo showWordmark={false} size={28} />
+              <Logo showWordmark={false} size={32} />
             </Link>
           ) : (
             <Link href="/" className="flex items-center">

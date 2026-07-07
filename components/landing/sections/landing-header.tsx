@@ -28,9 +28,9 @@ export function LandingHeader() {
         scrolled ? "border-b border-border/80 bg-background/90 backdrop-blur-md shadow-sm" : "border-b border-transparent bg-background/60 backdrop-blur-sm",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center" aria-label="FluWork — página inicial">
-          <Logo size={32} />
+          <Logo size={38} />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Navegação principal">

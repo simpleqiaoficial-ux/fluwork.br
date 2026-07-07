@@ -9,7 +9,7 @@ export default function LoginPage() {
       <header className="border-b">
         <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center">
-            <Logo size={26} />
+            <Logo size={32} />
           </Link>
           <div className="flex items-center gap-6 text-sm">
             <Link href="/faq" className="text-muted-foreground hover:text-foreground transition-colors">

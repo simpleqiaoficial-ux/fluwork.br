@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "FluWork",
-    images: [{ url: "/fluwork-logo.png", width: 1200, height: 1200, alt: "FluWork" }],
+    images: [{ url: "/fluwork-logo.png", width: 1024, height: 1024, alt: "FluWork" }],
   },
   twitter: {
     card: "summary_large_image",

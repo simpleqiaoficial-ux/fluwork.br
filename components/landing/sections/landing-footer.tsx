@@ -17,7 +17,7 @@ export function LandingFooter() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="inline-flex items-center">
-              <Logo size={30} />
+              <Logo size={36} />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
               O ecossistema empresarial que conecta, organiza e impulsiona a operação da sua empresa.
