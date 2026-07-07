@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/brand/logo"
 import {
   Users,
   Receipt,
@@ -416,13 +417,11 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         <div className={cn("flex items-center h-16 px-4 border-b", collapsed && "lg:justify-center lg:px-0")}>
           {collapsed ? (
             <Link href="/" className="flex items-center justify-center">
-              <span className="text-base font-semibold text-primary">F</span>
+              <Logo showWordmark={false} size={28} />
             </Link>
           ) : (
             <Link href="/" className="flex items-center">
-              <span className="text-base font-semibold tracking-tight">
-                Flu<span className="text-primary">Work</span>
-              </span>
+              <Logo />
             </Link>
           )}
         </div>
@@ -479,9 +478,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           <aside className="fixed top-0 left-0 z-50 h-screen w-72 bg-card border-r lg:hidden flex flex-col animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between h-16 px-4 border-b">
               <Link href="/" className="flex items-center">
-                <span className="text-base font-semibold tracking-tight">
-                  Flu<span className="text-primary">Work</span>
-                </span>
+                <Logo />
               </Link>
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} className="h-8 w-8">
                 <X className="h-4 w-4" />

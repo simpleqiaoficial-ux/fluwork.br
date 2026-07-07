@@ -27,6 +27,7 @@ const SOFTWARE_SCHEMA = {
   brand: {
     "@type": "Organization",
     name: "FluWork",
+    logo: "/fluwork-logo.png",
   },
 }
 

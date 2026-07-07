@@ -6,6 +6,7 @@ import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { LoginDialog } from "@/components/landing/login-dialog"
+import { Logo } from "@/components/brand/logo"
 import { NAV_LINKS } from "@/lib/landing/data"
 import { cn } from "@/lib/utils"
 
@@ -28,8 +29,8 @@ export function LandingHeader() {
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground" aria-label="FluWork — página inicial">
-          Flu<span className="text-primary">Work</span>
+        <Link href="/" className="flex items-center" aria-label="FluWork — página inicial">
+          <Logo size={32} />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Navegação principal">

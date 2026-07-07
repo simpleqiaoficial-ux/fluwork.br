@@ -33,11 +33,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "FluWork",
+    images: [{ url: "/fluwork-logo.png", width: 1200, height: 1200, alt: "FluWork" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
     description: "Uma plataforma completa para conectar, organizar e impulsionar sua empresa.",
+    images: ["/fluwork-logo.png"],
   },
   robots: { index: true, follow: true },
 }

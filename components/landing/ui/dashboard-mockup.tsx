@@ -71,7 +71,7 @@ export function DashboardMockup({ className, detailed = false }: DashboardMockup
       <div className="flex">
         {/* Sidebar */}
         <div className="hidden w-14 shrink-0 flex-col items-center gap-4 border-r border-border/70 bg-muted/20 py-4 sm:flex">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">F</div>
+          <img src="/fluwork-logo.png" alt="" width={24} height={24} className="h-6 w-6 object-contain" aria-hidden="true" />
           <div className="mt-2 flex flex-col gap-3">
             {SIDEBAR_ICONS.map((Icon, i) => (
               <div

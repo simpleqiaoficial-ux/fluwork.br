@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Mail, MapPin } from "lucide-react"
+import { Logo } from "@/components/brand/logo"
 import { NAV_LINKS } from "@/lib/landing/data"
 
 const LEGAL_LINKS = [
@@ -15,8 +16,8 @@ export function LandingFooter() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
-              Flu<span className="text-primary">Work</span>
+            <Link href="/" className="inline-flex items-center">
+              <Logo size={30} />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
               O ecossistema empresarial que conecta, organiza e impulsiona a operação da sua empresa.
