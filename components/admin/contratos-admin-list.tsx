@@ -22,6 +22,7 @@ import { Search, ChevronLeft, ChevronRight, FileSignature, Ban, Archive } from "
 import { toast } from "sonner"
 import { listarContratosAdmin } from "@/app/actions/admin-dados"
 import { cancelarContrato, arquivarContrato } from "@/app/actions/contratos"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface SituacaoVigencia {
   chave: string
@@ -160,10 +161,11 @@ export function ContratosAdminList({ registrosIniciais, totalInicial, totalPagin
       <p className="text-sm text-muted-foreground">{total} contrato{total !== 1 ? "s" : ""}</p>
 
       {registros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FileSignature className="h-8 w-8 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhum contrato encontrado com estes filtros.</p>
-        </div>
+        <EmptyState
+          icon={FileSignature}
+          title="Nenhum contrato encontrado"
+          description="Nenhum resultado para os filtros aplicados."
+        />
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>

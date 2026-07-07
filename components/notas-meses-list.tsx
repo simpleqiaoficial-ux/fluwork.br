@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, FileX } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface MesData {
   key: string
@@ -38,12 +39,11 @@ export function NotasMesesList({ meses }: NotasMesesListProps) {
 
   if (meses.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h3 className="text-base font-semibold mb-1">Nenhuma nota encontrada</h3>
-        <p className="text-sm text-muted-foreground">
-          As notas fiscais aparecerão aqui organizadas por mês quando forem anexadas.
-        </p>
-      </div>
+      <EmptyState
+        icon={FileX}
+        title="Nenhuma nota encontrada"
+        description="As notas fiscais aparecerão aqui organizadas por mês quando forem anexadas."
+      />
     )
   }
 

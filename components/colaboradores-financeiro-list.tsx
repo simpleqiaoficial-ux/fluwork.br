@@ -5,10 +5,11 @@ import { listarColaboradores } from "@/app/actions/colaboradores"
 import type { Colaborador } from "@/types/colaborador"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { TrendingUp, Search, History } from "lucide-react"
+import { TrendingUp, Search, History, Users } from "lucide-react"
 import { ReajusteDialog } from "@/components/reajuste-dialog"
 import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export function ColaboradoresFinanceiroList() {
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([])
@@ -90,8 +91,12 @@ export function ColaboradoresFinanceiroList() {
           <TableBody>
             {colaboradoresFiltrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  {filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
+                <TableCell colSpan={6} className="p-0">
+                  <EmptyState
+                    icon={Users}
+                    title={filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
+                    className="py-8"
+                  />
                 </TableCell>
               </TableRow>
             ) : (

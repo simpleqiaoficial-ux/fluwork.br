@@ -19,6 +19,7 @@ import {
 import { FileEdit, Send, Ban, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { criarAditivo, enviarAditivo, cancelarAditivo, type AditivoFormData } from "@/app/actions/contrato-aditivos"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface Aditivo {
   id: string
@@ -207,7 +208,7 @@ export function AditivoSection({ contractId, contratoStatus, aditivos }: Aditivo
       </div>
 
       {aditivos.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum aditivo criado ainda.</p>
+        <EmptyState icon={FileEdit} title="Nenhum aditivo criado ainda" className="py-8" />
       ) : (
         <div className="rounded-md border divide-y">
           {aditivos.map((aditivo) => {

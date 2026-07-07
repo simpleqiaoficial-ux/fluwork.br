@@ -23,7 +23,8 @@ import {
   getTermsAcceptanceStats,
 } from "@/app/actions/terms"
 import { CURRENT_TERMS_VERSION, type TermsAcceptanceWithUser } from "@/types/terms"
-import { Search, Monitor, Smartphone } from "lucide-react"
+import { Search, Monitor, Smartphone, FileCheck } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export function AceitesTermosList() {
   const [acceptances, setAcceptances] = useState<TermsAcceptanceWithUser[]>([])
@@ -158,9 +159,11 @@ export function AceitesTermosList() {
             <p className="text-sm text-muted-foreground">Carregando...</p>
           </div>
         ) : acceptances.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm text-muted-foreground">Nenhum registro encontrado</p>
-          </div>
+          <EmptyState
+            icon={FileCheck}
+            title="Nenhum registro encontrado"
+            description="Ajuste os filtros de busca para encontrar aceites de termos."
+          />
         ) : (
           <div className="rounded-lg border overflow-hidden">
             <Table>

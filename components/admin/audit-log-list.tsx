@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChevronLeft, ChevronRight, ScrollText } from "lucide-react"
 import { listarAuditLog } from "@/app/actions/admin-logs"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface AuditLogRow {
   id: string
@@ -130,10 +131,11 @@ export function AuditLogList({ registrosIniciais, totalInicial, totalPaginasInic
       <p className="text-sm text-muted-foreground">{total} registro{total !== 1 ? "s" : ""}</p>
 
       {registros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <ScrollText className="h-8 w-8 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhum registro de auditoria encontrado com estes filtros.</p>
-        </div>
+        <EmptyState
+          icon={ScrollText}
+          title="Nenhum registro de auditoria encontrado"
+          description="Nenhum resultado para os filtros aplicados."
+        />
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>

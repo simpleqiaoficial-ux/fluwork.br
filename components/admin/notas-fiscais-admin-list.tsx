@@ -19,6 +19,7 @@ import { ChevronLeft, ChevronRight, FileText, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { listarNotasFiscaisAdmin } from "@/app/actions/admin-dados"
 import { aprovarRejeitarNota, excluirNotaFiscalAdmin } from "@/app/actions/notas-fiscais"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface NotaFiscalAdminRow {
   id: string
@@ -124,10 +125,11 @@ export function NotasFiscaisAdminList({ registrosIniciais, totalInicial, totalPa
       <p className="text-sm text-muted-foreground">{total} nota{total !== 1 ? "s" : ""} fiscal{total !== 1 ? "is" : ""}</p>
 
       {registros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FileText className="h-8 w-8 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhuma nota fiscal encontrada com estes filtros.</p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Nenhuma nota fiscal encontrada"
+          description="Nenhum resultado para os filtros aplicados."
+        />
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>

@@ -6,9 +6,10 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, Search, ChevronDown, ChevronUp } from "lucide-react"
+import { Download, Search, ChevronDown, ChevronUp, FileX } from "lucide-react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { useMaskedCurrency } from "@/components/currency-display"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface NotasPeriodoListProps {
   pedidos: PedidoPagamento[]
@@ -30,10 +31,11 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
 
   if (pedidos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h3 className="text-base font-semibold mb-1">Nenhuma nota neste período</h3>
-        <p className="text-sm text-muted-foreground">Não foram encontradas notas fiscais para este mês.</p>
-      </div>
+      <EmptyState
+        icon={FileX}
+        title="Nenhuma nota neste período"
+        description="Não foram encontradas notas fiscais para este mês."
+      />
     )
   }
 

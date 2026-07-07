@@ -2,15 +2,26 @@
 
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, Search, ChevronDown, ChevronUp } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Download, Search, ChevronDown, ChevronUp, FileX } from "lucide-react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { useRouter } from "next/navigation"
+import { EmptyState } from "@/components/ui/empty-state"
 import { listarEquipes } from "@/app/actions/equipes"
 import { aprovarNotaFiscal, recusarNotaFiscal } from "@/app/actions/pedidos"
 import type { Equipe } from "@/types/equipe"
@@ -36,6 +47,8 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [motivoRecusa, setMotivoRecusa] = useState<{ [key: string]: string }>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [confirmAprovarId, setConfirmAprovarId] = useState<string | null>(null)
+  const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
   const [filtros, setFiltros] = useState({
     dataInicio: "",
     dataFim: "",
@@ -91,10 +104,6 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
       return
     }
 
-    if (!confirm("Deseja marcar esta nota como recebida?")) {
-      return
-    }
-
     try {
       setApprovingId(pedidoId)
       await aprovarNotaFiscal(pedidoId)
@@ -113,10 +122,6 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
 
     if (!motivo) {
       alert("Por favor, informe o motivo da recusa")
-      return
-    }
-
-    if (!confirm("Deseja recusar esta nota e solicitar correção ao prestador?")) {
       return
     }
 
@@ -146,10 +151,11 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
 
   if (pedidos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h3 className="text-base font-semibold mb-1">Nenhuma nota fiscal enviada</h3>
-        <p className="text-sm text-muted-foreground">Não há notas fiscais anexadas pelos prestadores no momento.</p>
-      </div>
+      <EmptyState
+        icon={FileX}
+        title="Nenhuma nota fiscal enviada"
+        description="Não há notas fiscais anexadas pelos prestadores no momento."
+      />
     )
   }
 
@@ -406,14 +412,20 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <Button
-                                    onClick={() => handleAprovarNota(pedido.id)}
+                                    onClick={() => setConfirmAprovarId(pedido.id)}
                                     disabled={approvingId === pedido.id || !canBeApproved}
                                     size="sm"
                                   >
                                     {approvingId === pedido.id ? "Processando..." : "Marcar nota recebida"}
                                   </Button>
                                   <Button
-                                    onClick={() => handleRecusarNota(pedido.id)}
+                                    onClick={() => {
+                                      if (!motivoRecusa[pedido.id]?.trim()) {
+                                        alert("Por favor, informe o motivo da recusa")
+                                        return
+                                      }
+                                      setConfirmRecusarId(pedido.id)
+                                    }}
                                     disabled={rejectingId === pedido.id}
                                     variant="outline"
                                     className="text-destructive hover:text-destructive"
@@ -421,6 +433,57 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                   >
                                     {rejectingId === pedido.id ? "Recusando..." : "Recusar nota"}
                                   </Button>
+
+                                  <AlertDialog
+                                    open={confirmAprovarId === pedido.id}
+                                    onOpenChange={(open) => !open && setConfirmAprovarId(null)}
+                                  >
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Marcar nota como recebida?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Confirma que a nota fiscal deste pedido foi recebida e conferida?
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => {
+                                            setConfirmAprovarId(null)
+                                            handleAprovarNota(pedido.id)
+                                          }}
+                                        >
+                                          Confirmar
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+
+                                  <AlertDialog
+                                    open={confirmRecusarId === pedido.id}
+                                    onOpenChange={(open) => !open && setConfirmRecusarId(null)}
+                                  >
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Recusar esta nota fiscal?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          O prestador será notificado para anexar uma nova nota corrigida.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          className={buttonVariants({ variant: "destructive" })}
+                                          onClick={() => {
+                                            setConfirmRecusarId(null)
+                                            handleRecusarNota(pedido.id)
+                                          }}
+                                        >
+                                          Recusar
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                   {pdfUrl && (
                                     <Button
                                       asChild

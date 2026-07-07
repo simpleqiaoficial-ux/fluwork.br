@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getSession } from "@/lib/session"
 import { formatCurrency } from "@/lib/utils"
+import { EmptyState } from "@/components/ui/empty-state"
+import { Inbox } from "lucide-react"
 
 function formatDateBR(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -32,7 +34,7 @@ export async function PedidosList() {
       </p>
 
       {pedidos.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8 text-sm">Nenhum pedido criado ainda</p>
+        <EmptyState icon={Inbox} title="Nenhum pedido criado ainda" />
       ) : (
         <div className="rounded-lg border max-h-[600px] overflow-y-auto">
           <Table>

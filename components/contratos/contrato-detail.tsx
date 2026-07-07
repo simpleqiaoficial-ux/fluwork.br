@@ -18,10 +18,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
-import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock, RotateCw, Archive, FileEdit, FileSignature } from "lucide-react"
+import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, Ban, Clock, RotateCw, Archive, FileEdit, FileSignature, History } from "lucide-react"
 import { toast } from "sonner"
 import { reenviarContrato, cancelarContrato, arquivarContrato } from "@/app/actions/contratos"
 import { AditivoSection } from "@/components/contratos/aditivo-section"
+import { EmptyState } from "@/components/ui/empty-state"
 
 const VIGENCIA_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline"> = {
   verde: "success",
@@ -244,7 +245,7 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
             )
           })}
           {(!contrato.eventos || contrato.eventos.length === 0) && (
-            <p className="px-4 py-3 text-sm text-muted-foreground">Nenhum evento registrado</p>
+            <EmptyState icon={History} title="Nenhum evento registrado" className="py-8" />
           )}
         </div>
       </div>

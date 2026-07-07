@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatCurrency } from "@/lib/utils"
-import { Save, ChevronDown, ChevronUp } from "lucide-react"
+import { Save, ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 import { useState } from "react"
 import { corrigirPedido } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
@@ -76,9 +77,11 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
 
   if (pedidos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm text-muted-foreground">Nenhum pedido aguardando correção</p>
-      </div>
+      <EmptyState
+        icon={ClipboardCheck}
+        title="Nenhum pedido aguardando correção"
+        description="Todos os pedidos estão em dia, sem pendências de correção."
+      />
     )
   }
 

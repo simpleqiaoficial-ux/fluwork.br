@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   Download,
   Search,
@@ -50,6 +60,8 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [motivoRecusa, setMotivoRecusa] = useState<Record<string, string>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [confirmAprovarId, setConfirmAprovarId] = useState<string | null>(null)
+  const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
   const [filtros, setFiltros] = useState({
     dataInicio: "",
     dataFim: "",
@@ -81,7 +93,6 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
       setSuspendedDialogOpen(true)
       return
     }
-    if (!confirm("Deseja marcar esta nota como recebida?")) return
     try {
       setApprovingId(pedidoId)
       await aprovarNotaFiscal(pedidoId)
@@ -105,7 +116,6 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
       alert("Por favor, informe o motivo da recusa")
       return
     }
-    if (!confirm("Deseja recusar esta nota e solicitar correção ao prestador?")) return
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
@@ -371,7 +381,13 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                                 </div>
                                 <div className="flex gap-2">
                                   <Button
-                                    onClick={() => handleAprovarNota(pedido.id)}
+                                    onClick={() => {
+                                      if (isSystemSuspended) {
+                                        setSuspendedDialogOpen(true)
+                                        return
+                                      }
+                                      setConfirmAprovarId(pedido.id)
+                                    }}
                                     disabled={approvingId === pedido.id}
                                     size="sm"
                                   >
@@ -379,7 +395,17 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                                     {approvingId === pedido.id ? "Processando..." : "Nota Recebida"}
                                   </Button>
                                   <Button
-                                    onClick={() => handleRecusarNota(pedido.id)}
+                                    onClick={() => {
+                                      if (isSystemSuspended) {
+                                        setSuspendedDialogOpen(true)
+                                        return
+                                      }
+                                      if (!motivoRecusa[pedido.id]?.trim()) {
+                                        alert("Por favor, informe o motivo da recusa")
+                                        return
+                                      }
+                                      setConfirmRecusarId(pedido.id)
+                                    }}
                                     disabled={rejectingId === pedido.id}
                                     variant="destructive"
                                     size="sm"
@@ -388,6 +414,57 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                                     {rejectingId === pedido.id ? "Recusando..." : "Recusar Nota"}
                                   </Button>
                                 </div>
+
+                                <AlertDialog
+                                  open={confirmAprovarId === pedido.id}
+                                  onOpenChange={(open) => !open && setConfirmAprovarId(null)}
+                                >
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Marcar nota como recebida?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Confirma que a nota fiscal deste pedido foi recebida e conferida?
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => {
+                                          setConfirmAprovarId(null)
+                                          handleAprovarNota(pedido.id)
+                                        }}
+                                      >
+                                        Confirmar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+
+                                <AlertDialog
+                                  open={confirmRecusarId === pedido.id}
+                                  onOpenChange={(open) => !open && setConfirmRecusarId(null)}
+                                >
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Recusar esta nota fiscal?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        O prestador será notificado e precisará reenviar a nota corrigida.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className={buttonVariants({ variant: "destructive" })}
+                                        onClick={() => {
+                                          setConfirmRecusarId(null)
+                                          handleRecusarNota(pedido.id)
+                                        }}
+                                      >
+                                        Recusar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             )}
                           </div>

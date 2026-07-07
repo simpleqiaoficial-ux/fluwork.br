@@ -11,6 +11,7 @@ import { FileText, Download, Search, ChevronDown, ChevronUp } from "lucide-react
 import type { PedidoPagamento } from "@/types/pedido"
 import { useRouter } from "next/navigation"
 import { useMaskedCurrency } from "@/components/currency-display"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface FinanceiroListProps {
   pedidos: PedidoPagamento[]
@@ -50,10 +51,11 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
 
   if (pedidos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <h3 className="text-base font-semibold mb-1">Nenhum pedido para processar</h3>
-        <p className="text-sm text-muted-foreground">Não há pedidos aprovados com nota fiscal no momento.</p>
-      </div>
+      <EmptyState
+        icon={FileText}
+        title="Nenhum pedido para processar"
+        description="Não há pedidos aprovados com nota fiscal no momento."
+      />
     )
   }
 

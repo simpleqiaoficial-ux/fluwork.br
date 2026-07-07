@@ -48,10 +48,12 @@ import {
   UserCheck,
   Briefcase,
   UsersRound,
+  UserSearch,
   Save,
 } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface EquipeDetailViewProps {
   equipe: Equipe
@@ -191,21 +193,14 @@ export function EquipeDetailView({
         </CardHeader>
         <CardContent className="p-0">
           {membros.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                <UsersRound className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground">Nenhum membro nesta equipe</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 gap-2"
-                onClick={() => { setSearchTerm(""); setAddDialogOpen(true) }}
-              >
-                <UserPlus className="h-4 w-4" />
-                Adicionar primeiro membro
-              </Button>
-            </div>
+            <EmptyState
+              icon={UsersRound}
+              title="Nenhum membro nesta equipe"
+              action={{
+                label: "Adicionar primeiro membro",
+                onClick: () => { setSearchTerm(""); setAddDialogOpen(true) },
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -258,9 +253,11 @@ export function EquipeDetailView({
             />
             <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
               {filteredSemEquipe.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  {searchTerm ? "Nenhum prestador encontrado" : "Todos os prestadores já pertencem a uma equipe"}
-                </p>
+                <EmptyState
+                  icon={UserSearch}
+                  title={searchTerm ? "Nenhum prestador encontrado" : "Todos os prestadores já pertencem a uma equipe"}
+                  className="py-8"
+                />
               ) : (
                 filteredSemEquipe.map((c) => (
                   <button
@@ -319,7 +316,7 @@ export function EquipeDetailView({
               <Label>Gerentes</Label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-input bg-muted/30 p-3 space-y-2">
                 {gerentes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum gerente cadastrado</p>
+                  <EmptyState icon={Briefcase} title="Nenhum gerente cadastrado" className="py-4" />
                 ) : (
                   gerentes.map((g) => (
                     <div key={g.id} className="flex items-center gap-2">

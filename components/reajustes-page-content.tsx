@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Search, History, ArrowLeft } from "lucide-react"
+import { TrendingUp, Search, History, ArrowLeft, Users } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 import { ReajusteDialog } from "@/components/reajuste-dialog"
 import { listarColaboradores } from "@/app/actions/colaboradores"
 import { listarHistoricoReajustes } from "@/app/actions/reajustes"
@@ -149,8 +150,12 @@ export function ReajustesPageContent() {
                 <TableBody>
                   {colaboradoresFiltrados.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        {filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
+                      <TableCell colSpan={6} className="p-0">
+                        <EmptyState
+                          icon={Users}
+                          title={filtro ? "Nenhum prestador encontrado" : "Nenhum prestador cadastrado"}
+                          className="py-8"
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -210,8 +215,12 @@ export function ReajustesPageContent() {
                 <TableBody>
                   {historicoFiltrado.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        {filtroHistorico ? "Nenhum reajuste encontrado" : "Nenhum reajuste registrado"}
+                      <TableCell colSpan={7} className="p-0">
+                        <EmptyState
+                          icon={TrendingUp}
+                          title={filtroHistorico ? "Nenhum reajuste encontrado" : "Nenhum reajuste registrado"}
+                          className="py-8"
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (

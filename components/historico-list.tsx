@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatCurrency } from "@/lib/utils"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, History } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface HistoricoListProps {
   pedidos: PedidoPagamento[]
@@ -16,11 +17,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   if (pedidos.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground text-sm">Nenhum pedido criado ainda</p>
-      </div>
-    )
+    return <EmptyState icon={History} title="Nenhum pedido criado ainda" />
   }
 
   return (

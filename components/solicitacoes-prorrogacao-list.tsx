@@ -3,8 +3,9 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { EmptyState } from "@/components/ui/empty-state"
 import { useState } from "react"
 import { responderSolicitacaoProrrogacao } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
@@ -98,10 +99,11 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
 
   if (solicitacoes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h3 className="text-base font-semibold mb-1">Nenhuma solicitação pendente</h3>
-        <p className="text-sm text-muted-foreground">Todas as solicitações de prorrogação foram processadas.</p>
-      </div>
+      <EmptyState
+        icon={CheckCircle2}
+        title="Nenhuma solicitação pendente"
+        description="Todas as solicitações de prorrogação foram processadas."
+      />
     )
   }
 

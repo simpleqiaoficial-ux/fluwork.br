@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { ArrowLeft, FileSignature, User } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface SituacaoVigencia {
   chave: string
@@ -97,10 +98,7 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
 
         <TabsContent value="contratos" className="space-y-3 mt-4">
           {contratos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileSignature className="h-8 w-8 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">Nenhum contrato vinculado a este prestador ainda.</p>
-            </div>
+            <EmptyState icon={FileSignature} title="Nenhum contrato vinculado a este prestador ainda" />
           ) : (
             contratos.map((contrato) => {
               return (

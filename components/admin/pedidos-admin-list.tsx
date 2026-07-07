@@ -20,6 +20,7 @@ import { Search, ChevronLeft, ChevronRight, Wallet, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { listarPedidosAdmin } from "@/app/actions/admin-dados"
 import { deletarPedido } from "@/app/actions/pedidos"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface PedidoAdminRow {
   id: string
@@ -142,10 +143,11 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
       <p className="text-sm text-muted-foreground">{total} pedido{total !== 1 ? "s" : ""}</p>
 
       {registros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Wallet className="h-8 w-8 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhum pedido encontrado com estes filtros.</p>
-        </div>
+        <EmptyState
+          icon={Wallet}
+          title="Nenhum pedido encontrado"
+          description="Nenhum resultado para os filtros aplicados."
+        />
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>

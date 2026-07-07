@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils"
 import { Search, Filter, ChevronDown, ChevronUp, Download } from "lucide-react"
 import { format } from "date-fns"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface HistoricoCompletoListProps {
   pedidos: PedidoPagamento[]
@@ -216,9 +217,11 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
         </p>
 
         {pedidosFiltrados.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-center">
-            <p className="text-muted-foreground text-sm">Nenhum pedido encontrado com os filtros aplicados</p>
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Nenhum pedido encontrado"
+            description="Ajuste os filtros aplicados para ver mais resultados."
+          />
         ) : (
           <div className="rounded-lg border overflow-hidden">
             <Table>

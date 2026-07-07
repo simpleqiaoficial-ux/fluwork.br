@@ -28,6 +28,7 @@ import { Search, ChevronLeft, ChevronRight, Pencil, Trash2, Users, AlertTriangle
 import { toast } from "sonner"
 import { listarColaboradoresAdmin, getImpactoExclusaoColaborador } from "@/app/actions/admin-dados"
 import { atualizarColaborador, deletarColaborador } from "@/app/actions/colaboradores"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface ColaboradorAdminRow {
   id: string
@@ -188,10 +189,11 @@ export function ColaboradoresAdminList({ registrosIniciais, totalInicial, totalP
       <p className="text-sm text-muted-foreground">{total} colaborador{total !== 1 ? "es" : ""}</p>
 
       {registros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Users className="h-8 w-8 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Nenhum colaborador encontrado com estes filtros.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="Nenhum colaborador encontrado"
+          description="Nenhum resultado para os filtros aplicados."
+        />
       ) : (
         <div className="rounded-lg border overflow-hidden">
           <Table>

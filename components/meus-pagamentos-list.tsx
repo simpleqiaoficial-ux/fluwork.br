@@ -24,6 +24,8 @@ import { PedidoTimeline } from "./pedido-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { EmptyState } from "@/components/ui/empty-state"
+import { Wallet } from "lucide-react"
 
 interface Pedido {
   id: string
@@ -169,15 +171,16 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
   const renderPedidos = (pedidos: Pedido[], isHistorico: boolean) => {
     if (!pedidos || !Array.isArray(pedidos) || pedidos.length === 0) {
       return (
-        <div className="flex items-center justify-center py-16 text-center">
-          <p className="text-muted-foreground text-sm">
-            {isHistorico
+        <EmptyState
+          icon={Wallet}
+          title={
+            isHistorico
               ? "Nenhum pagamento no histórico ainda"
               : colaborador?.tipo_acesso === "Colaborador"
                 ? "Nenhum pagamento aprovado ainda"
-                : "Nenhum pagamento registrado ainda"}
-          </p>
-        </div>
+                : "Nenhum pagamento registrado ainda"
+          }
+        />
       )
     }
 

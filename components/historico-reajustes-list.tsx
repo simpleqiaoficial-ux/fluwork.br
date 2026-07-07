@@ -3,9 +3,10 @@
 import { useState } from "react"
 import type { HistoricoReajuste } from "@/types/reajuste"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface HistoricoReajustesListProps {
   reajustes: HistoricoReajuste[]
@@ -19,11 +20,7 @@ export function HistoricoReajustesList({ reajustes }: HistoricoReajustesListProp
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   if (reajustes.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground text-sm">Nenhum reajuste registrado</p>
-      </div>
-    )
+    return <EmptyState icon={TrendingUp} title="Nenhum reajuste registrado" />
   }
 
   return (

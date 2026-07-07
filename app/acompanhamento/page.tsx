@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, FileText, User, Calendar, DollarSign } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default async function AcompanhamentoPage() {
   const session = await getSession()
@@ -41,12 +42,12 @@ export default async function AcompanhamentoPage() {
 
         {pedidosPendentes.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
-              <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-lg font-medium mb-2">Nenhuma pendência encontrada</p>
-              <p className="text-sm text-muted-foreground">
-                Todos os prestadores estão em dia com suas notas fiscais
-              </p>
+            <CardContent>
+              <EmptyState
+                icon={FileText}
+                title="Nenhuma pendência encontrada"
+                description="Todos os prestadores estão em dia com suas notas fiscais"
+              />
             </CardContent>
           </Card>
         ) : (
