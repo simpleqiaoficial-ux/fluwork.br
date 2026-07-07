@@ -1,14 +1,13 @@
 import Link from "next/link"
-import { Plus, ShieldAlert } from "lucide-react"
-import { ColaboradoresList } from "@/components/colaboradores-list"
-import { Suspense } from "react"
+import { ArrowLeft } from "lucide-react"
+import { ColaboradorForm } from "@/components/colaborador-form"
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { podeVisualizarPagina } from "@/lib/tenant"
 import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ShieldAlert } from "lucide-react"
 
-export default async function ColaboradoresPage() {
+export default async function NovoColaboradorPage() {
   const usuario = await getUsuarioLogado()
 
   if (!usuario) {
@@ -28,26 +27,22 @@ export default async function ColaboradoresPage() {
       </div>
     )
   }
-  // </CHANGE>
 
   return (
-    <div className="container mx-auto py-8 px-4 lg:px-6 max-w-4xl">
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Prestadores</h1>
-          <p className="text-sm text-muted-foreground">Gerencie os prestadores da sua empresa</p>
-        </div>
-        <Link href="/cadastros/colaboradores/novo">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Prestador
-          </Button>
+    <div className="container mx-auto py-8 px-4 lg:px-6 max-w-3xl">
+      <div className="mb-8">
+        <Link
+          href="/cadastros/colaboradores"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para prestadores
         </Link>
+        <h1 className="text-2xl font-semibold mt-3 mb-1 text-foreground">Novo Prestador</h1>
+        <p className="text-sm text-muted-foreground">Cadastre um novo prestador de serviços da sua empresa</p>
       </div>
 
-      <Suspense fallback={<div>Carregando...</div>}>
-        <ColaboradoresList usuarioLogadoTipoAcesso={usuario.tipo_acesso} />
-      </Suspense>
+      <ColaboradorForm usuarioLogadoTipoAcesso={usuario.tipo_acesso} />
     </div>
   )
 }

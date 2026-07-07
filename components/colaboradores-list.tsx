@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { listarColaboradores, exportarColaboradoresExcel } from "@/app/actions/colaboradores"
 import { listarEquipes } from "@/app/actions/equipes"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ColaboradorItem } from "./colaborador-item"
 import type { Colaborador } from "@/types/colaborador"
 import type { Equipe } from "@/types/equipe"
-import { Search, ChevronLeft, ChevronRight, Download } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, Download, Plus, Users } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 const ITEMS_PER_PAGE = 5
@@ -126,13 +127,10 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Prestadores cadastrados</h2>
-          <p className="text-sm text-muted-foreground">
-            {colaboradoresFiltrados.length} de {colaboradores.length} prestador
-            {colaboradores.length !== 1 ? "es" : ""}
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {colaboradoresFiltrados.length} de {colaboradores.length} prestador
+          {colaboradores.length !== 1 ? "es" : ""}
+        </p>
         <Button onClick={handleExportarExcel} disabled={exporting || colaboradores.length === 0} variant="outline">
           <Download className="h-4 w-4" />
           {exporting ? "Exportando..." : "Exportar Excel"}
@@ -171,15 +169,31 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
       </div>
 
       {colaboradoresFiltrados.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">
-          {searchTerm
-            ? "Nenhum prestador encontrado com este termo de busca"
-            : equipeSelecionada === "todas"
-              ? "Nenhum prestador cadastrado ainda"
-              : equipeSelecionada === "sem-equipe"
-                ? "Nenhum prestador sem equipe"
-                : "Nenhum prestador nesta equipe"}
-        </p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Users className="h-8 w-8 text-muted-foreground mb-3" />
+          <h3 className="font-semibold text-foreground">
+            {searchTerm
+              ? "Nenhum prestador encontrado"
+              : equipeSelecionada === "todas"
+                ? "Nenhum prestador cadastrado ainda"
+                : equipeSelecionada === "sem-equipe"
+                  ? "Nenhum prestador sem equipe"
+                  : "Nenhum prestador nesta equipe"}
+          </h3>
+          {!searchTerm && equipeSelecionada === "todas" && (
+            <>
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                Cadastre o primeiro prestador de serviços da sua empresa.
+              </p>
+              <Link href="/cadastros/colaboradores/novo">
+                <Button variant="outline" size="sm" className="mt-4 gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Prestador
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
       ) : (
         <>
           <div className="space-y-3">
