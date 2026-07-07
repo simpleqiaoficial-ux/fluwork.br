@@ -19,7 +19,7 @@ export function ImpersonationBanner({ empresaNome }: ImpersonationBannerProps) {
   }
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between gap-3 bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950">
+    <div className="sticky top-0 z-50 flex items-center justify-between gap-3 bg-warning px-4 py-2 text-sm font-medium text-warning-foreground">
       <div className="flex items-center gap-2">
         <Eye className="h-4 w-4 shrink-0" />
         <span>
@@ -29,7 +29,7 @@ export function ImpersonationBanner({ empresaNome }: ImpersonationBannerProps) {
       <Button
         size="sm"
         variant="outline"
-        className="h-7 gap-1.5 border-amber-950/30 bg-amber-500 text-amber-950 hover:bg-amber-600 hover:text-amber-950"
+        className="h-7 gap-1.5 border-warning-foreground/30 bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground"
         onClick={handleSair}
         disabled={isPending}
       >

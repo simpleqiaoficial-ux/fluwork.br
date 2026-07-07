@@ -1,0 +1,58 @@
+import { FileEdit, Send, Eye, CheckCircle2, XCircle, Clock, Ban, Archive, AlertTriangle, FileCheck, PauseCircle, type LucideIcon } from "lucide-react"
+import type { BadgeProps } from "@/components/ui/badge"
+
+export type StatusVariant = NonNullable<BadgeProps["variant"]>
+
+export interface StatusConfigEntry {
+  label: string
+  variant: StatusVariant
+  icon: LucideIcon
+}
+
+/** Fonte única de verdade para status → { label, cor, ícone } por tipo de entidade.
+ *  Substitui os STATUS_CONFIG/STATUS_LABELS locais que existiam duplicados em ~16 arquivos. */
+export const CONTRATO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  draft: { label: "Rascunho", variant: "neutral", icon: FileEdit },
+  sent: { label: "Enviado", variant: "info", icon: Send },
+  viewed: { label: "Visualizado", variant: "warning", icon: Eye },
+  signed: { label: "Assinado", variant: "success", icon: CheckCircle2 },
+  refused: { label: "Recusado", variant: "destructive", icon: XCircle },
+  expired: { label: "Link expirado", variant: "destructive", icon: Clock },
+  cancelled: { label: "Cancelado", variant: "neutral", icon: Ban },
+  archived: { label: "Arquivado", variant: "neutral", icon: Archive },
+}
+
+export const PEDIDO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  pendente_gerente: { label: "Aguardando Gerente", variant: "neutral", icon: Clock },
+  pendente_financeiro: { label: "Aguardando Financeiro", variant: "neutral", icon: Clock },
+  aprovado: { label: "Aprovado", variant: "success", icon: CheckCircle2 },
+  pago: { label: "Pago", variant: "success", icon: CheckCircle2 },
+  nota_recebida: { label: "Nota Recebida", variant: "success", icon: FileCheck },
+  recusado: { label: "Recusado", variant: "destructive", icon: XCircle },
+  correcao: { label: "Em Correção", variant: "warning", icon: AlertTriangle },
+}
+
+export const EMPRESA_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  active: { label: "Ativa", variant: "success", icon: CheckCircle2 },
+  inactive: { label: "Inativa", variant: "neutral", icon: PauseCircle },
+  blocked: { label: "Bloqueada", variant: "destructive", icon: Ban },
+}
+
+export const NOTA_FISCAL_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  pendente: { label: "Pendente", variant: "neutral", icon: Clock },
+  aprovado: { label: "Aprovado", variant: "success", icon: CheckCircle2 },
+  rejeitado: { label: "Rejeitado", variant: "destructive", icon: XCircle },
+}
+
+export type StatusEntity = "contrato" | "pedido" | "empresa" | "nota_fiscal"
+
+const CONFIG_BY_ENTITY: Record<StatusEntity, Record<string, StatusConfigEntry>> = {
+  contrato: CONTRATO_STATUS_CONFIG,
+  pedido: PEDIDO_STATUS_CONFIG,
+  empresa: EMPRESA_STATUS_CONFIG,
+  nota_fiscal: NOTA_FISCAL_STATUS_CONFIG,
+}
+
+export function getStatusConfig(entity: StatusEntity, status: string): StatusConfigEntry {
+  return CONFIG_BY_ENTITY[entity][status] || { label: status, variant: "neutral", icon: Clock }
+}

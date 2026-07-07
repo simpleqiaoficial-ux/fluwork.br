@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Geist_Mono } from "next/font/google"
 import "./globals.css" // Import globals.css here
 import "./main.css"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
@@ -17,7 +17,7 @@ import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import cn from "classnames"
 
-const geistSans = Geist({
+const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 })
@@ -66,7 +66,7 @@ export default async function RootLayout({
   const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
 
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="pt-BR" className={`${inter.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-background">
         <ValoresVisibilityProvider>
           {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
