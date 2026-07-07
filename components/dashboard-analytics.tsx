@@ -97,7 +97,7 @@ interface KpiCardProps {
 
 function KpiCard({ icon: Icon, accent, label, value, description }: KpiCardProps) {
   return (
-    <Card className="border shadow-none">
+    <Card className="border shadow-none animate-in fade-in slide-in-from-bottom-1 duration-300">
       <CardContent className="p-5">
         <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${KPI_ACCENT_CLASSES[accent]}`}>
           <Icon className="h-4 w-4" />
@@ -472,7 +472,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
       <div>
         <h2 className="text-sm font-semibold text-foreground mb-3">Gráficos</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2 border shadow-none">
+          <Card className="lg:col-span-2 border shadow-none animate-in fade-in slide-in-from-bottom-1 duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -516,7 +516,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-1 duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold">Distribuição por Tipo</CardTitle>
             </CardHeader>
