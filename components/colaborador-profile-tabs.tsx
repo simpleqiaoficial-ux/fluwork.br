@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { ArrowLeft, FileSignature, User } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
@@ -42,17 +43,6 @@ interface ColaboradorProfileTabsProps {
     centro_custo?: { id: string; nome: string } | null
   }
   contratos: ContratoResumo[]
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  sent: { label: "Enviado", variant: "outline" },
-  viewed: { label: "Visualizado", variant: "warning" },
-  signed: { label: "Assinado", variant: "success" },
-  refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Link expirado", variant: "destructive" },
-  cancelled: { label: "Cancelado", variant: "outline" },
-  archived: { label: "Arquivado", variant: "secondary" },
 }
 
 const VIGENCIA_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline"> = {
@@ -113,7 +103,6 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
             </div>
           ) : (
             contratos.map((contrato) => {
-              const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
               return (
                 <Link
                   key={contrato.id}
@@ -126,7 +115,7 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
                       <p className="text-xs text-muted-foreground mt-0.5">{contrato.tipo_servico} · {formatCurrency(contrato.valor)}</p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                      <StatusBadge entity="contrato" status={contrato.status} />
                       {contrato.situacao_vigencia && contrato.situacao_vigencia.chave !== "sem_vigencia" && (
                         <Badge variant={VIGENCIA_VARIANT[contrato.situacao_vigencia.cor]}>
                           {contrato.situacao_vigencia.emoji} {contrato.situacao_vigencia.label}

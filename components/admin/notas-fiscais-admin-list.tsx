@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -36,12 +36,6 @@ interface NotasFiscaisAdminListProps {
   totalInicial: number
   totalPaginasInicial: number
   empresas: Array<{ id: string; nome: string }>
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  pendente: { label: "Pendente", variant: "outline" },
-  aprovado: { label: "Aprovado", variant: "success" },
-  rejeitado: { label: "Rejeitado", variant: "destructive" },
 }
 
 function formatarMoeda(valor: number | null): string {
@@ -150,7 +144,6 @@ export function NotasFiscaisAdminList({ registrosIniciais, totalInicial, totalPa
             </TableHeader>
             <TableBody>
               {registros.map((registro) => {
-                const statusConfig = STATUS_CONFIG[registro.status] || { label: registro.status, variant: "outline" as const }
                 return (
                   <TableRow key={registro.id}>
                     <TableCell className="text-sm font-medium">{registro.numero_nfse}</TableCell>
@@ -161,7 +154,7 @@ export function NotasFiscaisAdminList({ registrosIniciais, totalInicial, totalPa
                     <TableCell>
                       <Select value={registro.status} onValueChange={(v) => alterarStatus(registro, v as "aprovado" | "rejeitado")}>
                         <SelectTrigger className="h-8 w-[120px]">
-                          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                          <StatusBadge entity="nota_fiscal" status={registro.status} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pendente" disabled>Pendente</SelectItem>

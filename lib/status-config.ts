@@ -30,6 +30,8 @@ export const PEDIDO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
   nota_recebida: { label: "Nota Recebida", variant: "success", icon: FileCheck },
   recusado: { label: "Recusado", variant: "destructive", icon: XCircle },
   correcao: { label: "Em Correção", variant: "warning", icon: AlertTriangle },
+  aguardando_prorrogacao: { label: "Aguardando Prorrogação", variant: "neutral", icon: Clock },
+  prorrogacao_negada: { label: "Prorrogação Negada", variant: "destructive", icon: XCircle },
 }
 
 export const EMPRESA_STATUS_CONFIG: Record<string, StatusConfigEntry> = {

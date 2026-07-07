@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -262,7 +263,6 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
                 </TableRow>
               ) : (
               contratosFiltrados.map((contrato) => {
-                const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
                 const podeReenviar = ["sent", "viewed", "expired"].includes(contrato.status)
                 return (
                   <TableRow key={contrato.id}>
@@ -282,7 +282,7 @@ export function ContratosList({ contratos, tipoAcesso }: ContratosListProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                        <StatusBadge entity="contrato" status={contrato.status} />
                         {contrato.situacao_vigencia && contrato.situacao_vigencia.chave !== "sem_vigencia" && (
                           <Badge variant={VIGENCIA_VARIANT[contrato.situacao_vigencia.cor]}>
                             {contrato.situacao_vigencia.emoji} {contrato.situacao_vigencia.label}

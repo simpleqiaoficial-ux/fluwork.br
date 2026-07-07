@@ -15,31 +15,12 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PedidoDetailModal } from "./pedido-detail-modal"
 
 interface DashboardFiltersProps {
   pedidos: PedidoPagamento[]
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente_gerente: "Aguardando Gerente",
-  pendente_financeiro: "Aguardando Financeiro",
-  aprovado: "Aprovado",
-  pago: "Pago",
-  nota_recebida: "Nota Recebida",
-  recusado: "Recusado",
-  correcao: "Em Correção",
-}
-
-const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
-  pendente_gerente: "outline",
-  pendente_financeiro: "outline",
-  aprovado: "success",
-  pago: "success",
-  nota_recebida: "success",
-  recusado: "destructive",
-  correcao: "warning",
 }
 
 export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
@@ -417,9 +398,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
                           {formatCurrency(pedido.valor_total)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
-                            {STATUS_LABELS[pedido.status] || pedido.status}
-                          </Badge>
+                          <StatusBadge entity="pedido" status={pedido.status} />
                         </TableCell>
                       </TableRow>
                     ))}

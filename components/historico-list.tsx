@@ -3,32 +3,13 @@
 import { useState } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatCurrency } from "@/lib/utils"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
 interface HistoricoListProps {
   pedidos: PedidoPagamento[]
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente_gerente: "Aguardando Gerente",
-  pendente_financeiro: "Aguardando Financeiro",
-  aprovado: "Aprovado",
-  pago: "Pago",
-  nota_recebida: "Nota Recebida",
-  recusado: "Recusado",
-  correcao: "Correção Solicitada",
-}
-
-const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
-  pendente_gerente: "outline",
-  pendente_financeiro: "outline",
-  aprovado: "success",
-  pago: "success",
-  nota_recebida: "success",
-  recusado: "destructive",
-  correcao: "warning",
 }
 
 export function HistoricoList({ pedidos }: HistoricoListProps) {
@@ -79,9 +60,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
-                      {STATUS_LABELS[pedido.status] || pedido.status}
-                    </Badge>
+                    <StatusBadge entity="pedido" status={pedido.status} />
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">
                     {formatCurrency(pedido.valor_total)}

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -40,16 +40,6 @@ const TIPO_LABEL: Record<string, string> = {
   aditivo_clausulas: "Alteração de Cláusulas",
   renovacao: "Renovação Contratual",
   outro: "Aditivo Contratual",
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  sent: { label: "Enviado", variant: "outline" },
-  viewed: { label: "Visualizado", variant: "warning" },
-  signed: { label: "Assinado", variant: "success" },
-  refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Link expirado", variant: "destructive" },
-  cancelled: { label: "Cancelado", variant: "outline" },
 }
 
 const CAMPOS_INICIAIS = {
@@ -221,7 +211,6 @@ export function AditivoSection({ contractId, contratoStatus, aditivos }: Aditivo
       ) : (
         <div className="rounded-md border divide-y">
           {aditivos.map((aditivo) => {
-            const statusConfig = STATUS_CONFIG[aditivo.status] || { label: aditivo.status, variant: "outline" as const }
             return (
               <div key={aditivo.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -234,7 +223,7 @@ export function AditivoSection({ contractId, contratoStatus, aditivos }: Aditivo
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                  <StatusBadge entity="contrato" status={aditivo.status} />
                   {aditivo.status === "draft" && (
                     <Button size="sm" variant="outline" className="gap-1 h-8 text-xs" disabled={loadingId === aditivo.id} onClick={() => handleEnviar(aditivo.id)}>
                       <Send className="h-3.5 w-3.5" />

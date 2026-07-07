@@ -1,19 +1,10 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 import { listarContratosDoUsuario } from "@/app/actions/contratos"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileSignature, Download } from "lucide-react"
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  sent: { label: "Aguardando sua assinatura", variant: "warning" },
-  viewed: { label: "Aguardando sua assinatura", variant: "warning" },
-  signed: { label: "Assinado", variant: "success" },
-  refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Expirado", variant: "destructive" },
-  cancelled: { label: "Cancelado", variant: "outline" },
-}
+import { FileSignature, Download, Clock } from "lucide-react"
 
 function formatarMoeda(valor: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor)
@@ -46,7 +37,6 @@ export default async function MeusContratosPage() {
       ) : (
         <div className="rounded-md border divide-y">
           {contratos.map((contrato: any) => {
-            const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
             return (
               <div key={contrato.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
@@ -56,7 +46,14 @@ export default async function MeusContratosPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                  {contrato.status === "sent" || contrato.status === "viewed" ? (
+                    <Badge variant="warning">
+                      <Clock className="h-3 w-3" />
+                      Aguardando sua assinatura
+                    </Badge>
+                  ) : (
+                    <StatusBadge entity="contrato" status={contrato.status} />
+                  )}
                   {contrato.status === "signed" && (
                     <a href={`/api/contratos/${contrato.id}/pdf`} target="_blank" rel="noreferrer">
                       <Button size="icon" variant="ghost" className="h-8 w-8">

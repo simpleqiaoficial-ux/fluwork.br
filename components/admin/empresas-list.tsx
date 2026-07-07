@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, ChevronRight, Building2 } from "lucide-react"
 
@@ -13,12 +13,6 @@ interface EmpresaRow {
   cnpj: string
   status: string
   created_at?: string | null
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "success" | "outline" | "destructive" }> = {
-  active: { label: "Ativa", variant: "success" },
-  inactive: { label: "Inativa", variant: "outline" },
-  blocked: { label: "Bloqueada", variant: "destructive" },
 }
 
 interface EmpresasListProps {
@@ -68,7 +62,6 @@ export function EmpresasList({ empresas }: EmpresasListProps) {
             </TableHeader>
             <TableBody>
               {empresas.map((empresa) => {
-                const statusConfig = STATUS_CONFIG[empresa.status] || { label: empresa.status, variant: "outline" as const }
                 return (
                   <TableRow key={empresa.id}>
                     <TableCell>
@@ -83,7 +76,7 @@ export function EmpresasList({ empresas }: EmpresasListProps) {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{empresa.cnpj}</TableCell>
                     <TableCell>
-                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                      <StatusBadge entity="empresa" status={empresa.status} />
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/admin/empresas/${empresa.id}`}>

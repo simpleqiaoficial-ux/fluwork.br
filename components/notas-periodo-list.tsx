@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -11,20 +12,6 @@ import { useMaskedCurrency } from "@/components/currency-display"
 
 interface NotasPeriodoListProps {
   pedidos: PedidoPagamento[]
-}
-
-const STATUS_VARIANT: Record<string, "success" | "warning" | "outline"> = {
-  nota_recebida: "success",
-  pago: "success",
-  pendente_financeiro: "warning",
-  aprovado: "warning",
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  nota_recebida: "Nota recebida",
-  pago: "Pago",
-  pendente_financeiro: "Pendente",
-  aprovado: "Pendente",
 }
 
 export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
@@ -125,11 +112,7 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
                     </TableCell>
                     <TableCell className="text-right font-medium tabular-nums">{formatValue(valorNF)}</TableCell>
                     <TableCell>
-                      {STATUS_LABELS[pedido.status] && (
-                        <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
-                          {STATUS_LABELS[pedido.status]}
-                        </Badge>
-                      )}
+                      <StatusBadge entity="pedido" status={pedido.status} />
                     </TableCell>
                     <TableCell>
                       {isExpanded ? (

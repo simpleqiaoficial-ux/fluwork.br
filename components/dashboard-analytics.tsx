@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -53,16 +54,6 @@ const STATUS_LABELS: Record<string, string> = {
   correcao: "Correção",
   pago: "Pago",
   nota_recebida: "Nota Recebida",
-}
-
-const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
-  pendente_gerente: "outline",
-  pendente_financeiro: "outline",
-  aprovado: "success",
-  recusado: "destructive",
-  correcao: "warning",
-  pago: "success",
-  nota_recebida: "success",
 }
 
 // Paleta do gráfico segue os tokens --chart-1..5 do design system (nunca cor hardcoded).
@@ -745,9 +736,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={STATUS_VARIANT[p.status] || "outline"} className="font-normal">
-                                {STATUS_LABELS[p.status] || p.status}
-                              </Badge>
+                              <StatusBadge entity="pedido" status={p.status} />
                             </TableCell>
                             <TableCell className="text-right text-sm font-semibold">
                               {formatValue(p.valor_total)}
@@ -814,7 +803,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                                   {(p.valor_desconto || 0) > 0 && (
                                     <div>
                                       <span className="text-muted-foreground text-xs block">Desconto</span>
-                                      <span className="font-medium text-red-600">{formatValue(p.valor_desconto, true)}</span>
+                                      <span className="font-medium text-destructive">{formatValue(p.valor_desconto, true)}</span>
                                       {p.motivo_desconto && (
                                         <span className="text-xs text-muted-foreground block">{p.motivo_desconto}</span>
                                       )}

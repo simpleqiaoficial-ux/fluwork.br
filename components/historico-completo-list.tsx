@@ -3,7 +3,7 @@
 import { useState } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import type { Equipe } from "@/types/equipe"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,26 +16,6 @@ import { format } from "date-fns"
 interface HistoricoCompletoListProps {
   pedidos: PedidoPagamento[]
   equipes: Equipe[]
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente_gerente: "Aguardando Gerente",
-  pendente_financeiro: "Aguardando Financeiro",
-  aprovado: "Aprovado",
-  pago: "Pago",
-  nota_recebida: "Nota Recebida",
-  recusado: "Recusado",
-  correcao: "Correção Solicitada",
-}
-
-const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
-  pendente_gerente: "outline",
-  pendente_financeiro: "outline",
-  aprovado: "success",
-  pago: "success",
-  nota_recebida: "success",
-  recusado: "destructive",
-  correcao: "warning",
 }
 
 export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: HistoricoCompletoListProps) {
@@ -279,9 +259,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">{criadoPor}</TableCell>
                         <TableCell>
-                          <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
-                            {STATUS_LABELS[pedido.status] || pedido.status}
-                          </Badge>
+                          <StatusBadge entity="pedido" status={pedido.status} />
                         </TableCell>
                         <TableCell className="text-right font-semibold tabular-nums">
                           {formatCurrency(pedido.valor_total)}

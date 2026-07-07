@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,17 +22,6 @@ import { Download, RefreshCw, XCircle, ArrowLeft, FileText, Send, Eye, PenLine, 
 import { toast } from "sonner"
 import { reenviarContrato, cancelarContrato, arquivarContrato } from "@/app/actions/contratos"
 import { AditivoSection } from "@/components/contratos/aditivo-section"
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  sent: { label: "Enviado", variant: "outline" },
-  viewed: { label: "Visualizado", variant: "warning" },
-  signed: { label: "Assinado", variant: "success" },
-  refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Link expirado", variant: "destructive" },
-  cancelled: { label: "Cancelado", variant: "outline" },
-  archived: { label: "Arquivado", variant: "secondary" },
-}
 
 const VIGENCIA_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline"> = {
   verde: "success",
@@ -87,7 +77,6 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [motivo, setMotivo] = useState("")
 
-  const statusConfig = STATUS_CONFIG[contrato.status] || { label: contrato.status, variant: "outline" as const }
   const podeReenviar = ["sent", "viewed", "expired"].includes(contrato.status)
   const podeCancelar = !["signed", "cancelled"].includes(contrato.status)
   const podeArquivar =
@@ -152,7 +141,7 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold text-foreground">{contrato.numero}</h1>
-              <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+              <StatusBadge entity="contrato" status={contrato.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">{contrato.tipo_servico}</p>
           </div>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -44,17 +45,6 @@ interface ContratosAdminListProps {
   totalInicial: number
   totalPaginasInicial: number
   empresas: Array<{ id: string; nome: string }>
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "success" | "warning" | "destructive" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  sent: { label: "Enviado", variant: "outline" },
-  viewed: { label: "Visualizado", variant: "warning" },
-  signed: { label: "Assinado", variant: "success" },
-  refused: { label: "Recusado", variant: "destructive" },
-  expired: { label: "Link expirado", variant: "destructive" },
-  cancelled: { label: "Cancelado", variant: "outline" },
-  archived: { label: "Arquivado", variant: "secondary" },
 }
 
 const VIGENCIA_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline"> = {
@@ -189,7 +179,6 @@ export function ContratosAdminList({ registrosIniciais, totalInicial, totalPagin
             </TableHeader>
             <TableBody>
               {registros.map((registro) => {
-                const statusConfig = STATUS_CONFIG[registro.status] || { label: registro.status, variant: "outline" as const }
                 const podeCancelar = !["signed", "cancelled", "archived"].includes(registro.status)
                 const podeArquivar =
                   ["cancelled", "refused", "expired"].includes(registro.status) ||
@@ -208,7 +197,7 @@ export function ContratosAdminList({ registrosIniciais, totalInicial, totalPagin
                     <TableCell className="hidden sm:table-cell text-right tabular-nums text-sm">{formatarMoeda(registro.valor)}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                        <StatusBadge entity="contrato" status={registro.status} />
                         {registro.situacao_vigencia && registro.situacao_vigencia.chave !== "sem_vigencia" && (
                           <Badge variant={VIGENCIA_VARIANT[registro.situacao_vigencia.cor]}>
                             {registro.situacao_vigencia.emoji} {registro.situacao_vigencia.label}

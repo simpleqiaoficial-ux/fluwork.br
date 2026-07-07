@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
@@ -37,12 +37,6 @@ interface EmpresaDetailProps {
     total_pedidos: number
   }
   usuarios: UsuarioRow[]
-}
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "success" | "outline" | "destructive" }> = {
-  active: { label: "Ativa", variant: "success" },
-  inactive: { label: "Inativa", variant: "outline" },
-  blocked: { label: "Bloqueada", variant: "destructive" },
 }
 
 export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) {
@@ -98,8 +92,6 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
       setSalvandoCredenciais(false)
     }
   }
-
-  const statusConfig = STATUS_CONFIG[empresa.status] || { label: empresa.status, variant: "outline" as const }
 
   const handleSalvar = async () => {
     setLoading(true)
@@ -158,7 +150,7 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
               <Eye className="h-4 w-4" />
               {entrando ? "Entrando..." : "Visualizar como esta empresa"}
             </Button>
-            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+            <StatusBadge entity="empresa" status={empresa.status} />
             <Select value={empresa.status} onValueChange={handleStatusChange} disabled={loading}>
               <SelectTrigger className="w-36 h-8 text-xs">
                 <SelectValue />

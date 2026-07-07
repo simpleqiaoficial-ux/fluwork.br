@@ -2,35 +2,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { formatCurrency } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { AlertCircle } from "lucide-react"
 
 interface PedidoDetailModalProps {
   pedido: any
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "warning"> = {
-  pendente_supervisor: "outline",
-  pendente_gerente: "outline",
-  pendente_financeiro: "outline",
-  aprovado: "success",
-  pago: "success",
-  nota_recebida: "success",
-  recusado: "destructive",
-  correcao_solicitada: "warning",
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente_supervisor: "Aguardando supervisor",
-  pendente_gerente: "Aguardando gerente",
-  pendente_financeiro: "Aguardando financeiro",
-  aprovado: "Aprovado",
-  pago: "Pago",
-  nota_recebida: "Nota recebida",
-  recusado: "Recusado",
-  correcao_solicitada: "Correção solicitada",
 }
 
 export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailModalProps) {
@@ -44,9 +22,7 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Detalhes do pedido</span>
-            <Badge variant={STATUS_VARIANT[pedido.status] || "outline"} className="font-normal">
-              {STATUS_LABELS[pedido.status] || pedido.status}
-            </Badge>
+            <StatusBadge entity="pedido" status={pedido.status} />
           </DialogTitle>
         </DialogHeader>
 

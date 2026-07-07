@@ -3,6 +3,7 @@
 import type { PedidoPagamento } from "@/types/pedido"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -60,17 +61,6 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
       setLoading(false)
     }
   }
-
-  const getStatusBadge = () => {
-    const statusMap = {
-      pendente_gerente: { label: "Aguardando Gerente", variant: "outline" as const },
-      pendente_financeiro: { label: "Aguardando Financeiro", variant: "outline" as const },
-      correcao: { label: "Correção Solicitada", variant: "warning" as const },
-    }
-    return statusMap[pedido.status as keyof typeof statusMap] || { label: pedido.status, variant: "outline" as const }
-  }
-
-  const status = getStatusBadge()
 
   const colaboradorNome = pedido.colaborador?.nome_completo || "N/A"
   const colaboradorSalario = pedido.colaborador?.salario || 0
@@ -135,7 +125,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
           </div>
           <div className="flex gap-2 shrink-0">
             {isReembolsoKM && <Badge variant="outline">Reembolso KM</Badge>}
-            <Badge variant={status.variant}>{status.label}</Badge>
+            <StatusBadge entity="pedido" status={pedido.status} />
           </div>
         </div>
 
