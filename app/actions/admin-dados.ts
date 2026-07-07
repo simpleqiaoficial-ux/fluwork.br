@@ -2,7 +2,7 @@
 
 import { and, count, desc, eq, ilike, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, empresas, equipes, pedidosPagamento, historicoReajustes, notasFiscais, contracts, faturas } from "@/lib/db/schema"
+import { colaboradores, empresas, equipes, pedidosPagamento, historicoReajustes, notasFiscais, contracts } from "@/lib/db/schema"
 import { toContratoDTO } from "@/lib/db/mappers"
 import { requireSuperAdmin } from "@/lib/tenant"
 
@@ -197,58 +197,6 @@ export async function getImpactoExclusaoColaborador(id: string) {
     historico_reajustes: reajustes,
     notas_fiscais: notas,
     bloqueia_exclusao: pedidos > 0 || reajustes > 0 || notas > 0,
-  }
-}
-
-export interface FaturasAdminFiltro {
-  empresaId?: string
-  page?: number
-}
-
-const PAGE_SIZE_FATURAS = 25
-
-export async function listarFaturasAdmin(filtro: FaturasAdminFiltro = {}) {
-  await requireSuperAdmin()
-
-  const where = filtro.empresaId ? eq(faturas.empresaId, filtro.empresaId) : undefined
-  const page = Math.max(1, filtro.page || 1)
-
-  const [rows, totalRows] = await Promise.all([
-    db
-      .select({
-        id: faturas.id,
-        titulo: faturas.titulo,
-        valor: faturas.valor,
-        dataVencimento: faturas.dataVencimento,
-        status: faturas.status,
-        empresaId: faturas.empresaId,
-        empresaNome: empresas.nomeFantasia,
-        empresaRazaoSocial: empresas.razaoSocial,
-      })
-      .from(faturas)
-      .leftJoin(empresas, eq(faturas.empresaId, empresas.id))
-      .where(where)
-      .orderBy(desc(faturas.dataVencimento))
-      .limit(PAGE_SIZE_FATURAS)
-      .offset((page - 1) * PAGE_SIZE_FATURAS),
-    db.select({ value: count() }).from(faturas).where(where),
-  ])
-
-  const total = totalRows[0]?.value || 0
-
-  return {
-    registros: rows.map((row) => ({
-      id: row.id,
-      titulo: row.titulo,
-      valor: row.valor == null ? row.valor : Number(row.valor),
-      data_vencimento: row.dataVencimento,
-      status: row.status,
-      empresa_id: row.empresaId,
-      empresa_nome: row.empresaNome || row.empresaRazaoSocial,
-    })),
-    total,
-    page,
-    total_paginas: Math.max(1, Math.ceil(total / PAGE_SIZE_FATURAS)),
   }
 }
 

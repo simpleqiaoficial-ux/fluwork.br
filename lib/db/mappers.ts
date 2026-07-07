@@ -230,27 +230,6 @@ export function toNotaFiscalDTO(row: AnyRow) {
   }
 }
 
-export function toFaturaDTO(row: AnyRow) {
-  if (!row) return row
-  return {
-    id: row.id,
-    empresa_id: row.empresaId,
-    titulo: row.titulo,
-    descricao: row.descricao,
-    valor: row.valor == null ? row.valor : Number(row.valor),
-    data_vencimento: row.dataVencimento,
-    status: row.status,
-    arquivo_pdf_url: row.arquivoPdfUrl,
-    criado_por: row.criadoPor,
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
-    ...(row.criador !== undefined && {
-      criador: row.criador ? { nome: row.criador.nomeCompleto } : row.criador,
-    }),
-    ...(row.colaboradoresPermitidos !== undefined && { colaboradores_permitidos: row.colaboradoresPermitidos }),
-  }
-}
-
 export function toHistoricoReajusteDTO(row: AnyRow) {
   if (!row) return row
   return {

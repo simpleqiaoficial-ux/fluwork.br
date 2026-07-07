@@ -96,7 +96,6 @@ const NAV_GROUPS: NavGroup[] = [
         badgeKey: "painelFinanceiro",
       },
       { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt, roles: ["Gerente", "Financeiro"] },
-      { href: "/faturas", label: "Faturas", icon: FileText, roles: ["Adm", "Financeiro", "Gerente"] },
     ],
   },
   {
@@ -122,7 +121,6 @@ const CONTRATOS_MODULE: NavItem = { href: "/contratos", label: "Contratos", icon
 
 const COLABORADOR_LINKS: NavItem[] = [
   { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt },
-  { href: "/faturas", label: "Faturas", icon: FileText },
   { href: "/meus-contratos", label: "Meus Contratos", icon: FileSignature },
 ]
 
@@ -131,7 +129,6 @@ const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/pedidos", label: "Solicitações", icon: Receipt },
   { href: "/historico", label: "Minhas Solicitações", icon: FileText },
   { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: DollarSign },
-  { href: "/faturas", label: "Faturas", icon: FileText },
   { href: "/supervisor/notas-equipe", label: "Notas da Equipe Operacional", icon: Users },
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
 ]
@@ -144,7 +141,6 @@ const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin/dados/colaboradores", label: "Colaboradores (todas)", icon: Users },
   { href: "/admin/dados/contratos", label: "Contratos (todas)", icon: FileSignature },
   { href: "/admin/dados/pedidos", label: "Pedidos (todas)", icon: DollarSign },
-  { href: "/admin/dados/faturas", label: "Faturas (todas)", icon: Receipt },
   { href: "/admin/dados/notas-fiscais", label: "Notas fiscais (todas)", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]

@@ -79,7 +79,7 @@ export const MODULES: ModuleItem[] = [
   {
     icon: Wallet,
     title: "Financeiro",
-    description: "Pedidos de pagamento, aprovações, faturas e todo o fluxo financeiro da operação em um só lugar.",
+    description: "Pedidos de pagamento, aprovações e todo o fluxo financeiro da operação em um só lugar.",
     href: "#modulos",
   },
   {

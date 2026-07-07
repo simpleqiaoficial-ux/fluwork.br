@@ -266,32 +266,6 @@ export async function listarColaboradores() {
   return attachBloqueio(rows, tresDiasAtras)
 }
 
-export async function getColaboradores() {
-  const session = await getSession()
-  if (!session) return []
-
-  try {
-    const data = await db
-      .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
-      .from(colaboradores)
-      .where(getEffectiveEmpresaIdFromSession(session) === null ? undefined : eq(colaboradores.empresaId, getEffectiveEmpresaIdFromSession(session)!))
-      .orderBy(asc(colaboradores.nomeCompleto))
-
-    if (!data || data.length === 0) {
-      return []
-    }
-
-    return data.map((col) => ({
-      id: col.id,
-      nome: col.nomeCompleto,
-      email: col.email,
-    }))
-  } catch (error) {
-    console.error("[v0] Erro ao listar colaboradores para faturas:", error)
-    return []
-  }
-}
-
 export async function deletarColaborador(id: string) {
   const session = await checkPermission(["Adm", "Financeiro", "SuperAdmin"])
 
