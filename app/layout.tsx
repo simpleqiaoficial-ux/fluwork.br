@@ -15,6 +15,7 @@ import { ValoresVisibilityProvider } from "@/contexts/valores-visibility-context
 import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
 import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
+import { Toaster } from "@/components/ui/sonner"
 import cn from "classnames"
 
 const inter = Inter({
@@ -101,6 +102,7 @@ export default async function RootLayout({
             </main>
           </div>
         </ValoresVisibilityProvider>
+        <Toaster richColors closeButton position="top-right" />
       </body>
     </html>
   )

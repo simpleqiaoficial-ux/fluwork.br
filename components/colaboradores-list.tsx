@@ -11,7 +11,7 @@ import { ColaboradorItem } from "./colaborador-item"
 import type { Colaborador } from "@/types/colaborador"
 import type { Equipe } from "@/types/equipe"
 import { Search, ChevronLeft, ChevronRight, Download, Plus, Users } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 const ITEMS_PER_PAGE = 5
 
@@ -27,7 +27,6 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
-  const { toast } = useToast()
 
   useEffect(() => {
     async function carregarDados() {
@@ -76,16 +75,13 @@ export function ColaboradoresList({ usuarioLogadoTipoAcesso }: ColaboradoresList
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      toast({
-        title: "Exportação concluída",
+      toast.success("Exportação concluída", {
         description: "Os dados foram exportados com sucesso!",
       })
     } catch (error) {
       console.error("Erro ao exportar:", error)
-      toast({
-        title: "Erro ao exportar",
+      toast.error("Erro ao exportar", {
         description: "Não foi possível exportar os dados. Tente novamente.",
-        variant: "destructive",
       })
     } finally {
       setExporting(false)
