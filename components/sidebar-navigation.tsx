@@ -14,7 +14,6 @@ import {
   FileText,
   LayoutDashboard,
   DollarSign,
-  Menu,
   X,
   Lock,
   Building2,
@@ -30,6 +29,7 @@ import {
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { BottomNavigation } from "@/components/bottom-navigation"
 import { useState, useEffect, useMemo } from "react"
 import { contarPendencias } from "@/app/actions/contadores"
 
@@ -247,6 +247,10 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
 
   const bottomLink: NavItem = { href: "/redefinir-senha", label: "Redefinir Senha", icon: Lock }
 
+  // Itens mais usados do perfil pra navegação primária no celular — mesmos itens já
+  // filtrados por permissão em flatItems, só pega os 4 primeiros (o resto fica no "Mais").
+  const bottomNavItems = useMemo(() => flatItems.slice(0, 4), [flatItems])
+
   const handleLogout = async () => {
     await logout()
   }
@@ -273,22 +277,17 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         onClick={onClick}
         title={iconOnly ? item.label : undefined}
         className={cn(
-          "group flex items-center gap-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+          "group relative flex items-center gap-3 py-2 text-sm font-medium rounded-md transition-colors duration-150",
           iconOnly ? "justify-center px-0" : levelPadding,
           isActive
-            ? "bg-primary text-primary-foreground shadow-sm"
+            ? "bg-primary/10 text-primary before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-primary"
             : "text-muted-foreground hover:text-foreground hover:bg-accent",
         )}
       >
         <Icon className="h-4 w-4 shrink-0" />
         {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
         {badge > 0 && !iconOnly && (
-          <span
-            className={cn(
-              "ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full text-[10px] font-medium px-1.5",
-              isActive ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground",
-            )}
-          >
+          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground">
             {badge}
           </span>
         )}
@@ -393,15 +392,8 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
 
   return (
     <>
-      {/* Mobile toggle */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="lg:hidden fixed top-3 left-3 z-50 h-9 w-9"
-        onClick={() => setMobileOpen(!mobileOpen)}
-      >
-        {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
+      {/* Navegação primária no celular — substitui o antigo botão flutuante de menu */}
+      <BottomNavigation items={bottomNavItems} onMoreClick={() => setMobileOpen(true)} />
 
       {/* Desktop sidebar */}
       <aside

@@ -84,7 +84,7 @@ export default async function RootLayout({
                 empresaNome={empresaNome}
               />
             )}
-            <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0")}>
+            <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0 pb-16 lg:pb-0")}>
               {!isChromeless && session ? (
                 <SystemStatusProvider tipoAcesso={session.tipoAcesso}>
                   <AutoLogoutProvider>
