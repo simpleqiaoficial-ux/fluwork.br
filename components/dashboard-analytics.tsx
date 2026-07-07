@@ -17,6 +17,13 @@ import {
   ChevronUp,
   Receipt,
   Filter,
+  Wallet,
+  Clock,
+  CheckCircle2,
+  FileCheck,
+  FileWarning,
+  CalendarClock,
+  type LucideIcon,
 } from "lucide-react"
 import {
   BarChart,
@@ -58,7 +65,14 @@ const STATUS_VARIANT: Record<string, "outline" | "success" | "destructive" | "wa
   nota_recebida: "success",
 }
 
-const PIE_COLORS = ["#171717", "#404040", "#737373", "#a3a3a3", "#d4d4d4"]
+// Paleta do gráfico segue os tokens --chart-1..5 do design system (nunca cor hardcoded).
+const CHART_COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+]
 
 const TIPO_LABELS: Record<string, string> = {
   salario: "Valor Contratual",
@@ -71,6 +85,38 @@ const TIPO_LABELS: Record<string, string> = {
 function formatDateBR(dateString: string) {
   const d = new Date(dateString)
   return d.toLocaleDateString("pt-BR")
+}
+
+type KpiAccent = "primary" | "success" | "warning" | "destructive"
+
+const KPI_ACCENT_CLASSES: Record<KpiAccent, string> = {
+  primary: "bg-primary/10 text-primary",
+  success: "bg-success/10 text-success",
+  warning: "bg-warning/15 text-warning",
+  destructive: "bg-destructive/10 text-destructive",
+}
+
+interface KpiCardProps {
+  icon: LucideIcon
+  accent: KpiAccent
+  label: string
+  value: string
+  description?: string
+}
+
+function KpiCard({ icon: Icon, accent, label, value, description }: KpiCardProps) {
+  return (
+    <Card className="border shadow-none">
+      <CardContent className="p-5">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${KPI_ACCENT_CLASSES[accent]}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">{label}</p>
+        <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+      </CardContent>
+    </Card>
+  )
 }
 
 export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0 }: DashboardAnalyticsProps) {
@@ -389,86 +435,103 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
   }
 
   return (
-    <div className="space-y-6">
-      {/* Indicadores */}
-      <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Contas pagas</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.contasPagas.valor)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{kpis.contasPagas.count} solicitações · {diasComPagamento} dias com pagamento</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Valores pendentes</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.valoresPendentes.valor)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{kpis.valoresPendentes.count} aguardando aprovação</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Valores aprovados</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatValue(kpis.valoresAprovados.valor)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{kpis.valoresAprovados.count} solicitações</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Notas recebidas</p>
-          <p className="text-2xl font-semibold tabular-nums">{kpis.notasRecebidas}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Prestadores sem nota</p>
-          <p className="text-2xl font-semibold tabular-nums">{kpis.prestadoresSemNota}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Prorrogações pendentes</p>
-          <p className="text-2xl font-semibold tabular-nums">{prorrogacoesPendentes}</p>
+    <div className="space-y-8">
+      {/* Resumo financeiro / Indicadores */}
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-3">Resumo financeiro</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <KpiCard
+            icon={Wallet}
+            accent="success"
+            label="Contas pagas"
+            value={formatValue(kpis.contasPagas.valor)}
+            description={`${kpis.contasPagas.count} solicitações · ${diasComPagamento} dias`}
+          />
+          <KpiCard
+            icon={Clock}
+            accent="warning"
+            label="Valores pendentes"
+            value={formatValue(kpis.valoresPendentes.valor)}
+            description={`${kpis.valoresPendentes.count} aguardando aprovação`}
+          />
+          <KpiCard
+            icon={CheckCircle2}
+            accent="primary"
+            label="Valores aprovados"
+            value={formatValue(kpis.valoresAprovados.valor)}
+            description={`${kpis.valoresAprovados.count} solicitações`}
+          />
+          <KpiCard icon={FileCheck} accent="success" label="Notas recebidas" value={String(kpis.notasRecebidas)} />
+          <KpiCard
+            icon={FileWarning}
+            accent="warning"
+            label="Prestadores sem nota"
+            value={String(kpis.prestadoresSemNota)}
+          />
+          <KpiCard
+            icon={CalendarClock}
+            accent="warning"
+            label="Prorrogações pendentes"
+            value={String(prorrogacoesPendentes)}
+          />
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 border shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              Resumo por competência
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {monthlyData.length === 0 ? (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
-                Sem dados para o período selecionado
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                  <XAxis dataKey="mes" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => (valoresVisiveis ? `${(v / 1000).toFixed(0)}k` : "---")}
-                  />
-                  <Tooltip
-                    formatter={(value: number, name: string) => [formatTooltip(value), TIPO_LABELS[name] || name]}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
-                  />
-                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
-                  <Bar dataKey="salario" name="salario" stackId="a" fill="#171717" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="horas_extras" name="horas_extras" stackId="a" fill="#404040" />
-                  <Bar dataKey="reembolso_km" name="reembolso_km" stackId="a" fill="#737373" />
-                  <Bar dataKey="plantao" name="plantao" stackId="a" fill="#a3a3a3" />
-                  <Bar dataKey="conducao" name="conducao" stackId="a" fill="#d4d4d4" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+      {/* Gráficos */}
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-3">Gráficos</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2 border shadow-none">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                Resumo por competência
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {monthlyData.length === 0 ? (
+                <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+                  Sem dados para o período selecionado
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="mes" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => (valoresVisiveis ? `${(v / 1000).toFixed(0)}k` : "---")}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [formatTooltip(value), TIPO_LABELS[name] || name]}
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "1px solid hsl(var(--border))",
+                        fontSize: "12px",
+                        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
+                      }}
+                    />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
+                    <Bar dataKey="salario" name="salario" stackId="a" fill={CHART_COLORS[0]} radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="horas_extras" name="horas_extras" stackId="a" fill={CHART_COLORS[1]} />
+                    <Bar dataKey="reembolso_km" name="reembolso_km" stackId="a" fill={CHART_COLORS[2]} />
+                    <Bar dataKey="plantao" name="plantao" stackId="a" fill={CHART_COLORS[3]} />
+                    <Bar dataKey="conducao" name="conducao" stackId="a" fill={CHART_COLORS[4]} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Distribuição por Tipo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pieData.length === 0 ? (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">Distribuição por Tipo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pieData.length === 0 ? (
+                <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
                 Sem dados
               </div>
             ) : (
@@ -484,16 +547,25 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                     dataKey="value"
                   >
                     {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatTooltip(value)} contentStyle={{ borderRadius: "8px", fontSize: "12px" }} />
+                  <Tooltip
+                    formatter={(value: number) => formatTooltip(value)}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid hsl(var(--border))",
+                      fontSize: "12px",
+                      boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
+                    }}
+                  />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Filters + Table */}
