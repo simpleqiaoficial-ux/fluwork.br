@@ -13,8 +13,8 @@ export default async function RedefinirSenhaPage() {
     <div className="container mx-auto max-w-2xl py-10 px-4">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Redefinir Senha</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-semibold text-foreground">Redefinir Senha</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Altere sua senha de acesso ao sistema. Por segurança, você precisará informar sua senha atual.
           </p>
         </div>

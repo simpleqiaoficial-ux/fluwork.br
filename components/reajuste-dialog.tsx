@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { aplicarReajuste } from "@/app/actions/reajustes"
 import type { Colaborador } from "@/types/colaborador"
-import { Percent, DollarSign } from "lucide-react"
+import { Percent, DollarSign, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 
 interface ReajusteDialogProps {
   open: boolean
@@ -25,6 +27,7 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
   const [valorReajuste, setValorReajuste] = useState("")
   const [motivo, setMotivo] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const calcularNovoSalario = () => {
     const valor = Number.parseFloat(valorReajuste) || 0
@@ -37,6 +40,7 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError("")
 
     try {
       const resultado = await aplicarReajuste({
@@ -46,14 +50,17 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
         motivo: motivo || undefined,
       })
 
-      const mensagem = `Reajuste aplicado com sucesso!\n\nPrestador: ${resultado.colaborador}\nValor Contratual Anterior: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioAnterior)}\nNovo Valor Contratual: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resultado.salarioNovo)}`
+      const formatarMoeda = (v: number) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
 
-      alert(mensagem)
+      toast.success("Reajuste aplicado com sucesso!", {
+        description: `${resultado.colaborador}: ${formatarMoeda(resultado.salarioAnterior)} → ${formatarMoeda(resultado.salarioNovo)}`,
+      })
       setValorReajuste("")
       setMotivo("")
       onSuccess()
-    } catch (error: any) {
-      alert(error.message || "Erro ao aplicar reajuste")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao aplicar reajuste")
     } finally {
       setLoading(false)
     }
@@ -141,6 +148,13 @@ export function ReajusteDialog({ open, onOpenChange, colaborador, onSuccess }: R
               required
             />
           </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
