@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Input } from "@/components/ui/input"
@@ -272,7 +272,7 @@ export function ContratosAdminList({ registrosIniciais, totalInicial, totalPagin
             <AlertDialogAction
               onClick={confirmarCancelamento}
               disabled={!!processando}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {processando ? "Cancelando..." : "Cancelar contrato"}
             </AlertDialogAction>

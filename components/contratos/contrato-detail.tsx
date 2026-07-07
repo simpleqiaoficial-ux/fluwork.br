@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
 import {
@@ -270,7 +270,7 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
             <AlertDialogAction
               onClick={handleCancelar}
               disabled={loading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {loading ? "Cancelando..." : "Cancelar contrato"}
             </AlertDialogAction>

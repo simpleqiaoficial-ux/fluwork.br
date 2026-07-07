@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -209,7 +209,7 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmarExclusao} disabled={processando} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={confirmarExclusao} disabled={processando} className={buttonVariants({ variant: "destructive" })}>
               {processando ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>

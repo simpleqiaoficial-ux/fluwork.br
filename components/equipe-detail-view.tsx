@@ -10,7 +10,7 @@ import {
   removerColaboradorEquipe,
 } from "@/app/actions/equipes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -358,7 +358,7 @@ export function EquipeDetailView({
             <AlertDialogAction
               onClick={handleRemoveMember}
               disabled={loading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {loading ? "Removendo..." : "Remover"}
             </AlertDialogAction>

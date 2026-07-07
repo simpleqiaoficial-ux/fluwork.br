@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -320,7 +320,7 @@ export function ColaboradoresAdminList({ registrosIniciais, totalInicial, totalP
             <AlertDialogAction
               onClick={confirmarExclusao}
               disabled={excluindoConfirmado || carregandoImpacto || !!impacto?.bloqueia_exclusao}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {excluindoConfirmado ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>

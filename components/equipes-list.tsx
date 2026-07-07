@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -307,7 +307,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={loading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={buttonVariants({ variant: "destructive" })}
             >
               {loading ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
