@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   let sessionCookie = request.cookies.get("fluxopay_session")
   let session = sessionCookie ? JSON.parse(sessionCookie.value) : null
 
-  const publicRoutes = ["/login", "/register", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
+  const publicRoutes = ["/login", "/setup", "/faq", "/termos", "/privacidade", "/contratos/assinar"]
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
   // "/" é a landing page pública (marketing) quando não há sessão — usa comparação exata
   // (não startsWith) pra não acabar liberando toda rota do app sem querer.

@@ -1,13 +1,18 @@
-import Link from "next/link"
+"use client"
+
+import { useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SectionHeading } from "@/components/landing/ui/section-heading"
 import { FadeIn } from "@/components/landing/ui/fade-in"
+import { ContactDialog } from "@/components/landing/contact-dialog"
 import { PRICING_PLANS } from "@/lib/landing/data"
 import { cn } from "@/lib/utils"
 
 export function LandingPricing() {
+  const [contactOpen, setContactOpen] = useState(false)
+
   return (
     <section id="planos" className="bg-muted/30 py-20 sm:py-28" aria-labelledby="planos-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -47,8 +52,13 @@ export function LandingPricing() {
                   ))}
                 </ul>
 
-                <Button asChild size="lg" className="mt-8" variant={plan.highlighted ? "default" : "outline"}>
-                  <Link href={plan.name === "Enterprise" ? "#contato" : "/register"}>{plan.ctaLabel}</Link>
+                <Button
+                  size="lg"
+                  className="mt-8"
+                  variant={plan.highlighted ? "default" : "outline"}
+                  onClick={() => setContactOpen(true)}
+                >
+                  {plan.ctaLabel}
                 </Button>
               </div>
             </FadeIn>
@@ -59,6 +69,8 @@ export function LandingPricing() {
           Precisa de algo sob medida? <a href="#contato" className="font-medium text-primary hover:underline">Fale com nosso time</a> para montar um plano específico para sua operação.
         </p>
       </div>
+
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </section>
   )
 }

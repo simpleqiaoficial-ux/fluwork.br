@@ -1,9 +1,14 @@
-import Link from "next/link"
+"use client"
+
+import { useState } from "react"
 import { ArrowRight, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/landing/ui/fade-in"
+import { ContactDialog } from "@/components/landing/contact-dialog"
 
 export function LandingCta() {
+  const [contactOpen, setContactOpen] = useState(false)
+
   return (
     <section id="contato" className="py-20 sm:py-28" aria-labelledby="cta-heading">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -19,22 +24,22 @@ export function LandingCta() {
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button size="lg" className="gap-2 shadow-md" asChild>
-                <Link href="/register">
-                  Quero contratar
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
+              <Button size="lg" className="gap-2 shadow-md" onClick={() => setContactOpen(true)}>
+                Quero contratar
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button size="lg" variant="outline" className="gap-2 bg-background" asChild>
-                <a href="mailto:contato@fluwork.com">
+                <a href="mailto:simpleqia.oficial@gmail.com">
                   <Mail className="h-4 w-4" aria-hidden="true" />
-                  contato@fluwork.com
+                  simpleqia.oficial@gmail.com
                 </a>
               </Button>
             </div>
           </div>
         </FadeIn>
       </div>
+
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </section>
   )
 }

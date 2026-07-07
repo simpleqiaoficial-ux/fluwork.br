@@ -54,9 +54,9 @@ export function LandingFooter() {
             <h3 className="text-sm font-semibold text-foreground">Contato</h3>
             <ul className="mt-4 space-y-3">
               <li>
-                <a href="mailto:contato@fluwork.com" className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <a href="mailto:simpleqia.oficial@gmail.com" className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
                   <Mail className="h-4 w-4" aria-hidden="true" />
-                  contato@fluwork.com
+                  simpleqia.oficial@gmail.com
                 </a>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">

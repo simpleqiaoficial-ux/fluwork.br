@@ -1,13 +1,16 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowRight, CalendarClock, Wallet, HardHat, Stethoscope, Users, FolderKanban } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardMockup } from "@/components/landing/ui/dashboard-mockup"
 import { FloatingBadge } from "@/components/landing/ui/floating-badge"
+import { ContactDialog } from "@/components/landing/contact-dialog"
 
 export function LandingHero() {
+  const [contactOpen, setContactOpen] = useState(false)
+
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28" aria-labelledby="hero-heading">
       {/* Fundo: gradiente sutil + grid discreto, sem exagero de cor */}
@@ -38,11 +41,9 @@ export function LandingHero() {
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" className="gap-2 shadow-md" asChild>
-              <Link href="/register">
-                Quero contratar
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+            <Button size="lg" className="gap-2 shadow-md" onClick={() => setContactOpen(true)}>
+              Quero contratar
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button size="lg" variant="outline" className="gap-2 bg-transparent" asChild>
               <a href="#contato">
@@ -82,6 +83,8 @@ export function LandingHero() {
           </div>
         </motion.div>
       </div>
+
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </section>
   )
 }

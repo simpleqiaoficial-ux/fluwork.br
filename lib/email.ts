@@ -17,6 +17,15 @@ function getFromAddress() {
   return process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 // Texto placeholder — revisar antes de valer como comunicação oficial da empresa.
 
 export async function sendContratoConviteEmail(params: {
@@ -94,6 +103,29 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
     attachments: [
       { filename: `contrato-${params.numero}.pdf`, content: params.pdfBuffer },
     ],
+  })
+}
+
+export async function sendContatoComercialEmail(params: {
+  nome: string
+  empresa: string
+  email: string
+  telefone?: string
+  mensagem?: string
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: "simpleqia.oficial@gmail.com",
+    replyTo: params.email,
+    subject: `Novo contato comercial — ${params.empresa}`,
+    html: `
+      <p><strong>Nome:</strong> ${escapeHtml(params.nome)}</p>
+      <p><strong>Empresa:</strong> ${escapeHtml(params.empresa)}</p>
+      <p><strong>E-mail:</strong> ${escapeHtml(params.email)}</p>
+      ${params.telefone ? `<p><strong>Telefone:</strong> ${escapeHtml(params.telefone)}</p>` : ""}
+      ${params.mensagem ? `<p><strong>Mensagem:</strong><br/>${escapeHtml(params.mensagem).replace(/\n/g, "<br/>")}</p>` : ""}
+    `,
   })
 }
 
