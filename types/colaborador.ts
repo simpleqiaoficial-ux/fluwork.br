@@ -5,6 +5,15 @@ export interface Colaborador {
   nome_completo: string
   salario: number
   cnpj: string | null
+  razao_social: string | null
+  data_abertura: string | null
+  endereco_cep: string | null
+  endereco_logradouro: string | null
+  endereco_numero: string | null
+  endereco_complemento: string | null
+  endereco_bairro: string | null
+  endereco_cidade: string | null
+  endereco_uf: string | null
   data_nascimento: string | null
   data_aniversario_contrato: string | null
   email: string
@@ -30,10 +39,21 @@ export interface Colaborador {
 }
 
 export interface NovoColaborador {
-  nome_completo: string
+  // Opcional: se ninguém vincular uma pessoa física, o backend usa a razão social/nome
+  // fantasia da empresa como nome de exibição do prestador.
+  nome_completo?: string
   salario: number
   cnpj: string
-  data_nascimento: string
+  razao_social?: string | null
+  data_abertura?: string | null
+  endereco_cep?: string | null
+  endereco_logradouro?: string | null
+  endereco_numero?: string | null
+  endereco_complemento?: string | null
+  endereco_bairro?: string | null
+  endereco_cidade?: string | null
+  endereco_uf?: string | null
+  data_nascimento?: string | null
   data_aniversario_contrato: string
   email: string
   senha: string

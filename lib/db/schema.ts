@@ -78,6 +78,21 @@ export const colaboradores = pgTable("colaboradores", {
   salario: numeric("salario", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   cnpj: text("cnpj"),
+  // Dados da empresa (PJ) por trás do CNPJ — preenchidos automaticamente pela consulta à
+  // Receita Federal no cadastro, mas editáveis. dataAbertura é a data de abertura do CNPJ,
+  // que substitui dataNascimento como a data "obrigatória" do cadastro (a conta pertence à
+  // empresa, não a uma pessoa física — dataNascimento abaixo agora é só opcional).
+  razaoSocial: text("razao_social"),
+  dataAbertura: date("data_abertura"),
+  enderecoCep: text("endereco_cep"),
+  enderecoLogradouro: text("endereco_logradouro"),
+  enderecoNumero: text("endereco_numero"),
+  enderecoComplemento: text("endereco_complemento"),
+  enderecoBairro: text("endereco_bairro"),
+  enderecoCidade: text("endereco_cidade"),
+  enderecoUf: text("endereco_uf"),
+  // Pessoa física opcional vinculada ao prestador (ex.: sócio/responsável) — nome/nascimento
+  // usados só pra facilitar a gestão interna, nunca exigidos no cadastro.
   dataNascimento: date("data_nascimento"),
   email: text("email").unique(),
   // Resquício do Supabase Auth (auth.users) — mantido como UUID solto, sem FK,

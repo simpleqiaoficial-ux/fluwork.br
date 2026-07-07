@@ -43,6 +43,13 @@
       "when": 1783351721204,
       "tag": "0005_hot_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783432114956,
+      "tag": "0006_add_dados_empresa_colaborador",
+      "breakpoints": true
     }
   ]
 }

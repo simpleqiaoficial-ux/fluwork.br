@@ -3,7 +3,18 @@
 export interface ConsultaCnpjResultado {
   success: boolean
   nome?: string
+  razaoSocial?: string
   situacao?: string
+  dataAbertura?: string
+  endereco?: {
+    cep?: string
+    logradouro?: string
+    numero?: string
+    complemento?: string
+    bairro?: string
+    cidade?: string
+    uf?: string
+  }
   error?: string
 }
 
@@ -29,12 +40,24 @@ export async function consultarCnpj(cnpjRaw: string): Promise<ConsultaCnpjResult
     }
 
     const data = await response.json()
-    const nome = (data.nome_fantasia?.trim() || data.razao_social?.trim()) as string | undefined
+    const razaoSocial = (data.razao_social?.trim() || undefined) as string | undefined
+    const nome = (data.nome_fantasia?.trim() || razaoSocial) as string | undefined
 
     return {
       success: true,
-      nome: nome || undefined,
+      nome,
+      razaoSocial,
       situacao: data.descricao_situacao_cadastral as string | undefined,
+      dataAbertura: (data.data_inicio_atividade as string | undefined) || undefined,
+      endereco: {
+        cep: (data.cep as string | undefined) || undefined,
+        logradouro: (data.logradouro as string | undefined) || undefined,
+        numero: (data.numero as string | undefined) || undefined,
+        complemento: (data.complemento as string | undefined) || undefined,
+        bairro: (data.bairro as string | undefined) || undefined,
+        cidade: (data.municipio as string | undefined) || undefined,
+        uf: (data.uf as string | undefined) || undefined,
+      },
     }
   } catch (error) {
     console.error("[v0] Erro ao consultar CNPJ:", error)

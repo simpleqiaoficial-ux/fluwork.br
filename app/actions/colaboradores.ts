@@ -105,16 +105,29 @@ export async function criarColaborador(data: NovoColaborador) {
 
   const hashedPassword = await bcrypt.hash(data.senha, 10)
 
+  // Nome de exibição: se ninguém vinculou uma pessoa física, usa a razão social/nome
+  // fantasia da empresa (o cadastro sempre gira em torno do CNPJ, a pessoa é opcional).
+  const nomeCompleto = data.nome_completo?.trim() || data.razao_social?.trim() || "Prestador"
+
   let colaborador
   try {
     ;[colaborador] = await db
       .insert(colaboradores)
       .values({
         empresaId: session.empresaId!,
-        nomeCompleto: data.nome_completo,
+        nomeCompleto,
         salario: data.salario.toString(),
         cnpj: data.cnpj,
-        dataNascimento: data.data_nascimento,
+        razaoSocial: data.razao_social || null,
+        dataAbertura: data.data_abertura || null,
+        enderecoCep: data.endereco_cep || null,
+        enderecoLogradouro: data.endereco_logradouro || null,
+        enderecoNumero: data.endereco_numero || null,
+        enderecoComplemento: data.endereco_complemento || null,
+        enderecoBairro: data.endereco_bairro || null,
+        enderecoCidade: data.endereco_cidade || null,
+        enderecoUf: data.endereco_uf || null,
+        dataNascimento: data.data_nascimento || null,
         dataAniversarioContrato: data.data_aniversario_contrato || null,
         email: sanitizedEmail,
         tipoAcesso: data.tipo_acesso,
@@ -424,7 +437,16 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
   if (data.nome_completo) updateData.nomeCompleto = data.nome_completo
   if (data.email) updateData.email = data.email
   if (data.cnpj) updateData.cnpj = data.cnpj
-  if (data.data_nascimento) updateData.dataNascimento = data.data_nascimento
+  if (data.razao_social !== undefined) updateData.razaoSocial = data.razao_social || null
+  if (data.data_abertura !== undefined) updateData.dataAbertura = data.data_abertura || null
+  if (data.endereco_cep !== undefined) updateData.enderecoCep = data.endereco_cep || null
+  if (data.endereco_logradouro !== undefined) updateData.enderecoLogradouro = data.endereco_logradouro || null
+  if (data.endereco_numero !== undefined) updateData.enderecoNumero = data.endereco_numero || null
+  if (data.endereco_complemento !== undefined) updateData.enderecoComplemento = data.endereco_complemento || null
+  if (data.endereco_bairro !== undefined) updateData.enderecoBairro = data.endereco_bairro || null
+  if (data.endereco_cidade !== undefined) updateData.enderecoCidade = data.endereco_cidade || null
+  if (data.endereco_uf !== undefined) updateData.enderecoUf = data.endereco_uf || null
+  if (data.data_nascimento !== undefined) updateData.dataNascimento = data.data_nascimento || null
   if (data.data_aniversario_contrato !== undefined)
     updateData.dataAniversarioContrato = data.data_aniversario_contrato || null
   if (data.tipo_acesso) updateData.tipoAcesso = data.tipo_acesso
@@ -609,6 +631,10 @@ export async function exportarColaboradoresExcel() {
     Nome: colaborador.nomeCompleto,
     Email: colaborador.email,
     CNPJ: colaborador.cnpj || "",
+    "Razão Social": colaborador.razaoSocial || "",
+    "Data de Abertura": colaborador.dataAbertura
+      ? new Date(colaborador.dataAbertura).toLocaleDateString("pt-BR")
+      : "",
     "Data de Nascimento": colaborador.dataNascimento
       ? new Date(colaborador.dataNascimento).toLocaleDateString("pt-BR")
       : "",

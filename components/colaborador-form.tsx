@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { criarColaborador } from "@/app/actions/colaboradores"
 import { listarEquipes } from "@/app/actions/equipes"
 import { listarCentrosCusto } from "@/app/actions/centros-custo"
@@ -29,6 +30,36 @@ function formatarCnpj(value: string) {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2")
 }
 
+function formatarCep(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8)
+  return digits.replace(/(\d{5})(\d)/, "$1-$2")
+}
+
+const ESTADO_INICIAL = {
+  nome_completo: "",
+  salario: "",
+  cnpj: "",
+  razao_social: "",
+  data_abertura: "",
+  endereco_cep: "",
+  endereco_logradouro: "",
+  endereco_numero: "",
+  endereco_complemento: "",
+  endereco_bairro: "",
+  endereco_cidade: "",
+  endereco_uf: "",
+  data_nascimento: "",
+  data_aniversario_contrato: "",
+  email: "",
+  senha: "",
+  tipo_acesso: "Colaborador" as TipoAcesso,
+  equipe_id: "0",
+  dia_pagamento: "1",
+  chave_pix: "",
+  tipo_chave_pix: "",
+  centro_custo_id: "0",
+}
+
 export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProps) {
   const isAdm = usuarioLogadoTipoAcesso === "Adm"
   const router = useRouter()
@@ -37,21 +68,8 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
   const [centrosCusto, setCentrosCusto] = useState<CentroCusto[]>([])
   const [cnpjStatus, setCnpjStatus] = useState<"idle" | "loading" | "found" | "not-found">("idle")
   const [cnpjSituacao, setCnpjSituacao] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
-    nome_completo: "",
-    salario: "",
-    cnpj: "",
-    data_nascimento: "",
-    data_aniversario_contrato: "",
-    email: "",
-    senha: "",
-    tipo_acesso: "Colaborador" as TipoAcesso,
-    equipe_id: "0",
-    dia_pagamento: "1",
-    chave_pix: "",
-    tipo_chave_pix: "",
-    centro_custo_id: "0",
-  })
+  const [pessoaFisicaAtivo, setPessoaFisicaAtivo] = useState(false)
+  const [formData, setFormData] = useState(ESTADO_INICIAL)
 
   useEffect(() => {
     Promise.all([listarEquipes(), listarCentrosCusto()]).then(([equipesData, ccData]) => {
@@ -79,9 +97,18 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
 
     setCnpjStatus("found")
     setCnpjSituacao(resultado.situacao ?? null)
-    if (resultado.nome) {
-      setFormData((prev) => (prev.nome_completo ? prev : { ...prev, nome_completo: resultado.nome! }))
-    }
+    setFormData((prev) => ({
+      ...prev,
+      razao_social: resultado.razaoSocial || prev.razao_social,
+      data_abertura: resultado.dataAbertura || prev.data_abertura,
+      endereco_cep: resultado.endereco?.cep ? formatarCep(resultado.endereco.cep) : prev.endereco_cep,
+      endereco_logradouro: resultado.endereco?.logradouro || prev.endereco_logradouro,
+      endereco_numero: resultado.endereco?.numero || prev.endereco_numero,
+      endereco_complemento: resultado.endereco?.complemento || prev.endereco_complemento,
+      endereco_bairro: resultado.endereco?.bairro || prev.endereco_bairro,
+      endereco_cidade: resultado.endereco?.cidade || prev.endereco_cidade,
+      endereco_uf: resultado.endereco?.uf || prev.endereco_uf,
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,10 +117,19 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
 
     try {
       await criarColaborador({
-        nome_completo: formData.nome_completo,
+        nome_completo: pessoaFisicaAtivo ? formData.nome_completo : "",
         salario: Number.parseFloat(formData.salario),
         cnpj: formData.cnpj,
-        data_nascimento: formData.data_nascimento,
+        razao_social: formData.razao_social || null,
+        data_abertura: formData.data_abertura || null,
+        endereco_cep: formData.endereco_cep || null,
+        endereco_logradouro: formData.endereco_logradouro || null,
+        endereco_numero: formData.endereco_numero || null,
+        endereco_complemento: formData.endereco_complemento || null,
+        endereco_bairro: formData.endereco_bairro || null,
+        endereco_cidade: formData.endereco_cidade || null,
+        endereco_uf: formData.endereco_uf || null,
+        data_nascimento: pessoaFisicaAtivo ? formData.data_nascimento || null : null,
         data_aniversario_contrato: formData.data_aniversario_contrato,
         email: formData.email,
         senha: formData.senha,
@@ -107,21 +143,8 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
 
       toast.success("Prestador cadastrado com sucesso!")
 
-      setFormData({
-        nome_completo: "",
-        salario: "",
-        cnpj: "",
-        data_nascimento: "",
-        data_aniversario_contrato: "",
-        email: "",
-        senha: "",
-        tipo_acesso: "Colaborador",
-        equipe_id: "0",
-        dia_pagamento: "1",
-        chave_pix: "",
-        tipo_chave_pix: "",
-        centro_custo_id: "0",
-      })
+      setFormData(ESTADO_INICIAL)
+      setPessoaFisicaAtivo(false)
       setCnpjStatus("idle")
       setCnpjSituacao(null)
       router.refresh()
@@ -140,9 +163,9 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Identificação */}
+          {/* Empresa (CNPJ) */}
           <div className="space-y-5">
-            <h3 className="text-sm font-semibold text-foreground">Identificação</h3>
+            <h3 className="text-sm font-semibold text-foreground">Empresa</h3>
             <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="cnpj">CNPJ</Label>
@@ -180,27 +203,129 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="nome_completo">Nome Completo</Label>
+                <Label htmlFor="data_abertura">Data de Abertura</Label>
                 <Input
-                  id="nome_completo"
-                  placeholder="João da Silva"
-                  value={formData.nome_completo}
-                  onChange={(e) => setFormData({ ...formData, nome_completo: e.target.value })}
-                  required
+                  id="data_abertura"
+                  type="date"
+                  value={formData.data_abertura}
+                  onChange={(e) => setFormData({ ...formData, data_abertura: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="razao_social">Razão Social</Label>
+                <Input
+                  id="razao_social"
+                  placeholder="Preenchido automaticamente pelo CNPJ"
+                  value={formData.razao_social}
+                  onChange={(e) => setFormData({ ...formData, razao_social: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                <Label htmlFor="endereco_cep">CEP</Label>
                 <Input
-                  id="data_nascimento"
-                  type="date"
-                  value={formData.data_nascimento}
-                  onChange={(e) => setFormData({ ...formData, data_nascimento: e.target.value })}
-                  required
+                  id="endereco_cep"
+                  placeholder="00000-000"
+                  value={formData.endereco_cep}
+                  onChange={(e) => setFormData({ ...formData, endereco_cep: formatarCep(e.target.value) })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco_uf">UF</Label>
+                <Input
+                  id="endereco_uf"
+                  placeholder="SP"
+                  maxLength={2}
+                  value={formData.endereco_uf}
+                  onChange={(e) => setFormData({ ...formData, endereco_uf: e.target.value.toUpperCase() })}
+                />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="endereco_logradouro">Logradouro</Label>
+                <Input
+                  id="endereco_logradouro"
+                  placeholder="Rua, avenida..."
+                  value={formData.endereco_logradouro}
+                  onChange={(e) => setFormData({ ...formData, endereco_logradouro: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco_numero">Número</Label>
+                <Input
+                  id="endereco_numero"
+                  value={formData.endereco_numero}
+                  onChange={(e) => setFormData({ ...formData, endereco_numero: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco_complemento">Complemento</Label>
+                <Input
+                  id="endereco_complemento"
+                  value={formData.endereco_complemento}
+                  onChange={(e) => setFormData({ ...formData, endereco_complemento: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco_bairro">Bairro</Label>
+                <Input
+                  id="endereco_bairro"
+                  value={formData.endereco_bairro}
+                  onChange={(e) => setFormData({ ...formData, endereco_bairro: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco_cidade">Cidade</Label>
+                <Input
+                  id="endereco_cidade"
+                  value={formData.endereco_cidade}
+                  onChange={(e) => setFormData({ ...formData, endereco_cidade: e.target.value })}
                 />
               </div>
             </div>
+          </div>
+
+          {/* Pessoa física (opcional) */}
+          <div className="space-y-5 border-t pt-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Pessoa física (opcional)</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Vincule o nome de uma pessoa responsável para facilitar a gestão — o acesso continua sendo da empresa
+                </p>
+              </div>
+              <Switch checked={pessoaFisicaAtivo} onCheckedChange={setPessoaFisicaAtivo} />
+            </div>
+
+            {pessoaFisicaAtivo && (
+              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nome_completo">Nome Completo</Label>
+                  <Input
+                    id="nome_completo"
+                    placeholder="João da Silva"
+                    value={formData.nome_completo}
+                    onChange={(e) => setFormData({ ...formData, nome_completo: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                  <Input
+                    id="data_nascimento"
+                    type="date"
+                    value={formData.data_nascimento}
+                    onChange={(e) => setFormData({ ...formData, data_nascimento: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Acesso à plataforma */}
