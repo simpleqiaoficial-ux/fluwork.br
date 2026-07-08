@@ -30,7 +30,7 @@ import {
 import type { PedidoPagamento } from "@/types/pedido"
 import { useRouter } from "next/navigation"
 import { listarEquipes } from "@/app/actions/equipes"
-import { aprovarNotaFiscal, recusarNotaFiscal } from "@/app/actions/pedidos"
+import { aprovarNotaFiscal, recusarNotaFiscal, marcarComoPago } from "@/app/actions/pedidos"
 import type { Equipe } from "@/types/equipe"
 import { useMaskedCurrency } from "@/components/currency-display"
 import { useSystemStatus } from "./system-status-provider"
@@ -62,6 +62,8 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [confirmAprovarId, setConfirmAprovarId] = useState<string | null>(null)
   const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
+  const [confirmPagoId, setConfirmPagoId] = useState<string | null>(null)
+  const [payingId, setPayingId] = useState<string | null>(null)
   const [filtros, setFiltros] = useState({
     dataInicio: "",
     dataFim: "",
@@ -127,6 +129,24 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
       alert(error instanceof Error ? error.message : "Erro ao recusar nota fiscal")
     } finally {
       setRejectingId(null)
+    }
+  }
+
+  const handleMarcarPago = async (pedidoId: string) => {
+    if (isSystemSuspended) {
+      setSuspendedDialogOpen(true)
+      return
+    }
+    try {
+      setPayingId(pedidoId)
+      await marcarComoPago(pedidoId)
+      alert("Pagamento marcado como pago!")
+      router.refresh()
+    } catch (error) {
+      console.error("[v0] Erro ao marcar como pago:", error)
+      alert(error instanceof Error ? error.message : "Erro ao marcar como pago")
+    } finally {
+      setPayingId(null)
     }
   }
 
@@ -358,11 +378,46 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                             )}
 
                             {!aguardandoAcao ? (
-                              <div className="flex items-center gap-2 text-success pt-4 border-t text-sm">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="font-medium">
-                                  {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
-                                </span>
+                              <div className="space-y-3 pt-4 border-t">
+                                <div className="flex items-center gap-2 text-success text-sm">
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span className="font-medium">
+                                    {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
+                                  </span>
+                                </div>
+                                {pedido.status === "nota_recebida" && (
+                                  <>
+                                    <Button size="sm" onClick={() => setConfirmPagoId(pedido.id)} disabled={payingId === pedido.id}>
+                                      <CreditCard className="w-4 h-4" />
+                                      {payingId === pedido.id ? "Marcando..." : "Marcar como pago"}
+                                    </Button>
+                                    <AlertDialog
+                                      open={confirmPagoId === pedido.id}
+                                      onOpenChange={(open) => !open && setConfirmPagoId(null)}
+                                    >
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Marcar este pagamento como pago?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Confirma que o valor foi transferido ao prestador? Essa é a etapa final do
+                                            pagamento.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => {
+                                              setConfirmPagoId(null)
+                                              handleMarcarPago(pedido.id)
+                                            }}
+                                          >
+                                            Confirmar pagamento
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </>
+                                )}
                               </div>
                             ) : (
                               <div className="space-y-3 pt-4 border-t">

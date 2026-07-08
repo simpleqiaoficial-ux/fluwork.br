@@ -1329,6 +1329,48 @@ export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
   return { success: true }
 }
 
+/** Fecha o ciclo do pagamento — transição pra "pago" que não existia em nenhum lugar do
+ *  código antes desta feature. Só permite avançar quando a nota fiscal associada estiver
+ *  resolvida: autorizada pela Focus NFe, ou aprovada manualmente pelo financeiro. */
+export async function marcarComoPago(pedidoId: string) {
+  const session = await getSession()
+  if (!session) throw new Error("Usuário não autenticado")
+  if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
+    throw new Error("Apenas financeiro pode marcar um pagamento como pago")
+  }
+
+  const [pedido] = await db
+    .select({ status: pedidosPagamento.status })
+    .from(pedidosPagamento)
+    .where(eq(pedidosPagamento.id, pedidoId))
+  if (!pedido) throw new Error("Pedido não encontrado")
+  if (pedido.status !== "nota_recebida") {
+    throw new Error("Só é possível marcar como pago depois que a nota fiscal for recebida")
+  }
+
+  const [nota] = await db.select().from(notasFiscais).where(eq(notasFiscais.pedidoId, pedidoId))
+  const notaResolvida =
+    !!nota &&
+    ((nota.origem === "focus_nfe" && nota.focusStatus === "autorizado") ||
+      (nota.origem === "manual" && nota.status === "aprovado"))
+
+  if (!notaResolvida) {
+    throw new Error("A nota fiscal deste pagamento ainda não foi autorizada/aprovada")
+  }
+
+  try {
+    await db.update(pedidosPagamento).set({ status: "pago" }).where(eq(pedidosPagamento.id, pedidoId))
+  } catch (error) {
+    console.error("[v0] Erro ao marcar pedido como pago:", error)
+    throw new Error("Erro ao marcar pedido como pago")
+  }
+
+  revalidatePath("/financeiro")
+  revalidatePath("/meus-pagamentos")
+
+  return { success: true }
+}
+
 export async function listarPedidosSemNota(filtros?: {
   dataInicio?: string
   dataFim?: string
