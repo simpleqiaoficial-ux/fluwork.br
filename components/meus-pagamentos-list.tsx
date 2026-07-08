@@ -54,6 +54,11 @@ interface Pedido {
   data_nota_recebida?: string
   aprovado_gerente?: boolean
   aprovado_financeiro?: boolean
+  aprovado_por_gerente?: { id: string; nome_completo: string }
+  aprovado_por_financeiro?: { id: string; nome_completo: string }
+  observacao_gerente?: string
+  observacao_financeiro?: string
+  criado_por?: { nome_completo: string; tipo_acesso: string }
   correcao_solicitada_por?: string
 }
 
@@ -256,18 +261,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
               {!isHistorico && (
                 <div>
                   <h4 className="text-xs text-muted-foreground mb-3">Acompanhe o progresso do seu pedido</h4>
-                  <PedidoTimeline pedido={{
-                    created_at: pedido.created_at,
-                    status: pedido.status || "pendente_gerente",
-                    data_aprovacao_gerente: pedido.data_aprovacao_gerente,
-                    data_aprovacao_financeiro: pedido.data_aprovacao_financeiro,
-                    data_emissao_nota: pedido.data_emissao_nota,
-                    data_nota_recebida: pedido.data_nota_recebida,
-                    aprovado_gerente: pedido.aprovado_gerente,
-                    aprovado_financeiro: pedido.aprovado_financeiro,
-                    nota_emitida: pedido.nota_emitida,
-                    correcao_solicitada_por: pedido.correcao_solicitada_por,
-                  }} />
+                  <PedidoTimeline pedido={{ ...pedido, status: pedido.status || "pendente_gerente" } as any} />
                 </div>
               )}
 
@@ -534,6 +528,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
             onOpenChange={setDialogOpen}
             pedidoId={pedidoSelecionado.id}
             colaboradorId={colaborador?.id || ""}
+            colaboradorNome={colaborador?.nome_completo}
             valorEsperado={valorEsperado}
             mesAnoEsperado={mesAnoEsperado}
           />

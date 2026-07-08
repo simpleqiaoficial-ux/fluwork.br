@@ -560,6 +560,14 @@ export const pedidosPagamentoRelations = relations(pedidosPagamento, ({ one }) =
     fields: [pedidosPagamento.criadoPorColaboradorId],
     references: [colaboradores.id],
   }),
+  aprovadoPorGerente: one(colaboradores, {
+    fields: [pedidosPagamento.aprovadoPorGerenteId],
+    references: [colaboradores.id],
+  }),
+  aprovadoPorFinanceiro: one(colaboradores, {
+    fields: [pedidosPagamento.aprovadoPorFinanceiroId],
+    references: [colaboradores.id],
+  }),
   notaFiscal: one(notasFiscais, { fields: [pedidosPagamento.id], references: [notasFiscais.pedidoId] }),
 }))
 

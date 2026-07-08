@@ -42,7 +42,7 @@ interface NavItem {
   label: string
   icon: typeof LayoutDashboard
   roles?: string[]
-  badgeKey?: "aprovacoes" | "painelFinanceiro" | "correcoes"
+  badgeKey?: "aprovacoes" | "painelFinanceiro" | "correcoes" | "acompanhamento"
 }
 
 interface NavGroup {
@@ -81,7 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Acompanhamento",
         icon: AlertCircle,
         roles: ["Adm", "Gerente", "Financeiro"],
-        badgeKey: "correcoes",
+        badgeKey: "acompanhamento",
       },
     ],
   },
@@ -161,7 +161,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const [query, setQuery] = useState("")
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
   const [rootOpen, setRootOpen] = useState(true)
-  const [pendencias, setPendencias] = useState({ aprovacoes: 0, painelFinanceiro: 0, correcoes: 0 })
+  const [pendencias, setPendencias] = useState({ aprovacoes: 0, painelFinanceiro: 0, correcoes: 0, acompanhamento: 0 })
 
   useEffect(() => {
     const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY)
@@ -189,7 +189,10 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     fetchPendencias()
     const interval = setInterval(fetchPendencias, 30000)
     return () => clearInterval(interval)
-  }, [])
+    // Refaz a busca também quando o usuário navega (ex.: acabou de aprovar/recusar um pedido
+    // e foi redirecionado) — não precisa esperar até 30s pro badge refletir a ação dele.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 
   const isItemActive = (href: string) => {
     const [itemP, itemQuery] = href.split("?")

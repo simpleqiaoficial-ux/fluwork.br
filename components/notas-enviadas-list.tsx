@@ -26,6 +26,7 @@ import { listarEquipes } from "@/app/actions/equipes"
 import { aprovarNotaFiscal, recusarNotaFiscal } from "@/app/actions/pedidos"
 import type { Equipe } from "@/types/equipe"
 import type { Pedido } from "@/types/pedido" // Import Pedido type
+import { toast } from "sonner"
 
 interface NotasEnviadasListProps {
   pedidos: PedidoPagamento[]
@@ -98,7 +99,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
 
     // Block if no nota and not KM-only
     if (!hasNotaFiscal && !isReembolsoKm && !hasOnlyKm) {
-      alert(
+      toast.error(
         "Este pedido não pode ser aprovado pois não possui nota fiscal anexada. Solicite ao prestador que anexe a nota fiscal primeiro.",
       )
       return
@@ -107,11 +108,11 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
     try {
       setApprovingId(pedidoId)
       await aprovarNotaFiscal(pedidoId)
-      alert("Nota marcada como recebida com sucesso!")
+      toast.success("Nota marcada como recebida com sucesso!")
       router.refresh()
     } catch (error) {
       console.error("[v0] Erro ao aprovar nota:", error)
-      alert(error instanceof Error ? error.message : "Erro ao aprovar nota fiscal")
+      toast.error(error instanceof Error ? error.message : "Erro ao aprovar nota fiscal")
     } finally {
       setApprovingId(null)
     }
@@ -121,19 +122,19 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
     const motivo = motivoRecusa[pedidoId]?.trim()
 
     if (!motivo) {
-      alert("Por favor, informe o motivo da recusa")
+      toast.error("Por favor, informe o motivo da recusa")
       return
     }
 
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
-      alert("Nota fiscal recusada. O prestador foi notificado para anexar uma nova nota.")
+      toast.success("Nota fiscal recusada. O prestador foi notificado para anexar uma nova nota.")
       setMotivoRecusa({ ...motivoRecusa, [pedidoId]: "" })
       router.refresh()
     } catch (error) {
       console.error("[v0] Erro ao recusar nota:", error)
-      alert(error instanceof Error ? error.message : "Erro ao recusar nota fiscal")
+      toast.error(error instanceof Error ? error.message : "Erro ao recusar nota fiscal")
     } finally {
       setRejectingId(null)
     }
@@ -421,7 +422,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                   <Button
                                     onClick={() => {
                                       if (!motivoRecusa[pedido.id]?.trim()) {
-                                        alert("Por favor, informe o motivo da recusa")
+                                        toast.error("Por favor, informe o motivo da recusa")
                                         return
                                       }
                                       setConfirmRecusarId(pedido.id)
@@ -500,7 +501,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                           if (!pdfUrl || pdfUrl.includes("undefined") || pdfUrl.includes("null")) {
                                             e.preventDefault()
                                             console.error("[v0] Invalid PDF URL:", pdfUrl)
-                                            alert("Arquivo PDF não disponível ou foi removido.")
+                                            toast.error("Arquivo PDF não disponível ou foi removido.")
                                           }
                                         }}
                                       >
@@ -524,7 +525,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                     onClick={(e) => {
                                       if (!pdfUrl || pdfUrl.includes("undefined") || pdfUrl.includes("null")) {
                                         e.preventDefault()
-                                        alert("Arquivo PDF não disponível ou foi removido.")
+                                        toast.error("Arquivo PDF não disponível ou foi removido.")
                                       }
                                     }}
                                   >

@@ -41,6 +41,8 @@ export interface PedidoPagamento {
   data_emissao_nota?: string
   nota_fiscal_url?: string
   data_nota_recebida?: string
+  data_limite_anexo_nota?: string
+  correcao_solicitada_por?: string
   notas_fiscais?: {
     arquivo_xml_url: string
     arquivo_pdf_url: string
@@ -48,6 +50,7 @@ export interface PedidoPagamento {
   }
   colaborador?: {
     nome_completo: string
+    email?: string
     salario: number
     tipo_acesso: string
     equipe_id?: string

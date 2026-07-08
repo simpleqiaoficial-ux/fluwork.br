@@ -176,6 +176,7 @@ export function toPedidoDTO(row: AnyRow) {
       colaborador: row.colaborador
         ? {
             nome_completo: row.colaborador.nomeCompleto,
+            email: row.colaborador.email,
             salario: row.colaborador.salario == null ? row.colaborador.salario : Number(row.colaborador.salario),
             tipo_acesso: row.colaborador.tipoAcesso,
             equipe_id: row.colaborador.equipeId,

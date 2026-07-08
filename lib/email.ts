@@ -106,6 +106,28 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
   })
 }
 
+export async function sendLembreteNotaFiscalEmail(params: {
+  to: string
+  prestadorNome: string
+  valorFormatado: string
+  dataAprovacaoFormatada: string
+  meusPagamentosUrl: string
+  empresa: EmpresaEmail
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Lembrete: nota fiscal pendente — ${params.empresa.nome}`,
+    html: `
+      <p>Olá, ${params.prestadorNome}.</p>
+      <p>Seu pagamento de ${params.valorFormatado}, aprovado em ${params.dataAprovacaoFormatada}, está aguardando a nota fiscal pra seguir pro pagamento.</p>
+      <p><a href="${params.meusPagamentosUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Emitir ou anexar nota fiscal</a></p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
+    `,
+  })
+}
+
 export async function sendContatoComercialEmail(params: {
   nome: string
   empresa: string

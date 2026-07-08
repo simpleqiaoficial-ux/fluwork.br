@@ -4,15 +4,18 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Loader2, FileText } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, FileText, AlertCircle } from "lucide-react"
 import { uploadNotaFiscal, marcarNotaEmitida } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
+import { NotaAnexadaDialog } from "@/components/nota-anexada-dialog"
 
 interface AnexarNotaDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   pedidoId: string
   colaboradorId: string
+  colaboradorNome?: string
   valorEsperado: number
   mesAnoEsperado: { mes: number; ano: number }
 }
@@ -22,6 +25,7 @@ export function AnexarNotaDialog({
   onOpenChange,
   pedidoId,
   colaboradorId,
+  colaboradorNome,
   valorEsperado,
   mesAnoEsperado,
 }: AnexarNotaDialogProps) {
@@ -30,14 +34,18 @@ export function AnexarNotaDialog({
   const [arquivoPdfUrl, setArquivoPdfUrl] = useState<string | null>(null)
   const [uploadandoPdf, setUploadandoPdf] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState("")
+  const [sucessoAberto, setSucessoAberto] = useState(false)
+  const [enviadoEm, setEnviadoEm] = useState<Date | null>(null)
 
   const handleArquivoPdfSelecionado = async (file: File) => {
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
     if (!file || !isPdf) {
-      alert("Por favor, selecione um arquivo PDF válido")
+      setErro("Por favor, selecione um arquivo PDF válido")
       return
     }
 
+    setErro("")
     setArquivoPdf(file)
     setUploadandoPdf(true)
 
@@ -53,7 +61,7 @@ export function AnexarNotaDialog({
       setArquivoPdfUrl(uploadResult.url)
     } catch (error) {
       console.error("Erro ao processar PDF:", error)
-      alert(`Erro ao processar PDF: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+      setErro(`Erro ao processar PDF: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
       setArquivoPdf(null)
     } finally {
       setUploadandoPdf(false)
@@ -62,31 +70,41 @@ export function AnexarNotaDialog({
 
   const handleAnexar = async () => {
     if (!arquivoPdf || !arquivoPdfUrl) {
-      alert("Por favor, envie o arquivo PDF da nota fiscal")
+      setErro("Por favor, envie o arquivo PDF da nota fiscal")
       return
     }
 
+    setErro("")
     setSalvando(true)
     try {
       const result = await marcarNotaEmitida(pedidoId, arquivoPdfUrl)
 
       if (!result || (typeof result === "object" && "success" in result && !result.success)) {
-        alert(`Erro ao anexar nota: ${(result as any)?.error || "Erro desconhecido"}`)
+        setErro(`Erro ao anexar nota: ${(result as any)?.error || "Erro desconhecido"}`)
         return
       }
 
-      alert("Nota fiscal anexada com sucesso! O financeiro foi notificado.")
+      setEnviadoEm(new Date())
       onOpenChange(false)
+      setSucessoAberto(true)
       router.refresh()
     } catch (error) {
       console.error("Erro ao anexar nota:", error)
-      alert(`Erro ao anexar nota fiscal: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+      setErro(`Erro ao anexar nota fiscal: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
     } finally {
       setSalvando(false)
     }
   }
 
+  const handleSubstituir = () => {
+    setSucessoAberto(false)
+    setArquivoPdf(null)
+    setArquivoPdfUrl(null)
+    onOpenChange(true)
+  }
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -147,6 +165,13 @@ export function AnexarNotaDialog({
             financeiro irá revisar a nota.
           </p>
 
+          {erro && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{erro}</AlertDescription>
+            </Alert>
+          )}
+
           <Button onClick={handleAnexar} disabled={!arquivoPdf || !arquivoPdfUrl || salvando} className="w-full">
             {salvando ? (
               <>
@@ -160,5 +185,17 @@ export function AnexarNotaDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    {arquivoPdf && arquivoPdfUrl && enviadoEm && (
+      <NotaAnexadaDialog
+        open={sucessoAberto}
+        onOpenChange={setSucessoAberto}
+        arquivo={{ nome: arquivoPdf.name, tipo: arquivoPdf.type || "application/pdf", tamanhoBytes: arquivoPdf.size, url: arquivoPdfUrl }}
+        enviadoEm={enviadoEm}
+        responsavelNome={colaboradorNome || "Você"}
+        onSubstituir={handleSubstituir}
+      />
+    )}
+    </>
   )
 }

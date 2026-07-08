@@ -2,7 +2,7 @@
 
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, equipes, gerentesEquipes, pedidosPagamento, notasFiscais } from "@/lib/db/schema"
+import { colaboradores, empresas, equipes, gerentesEquipes, pedidosPagamento, notasFiscais } from "@/lib/db/schema"
 import { toPedidoDTO } from "@/lib/db/mappers"
 import type { NovoPedido, AcaoPedido } from "@/types/pedido"
 import { revalidatePath } from "next/cache"
@@ -10,6 +10,8 @@ import { getSession } from "@/lib/session"
 import { uploadFile } from "@/lib/gcs"
 import { registrarAuditoria } from "@/lib/audit"
 import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
+import { sendLembreteNotaFiscalEmail } from "@/lib/email"
+import { formatCurrency } from "@/lib/utils"
 
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
@@ -1030,6 +1032,62 @@ export async function listarPedidosComNotaPendente() {
     console.error("[v0] Erro ao listar pedidos com nota pendente:", error)
     throw new Error("Erro ao listar pedidos com nota pendente")
   }
+}
+
+/** Envia um lembrete por e-mail ao prestador de um pedido aprovado aguardando nota fiscal —
+ *  botão principal da tela /acompanhamento. Não emite/anexa nada em nome do prestador, só
+ *  cobra: a ação de fato continua exclusiva de quem é dono do pedido (/meus-pagamentos). */
+export async function enviarLembreteNotaFiscal(pedidoId: string) {
+  const session = await getSession()
+  if (!session) throw new Error("Usuário não autenticado")
+  if (!["Supervisor", "Gerente", "Financeiro", "Adm"].includes(session.tipoAcesso)) {
+    throw new Error("Sem permissão")
+  }
+
+  const [pedido] = await db
+    .select({
+      empresaId: pedidosPagamento.empresaId,
+      colaboradorId: pedidosPagamento.colaboradorId,
+      valorTotal: pedidosPagamento.valorTotal,
+      dataAprovacaoFinanceiro: pedidosPagamento.dataAprovacaoFinanceiro,
+      status: pedidosPagamento.status,
+    })
+    .from(pedidosPagamento)
+    .where(eq(pedidosPagamento.id, pedidoId))
+  if (!pedido) throw new Error("Pedido não encontrado")
+  if (session.tipoAcesso !== "SuperAdmin" && pedido.empresaId !== session.empresaId) {
+    throw new Error("Pedido não encontrado")
+  }
+  if (pedido.status !== "aprovado") {
+    throw new Error("Este pedido não está mais aguardando nota fiscal")
+  }
+
+  const [colaborador] = await db
+    .select({ nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, pedido.colaboradorId))
+  if (!colaborador?.email) throw new Error("Prestador sem e-mail cadastrado")
+
+  const [empresa] = await db
+    .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia, cnpj: empresas.cnpj })
+    .from(empresas)
+    .where(eq(empresas.id, pedido.empresaId))
+  if (!empresa) throw new Error("Empresa não encontrada")
+
+  const baseUrl = process.env.APP_BASE_URL || ""
+
+  await sendLembreteNotaFiscalEmail({
+    to: colaborador.email,
+    prestadorNome: colaborador.nomeCompleto,
+    valorFormatado: formatCurrency(Number(pedido.valorTotal)),
+    dataAprovacaoFormatada: pedido.dataAprovacaoFinanceiro
+      ? new Intl.DateTimeFormat("pt-BR").format(new Date(pedido.dataAprovacaoFinanceiro))
+      : "—",
+    meusPagamentosUrl: `${baseUrl}/meus-pagamentos`,
+    empresa: { nome: empresa.nomeFantasia || empresa.razaoSocial, razaoSocial: empresa.razaoSocial, cnpj: empresa.cnpj },
+  })
+
+  return { success: true }
 }
 
 export async function solicitarProrrogacaoPrazo(pedidoId: string, motivo: string) {

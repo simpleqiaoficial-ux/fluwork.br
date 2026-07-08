@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { formatCurrency } from "@/lib/utils"
 import { StatusBadge } from "@/components/ui/status-badge"
+import { PedidoTimeline } from "@/components/pedido-timeline"
 import { AlertCircle } from "lucide-react"
 
 interface PedidoDetailModalProps {
@@ -27,6 +28,9 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Timeline — situação atual + histórico de aprovação */}
+          <PedidoTimeline pedido={pedido} />
+
           {/* Informações gerais */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

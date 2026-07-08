@@ -1,290 +1,195 @@
 "use client"
 
-import { Check, Clock, AlertCircle, XCircle, FileText, AlertTriangle } from "lucide-react"
+import { Check, Clock, XCircle, FileText, AlertTriangle, CreditCard, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { PedidoPagamento } from "@/types/pedido"
 
 interface PedidoTimelineProps {
-  pedido: {
-    created_at: string
-    status: string
-    data_aprovacao_gerente?: string
-    data_aprovacao_financeiro?: string
-    data_emissao_nota?: string
-    data_nota_recebida?: string
-    aprovado_gerente?: boolean
-    aprovado_financeiro?: boolean
-    nota_emitida?: boolean
-    correcao_solicitada_por?: string
+  pedido: Pick<
+    PedidoPagamento,
+    | "created_at"
+    | "status"
+    | "data_aprovacao_gerente"
+    | "data_aprovacao_financeiro"
+    | "data_emissao_nota"
+    | "data_nota_recebida"
+    | "aprovado_gerente"
+    | "aprovado_financeiro"
+    | "aprovado_por_gerente"
+    | "aprovado_por_financeiro"
+    | "nota_emitida"
+    | "correcao_solicitada_por"
+    | "observacao_gerente"
+    | "observacao_financeiro"
+    | "criado_por"
+  >
+}
+
+type EtapaEstado = "completo" | "atual" | "erro" | "pendente"
+
+interface Etapa {
+  id: string
+  label: string
+  estado: EtapaEstado
+  quem?: string
+  quando?: string
+  observacao?: string
+}
+
+function formatarDataHora(valor?: string) {
+  if (!valor) return null
+  const data = new Date(valor)
+  return {
+    data: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }),
+    hora: data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
   }
 }
 
-export function PedidoTimeline({ pedido }: PedidoTimelineProps) {
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return null
-    const date = new Date(dateString)
-    return {
-      date: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }),
-      time: date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-    }
-  }
+const SITUACAO_ATUAL: Record<string, { label: string; descricao: string; proxima?: string; tom: "sucesso" | "atencao" | "erro" | "neutro" }> = {
+  pendente_gerente: { label: "Aguardando aprovação do gerente", descricao: "O pedido foi lançado e está na fila do gerente responsável.", proxima: "Aprovação do financeiro", tom: "atencao" },
+  pendente_financeiro: { label: "Aguardando aprovação do financeiro", descricao: "O gerente já aprovou — falta a validação final do financeiro.", proxima: "Pagamento aprovado, prestador anexa a nota fiscal", tom: "atencao" },
+  aprovado: { label: "Aprovado — aguardando nota fiscal", descricao: "O pagamento foi aprovado. O prestador precisa emitir ou anexar a nota fiscal.", proxima: "Financeiro recebe e aprova a nota fiscal", tom: "atencao" },
+  recusado: { label: "Recusado", descricao: "Este pedido foi recusado e não segue mais no fluxo.", tom: "erro" },
+  correcao: { label: "Correção solicitada", descricao: "Foi pedido um ajuste no pedido — revise e reenvie.", proxima: "Reenviar o pedido corrigido", tom: "atencao" },
+  nota_recebida: { label: "Nota fiscal recebida", descricao: "A nota foi aprovada pelo financeiro — falta só o pagamento.", proxima: "Pagamento", tom: "sucesso" },
+  pago: { label: "Pagamento concluído", descricao: "O ciclo deste pedido foi encerrado com sucesso.", tom: "sucesso" },
+  aguardando_prorrogacao: { label: "Prorrogação de prazo em análise", descricao: "O prestador pediu mais tempo pra anexar a nota fiscal.", proxima: "Financeiro decide a prorrogação", tom: "atencao" },
+  prorrogacao_negada: { label: "Prorrogação negada", descricao: "O prazo pra anexar a nota fiscal expirou e a prorrogação foi negada.", proxima: "Falar com o supervisor", tom: "erro" },
+}
 
+const TOM_CLASSES: Record<string, string> = {
+  sucesso: "bg-success/10 text-success",
+  atencao: "bg-warning/15 text-warning",
+  erro: "bg-destructive/10 text-destructive",
+  neutro: "bg-muted text-muted-foreground",
+}
+
+const TOM_ICON: Record<string, LucideIcon> = { sucesso: Check, atencao: Clock, erro: XCircle, neutro: Clock }
+
+const ESTADO_CIRCLE: Record<EtapaEstado, string> = {
+  completo: "border-primary bg-primary text-primary-foreground",
+  atual: "border-primary bg-background ring-4 ring-primary/20 text-primary",
+  erro: "border-destructive bg-destructive text-destructive-foreground",
+  pendente: "border-muted-foreground/30 bg-background text-muted-foreground",
+}
+
+const ESTADO_TEXT: Record<EtapaEstado, string> = {
+  completo: "text-foreground",
+  atual: "text-foreground font-semibold",
+  erro: "text-destructive",
+  pendente: "text-muted-foreground",
+}
+
+export function PedidoTimeline({ pedido }: PedidoTimelineProps) {
   const isCorrecao = pedido.status === "correcao"
   const isRecusado = pedido.status === "recusado"
-  const isConcluido = pedido.nota_emitida === true || pedido.status === "pago" || pedido.status === "nota_recebida"
+  const isConcluido = pedido.status === "pago"
 
-  // Determine which stage we're at
-  const getStageInfo = () => {
-    if (isCorrecao) {
-      return {
-        stage: "correcao",
-        message: pedido.correcao_solicitada_por === "financeiro" 
-          ? "Correção solicitada pelo Financeiro" 
-          : "Correção solicitada pelo Gerente",
-        description: "Seu pedido precisa de ajustes. Verifique as observações e reenvie.",
-      }
-    }
-    if (isRecusado) {
-      return {
-        stage: "recusado",
-        message: pedido.aprovado_gerente === false 
-          ? "Recusado pelo Gerente" 
-          : "Recusado pelo Financeiro",
-        description: "Infelizmente seu pedido foi recusado.",
-      }
-    }
-    if (isConcluido) {
-      return { stage: "concluido", message: "Concluído", description: null }
-    }
-    if (pedido.status === "pendente_gerente") {
-      return { stage: "gerente", message: "Aguardando Gerente", description: null }
-    }
-    if (pedido.status === "pendente_financeiro") {
-      return { stage: "financeiro", message: "Aguardando Financeiro", description: null }
-    }
-    if (pedido.status === "aprovado" && !pedido.nota_emitida) {
-      return { stage: "anexar_nota", message: "Aprovado! Anexe sua nota fiscal", description: null }
-    }
-    return { stage: "unknown", message: "Status desconhecido", description: null }
-  }
+  const lancado = formatarDataHora(pedido.created_at)
+  const aprovGerente = formatarDataHora(pedido.data_aprovacao_gerente)
+  const aprovFinanceiro = formatarDataHora(pedido.data_aprovacao_financeiro)
+  const nota = formatarDataHora(pedido.data_emissao_nota || pedido.data_nota_recebida)
 
-  const stageInfo = getStageInfo()
+  const gerenteRecusou = pedido.aprovado_gerente === false || (isCorrecao && pedido.correcao_solicitada_por !== "financeiro")
+  const financeiroRecusou = pedido.aprovado_financeiro === false || (isCorrecao && pedido.correcao_solicitada_por === "financeiro")
 
-  // 4 etapas apenas - sem "Pagamento"
-  const steps = [
+  const etapas: Etapa[] = [
     {
       id: "lancado",
-      label: "Pedido Lançado",
-      dateTime: formatDateTime(pedido.created_at),
-      completed: true,
-      current: pedido.status === "pendente_gerente",
+      label: "Pedido lançado",
+      estado: "completo",
+      quem: pedido.criado_por?.nome_completo,
+      quando: lancado ? `${lancado.data} às ${lancado.hora}` : undefined,
     },
     {
       id: "gerente",
-      label: pedido.aprovado_gerente ? "Aprovado pelo Gerente" : "Aguardando Gerente",
-      dateTime: formatDateTime(pedido.data_aprovacao_gerente),
-      completed: pedido.aprovado_gerente === true,
-      current: pedido.status === "pendente_gerente",
-      error: pedido.aprovado_gerente === false || (isCorrecao && pedido.correcao_solicitada_por !== "financeiro"),
+      label: gerenteRecusou ? "Recusado pelo gerente" : "Aprovação do gerente",
+      estado: gerenteRecusou ? "erro" : pedido.aprovado_gerente ? "completo" : pedido.status === "pendente_gerente" ? "atual" : "pendente",
+      quem: pedido.aprovado_por_gerente?.nome_completo,
+      quando: aprovGerente ? `${aprovGerente.data} às ${aprovGerente.hora}` : undefined,
+      observacao: pedido.observacao_gerente || undefined,
     },
     {
       id: "financeiro",
-      label: pedido.aprovado_financeiro ? "Aprovado pelo Financeiro" : "Aguardando Financeiro",
-      dateTime: formatDateTime(pedido.data_aprovacao_financeiro),
-      completed: pedido.aprovado_financeiro === true,
-      current: pedido.status === "pendente_financeiro",
-      error: pedido.aprovado_financeiro === false || (isCorrecao && pedido.correcao_solicitada_por === "financeiro"),
+      label: financeiroRecusou ? "Recusado pelo financeiro" : "Aprovação do financeiro",
+      estado: financeiroRecusou ? "erro" : pedido.aprovado_financeiro ? "completo" : pedido.status === "pendente_financeiro" ? "atual" : "pendente",
+      quem: pedido.aprovado_por_financeiro?.nome_completo,
+      quando: aprovFinanceiro ? `${aprovFinanceiro.data} às ${aprovFinanceiro.hora}` : undefined,
+      observacao: pedido.observacao_financeiro || undefined,
     },
     {
       id: "nota",
-      label: isConcluido ? "Concluído" : "Anexar Nota",
-      dateTime: formatDateTime(pedido.data_emissao_nota || pedido.data_nota_recebida),
-      completed: isConcluido,
-      current: pedido.status === "aprovado" && !pedido.nota_emitida,
+      label: "Nota fiscal",
+      estado:
+        pedido.nota_emitida || pedido.status === "nota_recebida" || pedido.status === "pago"
+          ? "completo"
+          : pedido.status === "aprovado"
+            ? "atual"
+            : "pendente",
+      quando: nota ? `${nota.data} às ${nota.hora}` : undefined,
+    },
+    {
+      id: "pagamento",
+      label: "Pagamento",
+      estado: pedido.status === "pago" ? "completo" : pedido.status === "nota_recebida" ? "atual" : "pendente",
     },
   ]
 
+  const situacao = SITUACAO_ATUAL[pedido.status || ""] ?? { label: pedido.status || "—", descricao: "", tom: "neutro" as const }
+  const TomIcon = TOM_ICON[situacao.tom]
+
   return (
-    <div className="w-full space-y-4">
-      {/* Alert for Correction or Rejection */}
-      {(isCorrecao || isRecusado) && (
-        <Alert variant={isRecusado ? "destructive" : "default"} className={cn(
-          isCorrecao && "border-warning/50 bg-warning/10 text-warning [&>svg]:text-warning"
-        )}>
-          {isCorrecao ? (
-            <AlertTriangle className="h-4 w-4" />
-          ) : (
-            <XCircle className="h-4 w-4" />
-          )}
-          <AlertTitle>{stageInfo.message}</AlertTitle>
-          {stageInfo.description && (
-            <AlertDescription>{stageInfo.description}</AlertDescription>
-          )}
-        </Alert>
-      )}
-
-      {/* Current Status Badge */}
-      {!isCorrecao && !isRecusado && (
-        <div className="flex items-center justify-center">
-          <div className={cn(
-            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
-            isConcluido
-              ? "bg-success/10 text-success"
-              : stageInfo.stage === "anexar_nota"
-                ? "bg-primary/10 text-primary"
-                : "bg-warning/15 text-warning"
-          )}>
-            {isConcluido ? (
-              <Check className="h-3.5 w-3.5" />
-            ) : stageInfo.stage === "anexar_nota" ? (
-              <FileText className="h-3.5 w-3.5" />
-            ) : (
-              <Clock className="h-3.5 w-3.5" />
-            )}
-            {stageInfo.message}
-          </div>
+    <div className="space-y-6">
+      {/* Situação atual — destacada, separada do histórico abaixo */}
+      <div className={cn("rounded-lg p-4", TOM_CLASSES[situacao.tom])}>
+        <div className="flex items-center gap-2 font-semibold">
+          <TomIcon className="h-4 w-4 shrink-0" />
+          {situacao.label}
         </div>
-      )}
-
-      {/* Desktop Timeline - 4 steps */}
-      <div className="hidden md:block pt-2">
-        <div className="relative flex items-start justify-between">
-          {/* Background Line */}
-          <div className="absolute top-5 left-[12.5%] right-[12.5%] h-1 bg-muted rounded-full" />
-          
-          {/* Progress Line */}
-          <div 
-            className={cn(
-              "absolute top-5 left-[12.5%] h-1 rounded-full transition-all duration-500",
-              isCorrecao || isRecusado ? "bg-destructive" : "bg-primary"
-            )}
-            style={{ 
-              width: `${Math.min(75, Math.max(0, (steps.filter(s => s.completed).length - 1) / (steps.length - 1) * 75))}%` 
-            }}
-          />
-
-          {steps.map((step, index) => (
-            <div key={step.id} className="relative flex flex-col items-center" style={{ width: "25%" }}>
-              {/* Date/Time above */}
-              <div className="mb-2 text-center h-12 flex flex-col justify-end">
-                {step.dateTime && (
-                  <>
-                    <span className="text-xs font-medium text-foreground block">
-                      {step.dateTime.date}
-                    </span>
-                    <span className="text-xs text-muted-foreground block">
-                      {step.dateTime.time}
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Circle */}
-              <div
-                className={cn(
-                  "relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-3 transition-all duration-300 shadow-sm",
-                  step.completed && !step.error
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : step.error
-                      ? "border-destructive bg-destructive text-destructive-foreground"
-                      : step.current
-                        ? "border-primary bg-background ring-4 ring-primary/20"
-                        : "border-muted-foreground/30 bg-background"
-                )}
-              >
-                {step.completed && !step.error ? (
-                  <Check className="h-5 w-5" />
-                ) : step.error ? (
-                  <XCircle className="h-5 w-5" />
-                ) : step.current ? (
-                  <Clock className="h-5 w-5 text-primary animate-pulse" />
-                ) : (
-                  <span className="text-xs font-medium text-muted-foreground">{index + 1}</span>
-                )}
-              </div>
-
-              {/* Label below */}
-              <div className="mt-2 text-center px-1">
-                <span
-                  className={cn(
-                    "text-xs font-medium leading-tight block",
-                    step.completed && !step.error
-                      ? "text-primary"
-                      : step.error
-                        ? "text-destructive"
-                        : step.current
-                          ? "text-foreground font-semibold"
-                          : "text-muted-foreground"
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        {situacao.descricao && <p className="mt-1 text-sm opacity-90">{situacao.descricao}</p>}
+        {situacao.proxima && !isRecusado && (
+          <p className="mt-2 text-xs font-medium uppercase tracking-wide opacity-75">Próxima etapa: {situacao.proxima}</p>
+        )}
       </div>
 
-      {/* Mobile Timeline - Vertical */}
-      <div className="md:hidden">
-        <div className="relative pl-10">
-          {/* Vertical Line */}
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted" />
-          
-          {steps.map((step, index) => (
-            <div key={step.id} className="relative pb-6 last:pb-0">
-              {/* Progress Line */}
-              {step.completed && !step.error && index < steps.length - 1 && (
-                <div 
-                  className="absolute left-4 top-8 w-0.5 bg-primary"
-                  style={{ height: "calc(100% - 2rem)" }}
-                />
-              )}
-
-              {/* Circle */}
+      {/* Histórico — timeline vertical */}
+      <div className="relative pl-9">
+        <div className="absolute left-[15px] top-1 bottom-1 w-0.5 bg-border" />
+        <div className="space-y-6">
+          {etapas.map((etapa) => (
+            <div key={etapa.id} className="relative">
               <div
                 className={cn(
-                  "absolute left-0 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300",
-                  step.completed && !step.error
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : step.error
-                      ? "border-destructive bg-destructive text-destructive-foreground"
-                      : step.current
-                        ? "border-primary bg-background ring-4 ring-primary/20"
-                        : "border-muted-foreground/30 bg-background"
+                  "absolute -left-9 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors",
+                  ESTADO_CIRCLE[etapa.estado],
                 )}
               >
-                {step.completed && !step.error ? (
+                {etapa.estado === "completo" ? (
                   <Check className="h-4 w-4" />
-                ) : step.error ? (
+                ) : etapa.estado === "erro" ? (
                   <XCircle className="h-4 w-4" />
-                ) : step.current ? (
-                  <Clock className="h-4 w-4 text-primary animate-pulse" />
+                ) : etapa.estado === "atual" ? (
+                  <Clock className="h-4 w-4 animate-pulse" />
+                ) : etapa.id === "nota" ? (
+                  <FileText className="h-4 w-4" />
+                ) : etapa.id === "pagamento" ? (
+                  <CreditCard className="h-4 w-4" />
                 ) : (
-                  <span className="text-xs font-medium text-muted-foreground">{index + 1}</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 )}
               </div>
 
-              {/* Content */}
-              <div className="ml-2">
-                <span
-                  className={cn(
-                    "text-sm font-medium block",
-                    step.completed && !step.error
-                      ? "text-primary"
-                      : step.error
-                        ? "text-destructive"
-                        : step.current
-                          ? "text-foreground font-semibold"
-                          : "text-muted-foreground"
-                  )}
-                >
-                  {step.label}
-                </span>
-                {step.dateTime && (
-                  <span className="text-xs text-muted-foreground">
-                    {step.dateTime.date} {step.dateTime.time}
-                  </span>
+              <div className="pb-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={cn("text-sm", ESTADO_TEXT[etapa.estado])}>{etapa.label}</span>
+                  {etapa.quando && <span className="text-xs text-muted-foreground">{etapa.quando}</span>}
+                </div>
+                {etapa.quem && <p className="text-xs text-muted-foreground mt-0.5">por {etapa.quem}</p>}
+                {etapa.observacao && (
+                  <div className="mt-1.5 flex items-start gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5 text-xs text-muted-foreground">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                    <span>{etapa.observacao}</span>
+                  </div>
                 )}
               </div>
             </div>

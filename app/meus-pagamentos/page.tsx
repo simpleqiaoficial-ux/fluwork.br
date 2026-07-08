@@ -24,39 +24,36 @@ export default async function MeusPagamentosPage() {
 
   const colaborador = toColaboradorDTO(colaboradorRow)
 
-  // Pedidos em andamento (todos os status exceto pago e nota_recebida)
-  const pedidosEmAndamentoRows = await db
-    .select()
-    .from(pedidosPagamento)
-    .where(
-      and(
-        eq(pedidosPagamento.colaboradorId, session.colaboradorId),
-        inArray(pedidosPagamento.status, [
-          "pendente_gerente",
-          "pendente_financeiro",
-          "aprovado",
-          "correcao",
-          "aguardando_prorrogacao",
-          "prorrogacao_negada",
-        ]),
-      ),
-    )
-    .orderBy(desc(pedidosPagamento.createdAt))
+  // Pedidos em andamento (todos os status exceto pago e nota_recebida) — inclui quem aprovou
+  // cada etapa, pra alimentar a timeline rica (components/pedido-timeline.tsx).
+  const pedidosEmAndamentoRows = await db.query.pedidosPagamento.findMany({
+    where: and(
+      eq(pedidosPagamento.colaboradorId, session.colaboradorId),
+      inArray(pedidosPagamento.status, [
+        "pendente_gerente",
+        "pendente_financeiro",
+        "aprovado",
+        "correcao",
+        "aguardando_prorrogacao",
+        "prorrogacao_negada",
+      ]),
+    ),
+    orderBy: desc(pedidosPagamento.createdAt),
+    with: { aprovadoPorGerente: true, aprovadoPorFinanceiro: true, criadoPorColaborador: true },
+  })
 
   // Pedidos concluídos (pago ou nota_recebida)
-  const pedidosConcluidosRows = await db
-    .select()
-    .from(pedidosPagamento)
-    .where(
-      and(
-        eq(pedidosPagamento.colaboradorId, session.colaboradorId),
-        inArray(pedidosPagamento.status, ["pago", "nota_recebida"]),
-      ),
-    )
-    .orderBy(desc(pedidosPagamento.createdAt))
+  const pedidosConcluidosRows = await db.query.pedidosPagamento.findMany({
+    where: and(
+      eq(pedidosPagamento.colaboradorId, session.colaboradorId),
+      inArray(pedidosPagamento.status, ["pago", "nota_recebida"]),
+    ),
+    orderBy: desc(pedidosPagamento.createdAt),
+    with: { aprovadoPorGerente: true, aprovadoPorFinanceiro: true, criadoPorColaborador: true },
+  })
 
-  const pedidosEmAndamento = pedidosEmAndamentoRows.map(toPedidoDTO)
-  const pedidosConcluidos = pedidosConcluidosRows.map(toPedidoDTO)
+  const pedidosEmAndamento = pedidosEmAndamentoRows.map((row) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  const pedidosConcluidos = pedidosConcluidosRows.map((row) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
 
   let reajustes: any[] = []
   try {

@@ -167,8 +167,8 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
                 const diasDesdeAprovacao = Math.floor(
                   (Date.now() - new Date(pedido.created_at).getTime()) / (1000 * 60 * 60 * 24),
                 )
-                const temDeadline = pedido.data_limite_anexo_nota
-                const deadlineExpirado = temDeadline && new Date(pedido.data_limite_anexo_nota).getTime() < Date.now()
+                const dataLimite = pedido.data_limite_anexo_nota ? new Date(pedido.data_limite_anexo_nota) : null
+                const deadlineExpirado = dataLimite ? dataLimite.getTime() < Date.now() : false
 
                 return (
                   <TableRow key={pedido.id}>
@@ -184,7 +184,7 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
                       {formatValue(pedido.valor_total)}
                     </TableCell>
                     <TableCell className={deadlineExpirado ? "text-destructive font-medium" : "text-muted-foreground"}>
-                      {temDeadline ? new Date(pedido.data_limite_anexo_nota).toLocaleDateString("pt-BR") : "—"}
+                      {dataLimite ? dataLimite.toLocaleDateString("pt-BR") : "—"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5 flex-wrap">
