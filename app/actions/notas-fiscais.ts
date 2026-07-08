@@ -283,7 +283,7 @@ export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "
     session.tipoAcesso === "SuperAdmin" ? eq(notasFiscais.id, notaId) : and(eq(notasFiscais.id, notaId), eq(notasFiscais.empresaId, session.empresaId!))
 
   try {
-    await db
+    const [notaAtualizada] = await db
       .update(notasFiscais)
       .set({
         status,
@@ -292,6 +292,24 @@ export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "
         ...(observacao !== undefined && { observacaoFinanceiro: observacao }),
       })
       .where(escopo)
+      .returning({ pedidoId: notasFiscais.pedidoId, origem: notasFiscais.origem })
+
+    // Mantém pedidosPagamento em sincronia (as duas tabelas tinham máquinas de estado
+    // independentes antes desta mudança) — só pra notas manuais, mesmo comportamento de
+    // aprovarNotaFiscal/recusarNotaFiscal em app/actions/pedidos.ts.
+    if (notaAtualizada?.pedidoId && notaAtualizada.origem === "manual") {
+      if (status === "aprovado") {
+        await db
+          .update(pedidosPagamento)
+          .set({ status: "nota_recebida", dataNotaRecebida: new Date() })
+          .where(eq(pedidosPagamento.id, notaAtualizada.pedidoId))
+      } else {
+        await db
+          .update(pedidosPagamento)
+          .set({ status: "aprovado", notaEmitida: false, notaFiscalUrl: null, observacaoFinanceiro: observacao || null })
+          .where(eq(pedidosPagamento.id, notaAtualizada.pedidoId))
+      }
+    }
   } catch (error) {
     console.error("Erro ao atualizar nota fiscal:", error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }

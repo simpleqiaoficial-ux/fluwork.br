@@ -683,7 +683,12 @@ export async function marcarNotaEmitida(pedidoId: string, notaFiscalUrl: string)
   let pedido
   try {
     ;[pedido] = await db
-      .select({ colaboradorId: pedidosPagamento.colaboradorId, status: pedidosPagamento.status })
+      .select({
+        colaboradorId: pedidosPagamento.colaboradorId,
+        empresaId: pedidosPagamento.empresaId,
+        status: pedidosPagamento.status,
+        valorTotal: pedidosPagamento.valorTotal,
+      })
       .from(pedidosPagamento)
       .where(eq(pedidosPagamento.id, pedidoId))
   } catch (error) {
@@ -708,16 +713,60 @@ export async function marcarNotaEmitida(pedidoId: string, notaFiscalUrl: string)
     throw new Error("É necessário anexar o PDF da nota fiscal")
   }
 
+  const [colaborador] = await db
+    .select({ cnpj: colaboradores.cnpj })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, pedido.colaboradorId))
+
+  if (!colaborador?.cnpj) {
+    throw new Error("Cadastre o CNPJ do prestador antes de anexar a nota fiscal")
+  }
+
+  const agora = new Date()
+
   try {
     await db
       .update(pedidosPagamento)
       .set({
         notaEmitida: true,
-        dataEmissaoNota: new Date(),
+        dataEmissaoNota: agora,
         notaFiscalUrl: notaFiscalUrl,
         status: "pendente_financeiro", // Envia de volta pro financeiro
       })
       .where(eq(pedidosPagamento.id, pedidoId))
+
+    // Conecta a linha em notasFiscais (fonte de verdade que o financeiro aprova/recusa) —
+    // upsert porque o prestador pode reenviar depois de uma recusa (pedidoId é único).
+    const [notaExistente] = await db
+      .select({ id: notasFiscais.id })
+      .from(notasFiscais)
+      .where(eq(notasFiscais.pedidoId, pedidoId))
+
+    if (notaExistente) {
+      await db
+        .update(notasFiscais)
+        .set({
+          arquivoPdfUrl: notaFiscalUrl,
+          valorServico: pedido.valorTotal,
+          status: "pendente",
+          observacaoFinanceiro: null,
+          updatedAt: agora,
+        })
+        .where(eq(notasFiscais.id, notaExistente.id))
+    } else {
+      await db.insert(notasFiscais).values({
+        empresaId: pedido.empresaId,
+        pedidoId,
+        colaboradorId: pedido.colaboradorId,
+        origem: "manual",
+        competenciaMes: agora.getMonth() + 1,
+        competenciaAno: agora.getFullYear(),
+        valorServico: pedido.valorTotal,
+        cpfCnpjPrestador: colaborador.cnpj,
+        arquivoPdfUrl: notaFiscalUrl,
+        status: "pendente",
+      })
+    }
   } catch (error) {
     console.error("[v0] Erro ao marcar nota como emitida:", error)
     throw new Error("Erro ao marcar nota como emitida")
@@ -1222,6 +1271,13 @@ export async function aprovarNotaFiscal(pedidoId: string) {
         dataNotaRecebida: new Date(),
       })
       .where(eq(pedidosPagamento.id, pedidoId))
+
+    // Sincroniza a nota manual associada (se existir) — antes desta mudança, pedidosPagamento
+    // e notasFiscais nunca se tocavam, cada uma tinha seu próprio status desatualizado.
+    await db
+      .update(notasFiscais)
+      .set({ status: "aprovado", aprovadoPor: session.colaboradorId, dataAprovacao: new Date(), updatedAt: new Date() })
+      .where(and(eq(notasFiscais.pedidoId, pedidoId), eq(notasFiscais.origem, "manual")))
   } catch (error) {
     console.error("[v0] Erro ao aprovar nota fiscal:", error)
     console.error("[v0] Exceção ao aprovar nota fiscal:", error)
@@ -1255,6 +1311,11 @@ export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
         observacaoFinanceiro: motivo,
       })
       .where(eq(pedidosPagamento.id, pedidoId))
+
+    await db
+      .update(notasFiscais)
+      .set({ status: "rejeitado", observacaoFinanceiro: motivo, updatedAt: new Date() })
+      .where(and(eq(notasFiscais.pedidoId, pedidoId), eq(notasFiscais.origem, "manual")))
   } catch (error) {
     console.error("[v0] Erro ao recusar nota fiscal:", error)
     console.error("[v0] Exceção ao recusar nota fiscal:", error)
