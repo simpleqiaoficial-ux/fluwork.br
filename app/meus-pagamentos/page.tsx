@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { MeusPagamentosList } from "@/components/meus-pagamentos-list"
 import { getSession } from "@/lib/session"
 import { listarHistoricoReajustes } from "@/app/actions/reajustes"
@@ -67,9 +68,14 @@ export default async function MeusPagamentosPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pagamentos</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe o progresso dos seus pedidos de pagamento</p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pagamentos</h1>
+            <p className="text-sm text-muted-foreground">Acompanhe o progresso dos seus pedidos de pagamento</p>
+          </div>
+          <Link href="/meus-pagamentos/fiscal" className="text-sm text-primary hover:underline shrink-0 mt-1">
+            Configuração fiscal
+          </Link>
         </div>
 
         <Tabs defaultValue="andamento" className="w-full">
