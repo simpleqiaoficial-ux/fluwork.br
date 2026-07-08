@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
 import { Upload } from "lucide-react"
 import { toast } from "sonner"
 import { atualizarMinhaEmpresa, atualizarLogoMinhaEmpresa } from "@/app/actions/empresa-config"
@@ -31,6 +32,18 @@ export function EmpresaConfiguracoesForm({ empresa }: EmpresaConfiguracoesFormPr
     representante_documento: empresa.representante_documento || "",
     representante_cargo: empresa.representante_cargo || "",
     rodape_contrato: empresa.rodape_contrato || "",
+    endereco_cep: empresa.endereco_cep || "",
+    endereco_logradouro: empresa.endereco_logradouro || "",
+    endereco_numero: empresa.endereco_numero || "",
+    endereco_complemento: empresa.endereco_complemento || "",
+    endereco_bairro: empresa.endereco_bairro || "",
+    endereco_cidade: empresa.endereco_cidade || "",
+    endereco_uf: empresa.endereco_uf || "",
+    codigo_servico_padrao: empresa.codigo_servico_padrao || "",
+    discriminacao_servico_padrao: empresa.discriminacao_servico_padrao || "",
+    aliquota_iss_padrao: empresa.aliquota_iss_padrao?.toString() || "",
+    iss_retido_padrao: Boolean(empresa.iss_retido_padrao),
+    link_emissao_manual: empresa.link_emissao_manual || "",
   })
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +81,10 @@ export function EmpresaConfiguracoesForm({ empresa }: EmpresaConfiguracoesFormPr
   const handleSalvar = async () => {
     setLoading(true)
     try {
-      const result = await atualizarMinhaEmpresa(form)
+      const result = await atualizarMinhaEmpresa({
+        ...form,
+        aliquota_iss_padrao: form.aliquota_iss_padrao ? Number.parseFloat(form.aliquota_iss_padrao) : null,
+      })
       if (result.success) {
         toast.success("Dados da empresa atualizados")
         router.refresh()
@@ -141,6 +157,139 @@ export function EmpresaConfiguracoesForm({ empresa }: EmpresaConfiguracoesFormPr
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="endereco">Endereço</Label>
             <Input id="endereco" value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Endereço estruturado</CardTitle>
+          <p className="text-xs text-muted-foreground">Usado na emissão de NFS-e — separado do campo "Endereço" acima</p>
+        </CardHeader>
+        <CardContent className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="endereco_cep">CEP</Label>
+            <Input
+              id="endereco_cep"
+              placeholder="00000-000"
+              value={form.endereco_cep}
+              onChange={(e) => setForm({ ...form, endereco_cep: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endereco_uf">UF</Label>
+            <Input
+              id="endereco_uf"
+              maxLength={2}
+              value={form.endereco_uf}
+              onChange={(e) => setForm({ ...form, endereco_uf: e.target.value.toUpperCase() })}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="endereco_logradouro">Logradouro</Label>
+            <Input
+              id="endereco_logradouro"
+              value={form.endereco_logradouro}
+              onChange={(e) => setForm({ ...form, endereco_logradouro: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endereco_numero">Número</Label>
+            <Input
+              id="endereco_numero"
+              value={form.endereco_numero}
+              onChange={(e) => setForm({ ...form, endereco_numero: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endereco_complemento">Complemento</Label>
+            <Input
+              id="endereco_complemento"
+              value={form.endereco_complemento}
+              onChange={(e) => setForm({ ...form, endereco_complemento: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endereco_bairro">Bairro</Label>
+            <Input
+              id="endereco_bairro"
+              value={form.endereco_bairro}
+              onChange={(e) => setForm({ ...form, endereco_bairro: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endereco_cidade">Cidade</Label>
+            <Input
+              id="endereco_cidade"
+              value={form.endereco_cidade}
+              onChange={(e) => setForm({ ...form, endereco_cidade: e.target.value })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Configuração fiscal (NFS-e)</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Usado como padrão em toda emissão de nota fiscal de serviço pelo FluWork
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="codigo_servico_padrao">Código de serviço (LC 116)</Label>
+            <Input
+              id="codigo_servico_padrao"
+              placeholder="Ex: 01.05"
+              value={form.codigo_servico_padrao}
+              onChange={(e) => setForm({ ...form, codigo_servico_padrao: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="aliquota_iss_padrao">Alíquota ISS (%)</Label>
+            <Input
+              id="aliquota_iss_padrao"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={form.aliquota_iss_padrao}
+              onChange={(e) => setForm({ ...form, aliquota_iss_padrao: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="discriminacao_servico_padrao">Discriminação padrão do serviço</Label>
+            <Textarea
+              id="discriminacao_servico_padrao"
+              placeholder="Ex: Prestação de serviços de consultoria técnica"
+              rows={2}
+              className="resize-none"
+              value={form.discriminacao_servico_padrao}
+              onChange={(e) => setForm({ ...form, discriminacao_servico_padrao: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="link_emissao_manual">Link de emissão manual</Label>
+            <Input
+              id="link_emissao_manual"
+              placeholder="https://..."
+              value={form.link_emissao_manual}
+              onChange={(e) => setForm({ ...form, link_emissao_manual: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Pra onde o botão "Emitir manualmente" leva o prestador, no lugar da emissão automática
+            </p>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-3 sm:col-span-2">
+            <div>
+              <Label htmlFor="iss_retido_padrao">ISS retido na fonte</Label>
+              <p className="text-xs text-muted-foreground">Se marcado, o ISS é retido pela empresa contratante</p>
+            </div>
+            <Switch
+              id="iss_retido_padrao"
+              checked={form.iss_retido_padrao}
+              onCheckedChange={(checked) => setForm({ ...form, iss_retido_padrao: checked })}
+            />
           </div>
         </CardContent>
       </Card>
