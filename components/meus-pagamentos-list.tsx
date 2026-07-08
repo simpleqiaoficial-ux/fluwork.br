@@ -12,13 +12,13 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  Upload,
 } from "lucide-react"
 import { marcarNotaEmitida, uploadNotaFiscal, solicitarProrrogacaoPrazo } from "@/app/actions/pedidos"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMaskedCurrency } from "@/components/currency-display"
 import { AnexarNotaDialog } from "./anexar-nota-dialog"
-import { EmissaoNfseCard } from "./emissao-nfse-card"
 import { CountdownTimer } from "./countdown-timer"
 import { PedidoTimeline } from "./pedido-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -60,10 +60,14 @@ interface Pedido {
 interface MeusPagamentosListProps {
   pedidos: Pedido[]
   colaborador: Colaborador | null
+  linkEmissaoManual?: string | null
   isHistorico?: boolean
 }
 
-export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }: MeusPagamentosListProps) {
+// Emissor Nacional de NFS-e (gov.br) — destino padrão quando a empresa não configura um link próprio.
+const LINK_EMISSAO_PADRAO = "https://www.nfse.gov.br/EmissorNacional/Login"
+
+export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, isHistorico = false }: MeusPagamentosListProps) {
   const { formatValue } = useMaskedCurrency()
   const [loading, setLoading] = useState<string | null>(null)
   const [uploadingPdf, setUploadingPdf] = useState<string | null>(null)
@@ -446,14 +450,25 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
                               </Button>
                             </div>
                           ) : (
-                            <EmissaoNfseCard
-                              pedidoId={pedido.id}
-                              focusStatusCadastroColaborador={colaborador?.focus_status_cadastro || "nao_cadastrado"}
-                              onEmitirManualClick={() => {
-                                setPedidoSelecionado(pedido)
-                                setDialogOpen(true)
-                              }}
-                            />
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setPedidoSelecionado(pedido)
+                                  setDialogOpen(true)
+                                }}
+                                className="gap-2"
+                              >
+                                <Upload className="w-4 h-4" />
+                                Anexar Nota Fiscal
+                              </Button>
+                              <Button variant="outline" size="sm" asChild className="gap-2">
+                                <a href={linkEmissaoManual || LINK_EMISSAO_PADRAO} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="w-4 h-4" />
+                                  Emitir nota fiscal
+                                </a>
+                              </Button>
+                            </div>
                           )}
                         </div>
                       )}

@@ -7,7 +7,6 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { ArrowLeft, FileSignature, User } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
-import { FiscalFocusNfeForm } from "@/components/fiscal-focus-nfe-form"
 
 interface SituacaoVigencia {
   chave: string
@@ -43,10 +42,6 @@ interface ColaboradorProfileTabsProps {
     salario?: number | null
     equipe?: { id: string; nome: string } | null
     centro_custo?: { id: string; nome: string } | null
-    focus_status_cadastro?: string | null
-    focus_motivo_erro_cadastro?: string | null
-    inscricao_municipal?: string | null
-    regime_tributario?: string | null
   }
   contratos: ContratoResumo[]
 }
@@ -87,7 +82,6 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
         <TabsList>
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="contratos">Contratos ({contratos.length})</TabsTrigger>
-          <TabsTrigger value="fiscal">Fiscal</TabsTrigger>
         </TabsList>
 
         <TabsContent value="perfil" className="space-y-4 mt-4">
@@ -146,16 +140,6 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
               )
             })
           )}
-        </TabsContent>
-
-        <TabsContent value="fiscal" className="mt-4 max-w-lg">
-          <FiscalFocusNfeForm
-            colaboradorId={colaborador.id}
-            focusStatusCadastro={colaborador.focus_status_cadastro || "nao_cadastrado"}
-            focusMotivoErroCadastro={colaborador.focus_motivo_erro_cadastro}
-            inscricaoMunicipalAtual={colaborador.inscricao_municipal}
-            regimeTributarioAtual={colaborador.regime_tributario}
-          />
         </TabsContent>
       </Tabs>
     </div>

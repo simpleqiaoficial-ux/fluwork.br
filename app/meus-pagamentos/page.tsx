@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation"
-import Link from "next/link"
 import { MeusPagamentosList } from "@/components/meus-pagamentos-list"
 import { getSession } from "@/lib/session"
 import { listarHistoricoReajustes } from "@/app/actions/reajustes"
+import { obterLinkEmissaoManual } from "@/app/actions/empresa-config"
 import { HistoricoReajustesList } from "@/components/historico-reajustes-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { and, desc, eq, inArray } from "drizzle-orm"
@@ -65,17 +65,14 @@ export default async function MeusPagamentosPage() {
     console.error("[v0] Erro ao carregar reajustes, continuando sem eles:", error)
   }
 
+  const linkEmissaoManual = await obterLinkEmissaoManual()
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pagamentos</h1>
-            <p className="text-sm text-muted-foreground">Acompanhe o progresso dos seus pedidos de pagamento</p>
-          </div>
-          <Link href="/meus-pagamentos/fiscal" className="text-sm text-primary hover:underline shrink-0 mt-1">
-            Configuração fiscal
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pagamentos</h1>
+          <p className="text-sm text-muted-foreground">Acompanhe o progresso dos seus pedidos de pagamento</p>
         </div>
 
         <Tabs defaultValue="andamento" className="w-full">
@@ -85,10 +82,10 @@ export default async function MeusPagamentosPage() {
             <TabsTrigger value="reajustes" className="text-sm">Reajustes ({reajustes.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="andamento" className="mt-6">
-            <MeusPagamentosList pedidos={pedidosEmAndamento || []} colaborador={colaborador} />
+            <MeusPagamentosList pedidos={pedidosEmAndamento || []} colaborador={colaborador} linkEmissaoManual={linkEmissaoManual} />
           </TabsContent>
           <TabsContent value="concluidos" className="mt-6">
-            <MeusPagamentosList pedidos={pedidosConcluidos || []} colaborador={colaborador} isHistorico />
+            <MeusPagamentosList pedidos={pedidosConcluidos || []} colaborador={colaborador} linkEmissaoManual={linkEmissaoManual} isHistorico />
           </TabsContent>
           <TabsContent value="reajustes" className="mt-6">
             <HistoricoReajustesList reajustes={reajustes} />

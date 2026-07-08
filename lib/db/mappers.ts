@@ -24,18 +24,6 @@ export function toEmpresaDTO(row: AnyRow) {
     representante_documento: row.representanteDocumento,
     representante_cargo: row.representanteCargo,
     status: row.status,
-    endereco_cep: row.enderecoCep,
-    endereco_logradouro: row.enderecoLogradouro,
-    endereco_numero: row.enderecoNumero,
-    endereco_complemento: row.enderecoComplemento,
-    endereco_bairro: row.enderecoBairro,
-    endereco_cidade: row.enderecoCidade,
-    endereco_uf: row.enderecoUf,
-    codigo_municipio_ibge: row.codigoMunicipioIbge,
-    codigo_servico_padrao: row.codigoServicoPadrao,
-    discriminacao_servico_padrao: row.discriminacaoServicoPadrao,
-    aliquota_iss_padrao: row.aliquotaIssPadrao == null ? row.aliquotaIssPadrao : Number(row.aliquotaIssPadrao),
-    iss_retido_padrao: row.issRetidoPadrao,
     link_emissao_manual: row.linkEmissaoManual,
     created_at: row.createdAt,
     updated_at: row.updatedAt,
@@ -61,12 +49,6 @@ export function toColaboradorDTO(row: AnyRow) {
     endereco_uf: row.enderecoUf,
     data_nascimento: row.dataNascimento,
     data_aniversario_contrato: row.dataAniversarioContrato,
-    codigo_municipio_ibge: row.codigoMunicipioIbge,
-    inscricao_municipal: row.inscricaoMunicipal,
-    regime_tributario: row.regimeTributario,
-    focus_status_cadastro: row.focusStatusCadastro,
-    focus_cadastrado_em: row.focusCadastradoEm,
-    focus_motivo_erro_cadastro: row.focusMotivoErroCadastro,
     email: row.email,
     user_id: row.userId,
     tipo_acesso: row.tipoAcesso,
@@ -244,28 +226,8 @@ export function toNotaFiscalDTO(row: AnyRow) {
     aprovado_por: row.aprovadoPor,
     data_aprovacao: row.dataAprovacao,
     observacao_financeiro: row.observacaoFinanceiro,
-    origem: row.origem,
-    focus_ref: row.focusRef,
-    focus_status: row.focusStatus,
-    focus_motivo_erro: row.focusMotivoErro,
-    focus_numero_rps: row.focusNumeroRps,
-    focus_serie_rps: row.focusSerieRps,
     created_at: row.createdAt,
     updated_at: row.updatedAt,
-  }
-}
-
-export function toFocusNfeEventoDTO(row: AnyRow) {
-  if (!row) return row
-  return {
-    id: row.id,
-    nota_fiscal_id: row.notaFiscalId,
-    colaborador_id: row.colaboradorId,
-    tipo_evento: row.tipoEvento,
-    status_http: row.statusHttp,
-    payload: row.payload,
-    mensagem: row.mensagem,
-    created_at: row.createdAt,
   }
 }
 

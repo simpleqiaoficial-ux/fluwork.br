@@ -292,12 +292,12 @@ export async function aprovarRejeitarNota(notaId: string, status: "aprovado" | "
         ...(observacao !== undefined && { observacaoFinanceiro: observacao }),
       })
       .where(escopo)
-      .returning({ pedidoId: notasFiscais.pedidoId, origem: notasFiscais.origem })
+      .returning({ pedidoId: notasFiscais.pedidoId })
 
     // Mantém pedidosPagamento em sincronia (as duas tabelas tinham máquinas de estado
-    // independentes antes desta mudança) — só pra notas manuais, mesmo comportamento de
-    // aprovarNotaFiscal/recusarNotaFiscal em app/actions/pedidos.ts.
-    if (notaAtualizada?.pedidoId && notaAtualizada.origem === "manual") {
+    // independentes antes desta mudança) — mesmo comportamento de aprovarNotaFiscal/
+    // recusarNotaFiscal em app/actions/pedidos.ts.
+    if (notaAtualizada?.pedidoId) {
       if (status === "aprovado") {
         await db
           .update(pedidosPagamento)

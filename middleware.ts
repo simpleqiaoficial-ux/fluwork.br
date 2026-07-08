@@ -12,9 +12,6 @@ export async function middleware(request: NextRequest) {
   let sessionCookie = request.cookies.get("fluxopay_session")
   let session = sessionCookie ? JSON.parse(sessionCookie.value) : null
 
-  // /api/webhooks e /api/cron são chamados por serviços externos (Focus NFe, Cloud Scheduler),
-  // nunca por um navegador com cookie de sessão — cada rota valida seu próprio segredo
-  // compartilhado internamente, não faz sentido exigir login aqui.
   const publicRoutes = [
     "/login",
     "/setup",
@@ -22,8 +19,6 @@ export async function middleware(request: NextRequest) {
     "/termos",
     "/privacidade",
     "/contratos/assinar",
-    "/api/webhooks",
-    "/api/cron",
   ]
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
   // "/" é a landing page pública (marketing) quando não há sessão — usa comparação exata

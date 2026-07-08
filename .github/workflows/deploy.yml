@@ -50,8 +50,8 @@ jobs:
             --network=fluworkbr-vpc \
             --subnet=fluworkbr-run-subnet \
             --vpc-egress=private-ranges-only \
-            --set-secrets=DATABASE_URL=database-url:latest,RESEND_API_KEY=resend-api-key:latest,FOCUS_NFE_TOKEN=focus-nfe-token:latest,FOCUS_NFE_WEBHOOK_SECRET=focus-nfe-webhook-secret:latest \
-            --set-env-vars=GCS_BUCKET_NAME=fluworkbr-documents,NODE_ENV=production,RESEND_FROM_EMAIL=contratos@simpleqia.com,RESEND_ADMIN_NOTIFY_EMAIL=simpleqia.oficial@gmail.com,APP_BASE_URL=https://fluworkbr-mwarhzm76a-rj.a.run.app,FOCUS_NFE_BASE_URL=https://api.focusnfe.com.br,FOCUS_NFE_ENVIRONMENT=production \
+            --set-secrets=DATABASE_URL=database-url:latest,RESEND_API_KEY=resend-api-key:latest \
+            --set-env-vars=GCS_BUCKET_NAME=fluworkbr-documents,NODE_ENV=production,RESEND_FROM_EMAIL=contratos@simpleqia.com,RESEND_ADMIN_NOTIFY_EMAIL=simpleqia.oficial@gmail.com,APP_BASE_URL=https://fluworkbr-mwarhzm76a-rj.a.run.app \
             --allow-unauthenticated \
             --min-instances=0 \
             --max-instances=10 \

@@ -758,7 +758,6 @@ export async function marcarNotaEmitida(pedidoId: string, notaFiscalUrl: string)
         empresaId: pedido.empresaId,
         pedidoId,
         colaboradorId: pedido.colaboradorId,
-        origem: "manual",
         competenciaMes: agora.getMonth() + 1,
         competenciaAno: agora.getFullYear(),
         valorServico: pedido.valorTotal,
@@ -1272,12 +1271,12 @@ export async function aprovarNotaFiscal(pedidoId: string) {
       })
       .where(eq(pedidosPagamento.id, pedidoId))
 
-    // Sincroniza a nota manual associada (se existir) — antes desta mudança, pedidosPagamento
+    // Sincroniza a nota associada (se existir) — antes desta mudança, pedidosPagamento
     // e notasFiscais nunca se tocavam, cada uma tinha seu próprio status desatualizado.
     await db
       .update(notasFiscais)
       .set({ status: "aprovado", aprovadoPor: session.colaboradorId, dataAprovacao: new Date(), updatedAt: new Date() })
-      .where(and(eq(notasFiscais.pedidoId, pedidoId), eq(notasFiscais.origem, "manual")))
+      .where(eq(notasFiscais.pedidoId, pedidoId))
   } catch (error) {
     console.error("[v0] Erro ao aprovar nota fiscal:", error)
     console.error("[v0] Exceção ao aprovar nota fiscal:", error)
@@ -1315,7 +1314,7 @@ export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
     await db
       .update(notasFiscais)
       .set({ status: "rejeitado", observacaoFinanceiro: motivo, updatedAt: new Date() })
-      .where(and(eq(notasFiscais.pedidoId, pedidoId), eq(notasFiscais.origem, "manual")))
+      .where(eq(notasFiscais.pedidoId, pedidoId))
   } catch (error) {
     console.error("[v0] Erro ao recusar nota fiscal:", error)
     console.error("[v0] Exceção ao recusar nota fiscal:", error)
@@ -1330,8 +1329,8 @@ export async function recusarNotaFiscal(pedidoId: string, motivo: string) {
 }
 
 /** Fecha o ciclo do pagamento — transição pra "pago" que não existia em nenhum lugar do
- *  código antes desta feature. Só permite avançar quando a nota fiscal associada estiver
- *  resolvida: autorizada pela Focus NFe, ou aprovada manualmente pelo financeiro. */
+ *  código antes desta feature. Só permite avançar quando a nota fiscal associada já foi
+ *  aprovada pelo financeiro. */
 export async function marcarComoPago(pedidoId: string) {
   const session = await getSession()
   if (!session) throw new Error("Usuário não autenticado")
@@ -1349,13 +1348,8 @@ export async function marcarComoPago(pedidoId: string) {
   }
 
   const [nota] = await db.select().from(notasFiscais).where(eq(notasFiscais.pedidoId, pedidoId))
-  const notaResolvida =
-    !!nota &&
-    ((nota.origem === "focus_nfe" && nota.focusStatus === "autorizado") ||
-      (nota.origem === "manual" && nota.status === "aprovado"))
-
-  if (!notaResolvida) {
-    throw new Error("A nota fiscal deste pagamento ainda não foi autorizada/aprovada")
+  if (!nota || nota.status !== "aprovado") {
+    throw new Error("A nota fiscal deste pagamento ainda não foi aprovada")
   }
 
   try {
