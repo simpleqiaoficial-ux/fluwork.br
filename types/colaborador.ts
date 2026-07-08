@@ -16,6 +16,12 @@ export interface Colaborador {
   endereco_uf: string | null
   data_nascimento: string | null
   data_aniversario_contrato: string | null
+  codigo_municipio_ibge?: string | null
+  inscricao_municipal?: string | null
+  regime_tributario?: string | null
+  focus_status_cadastro?: string | null
+  focus_cadastrado_em?: string | null
+  focus_motivo_erro_cadastro?: string | null
   email: string
   user_id: string | null
   tipo_acesso: TipoAcesso

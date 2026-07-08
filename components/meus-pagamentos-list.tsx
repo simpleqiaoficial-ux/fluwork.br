@@ -7,7 +7,6 @@ import {
   Calendar,
   Clock,
   CheckCircle,
-  Upload,
   ExternalLink,
   AlertCircle,
   XCircle,
@@ -19,6 +18,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMaskedCurrency } from "@/components/currency-display"
 import { AnexarNotaDialog } from "./anexar-nota-dialog"
+import { EmissaoNfseCard } from "./emissao-nfse-card"
 import { CountdownTimer } from "./countdown-timer"
 import { PedidoTimeline } from "./pedido-timeline"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -446,20 +446,14 @@ export function MeusPagamentosList({ pedidos, colaborador, isHistorico = false }
                               </Button>
                             </div>
                           ) : (
-                            <div className="space-y-2">
-                              <p className="text-sm text-muted-foreground">Você já emitiu sua nota?</p>
-                              <Button
-                                onClick={() => {
-                                  setPedidoSelecionado(pedido)
-                                  setDialogOpen(true)
-                                }}
-                                size="sm"
-                              >
-                                <Upload className="w-4 h-4" />
-                                Anexar Nota Fiscal
-                              </Button>
-                              <p className="text-xs text-muted-foreground">A nota será validada automaticamente</p>
-                            </div>
+                            <EmissaoNfseCard
+                              pedidoId={pedido.id}
+                              focusStatusCadastroColaborador={colaborador?.focus_status_cadastro || "nao_cadastrado"}
+                              onEmitirManualClick={() => {
+                                setPedidoSelecionado(pedido)
+                                setDialogOpen(true)
+                              }}
+                            />
                           )}
                         </div>
                       )}
