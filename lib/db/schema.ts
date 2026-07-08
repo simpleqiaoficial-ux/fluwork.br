@@ -45,6 +45,23 @@ export const empresas = pgTable("empresas", {
   representanteDocumento: text("representante_documento"),
   representanteCargo: text("representante_cargo"),
   status: text("status").notNull().default("active"),
+  // Endereço estruturado (tomador de serviço na NFS-e) — mesmo padrão de colaboradores.
+  // `endereco` (texto livre) acima é mantido por compatibilidade com o resto do app.
+  enderecoCep: text("endereco_cep"),
+  enderecoLogradouro: text("endereco_logradouro"),
+  enderecoNumero: text("endereco_numero"),
+  enderecoComplemento: text("endereco_complemento"),
+  enderecoBairro: text("endereco_bairro"),
+  enderecoCidade: text("endereco_cidade"),
+  enderecoUf: text("endereco_uf"),
+  // Cache do código de município IBGE (7 dígitos), resolvido uma vez via API do IBGE.
+  codigoMunicipioIbge: text("codigo_municipio_ibge"),
+  // Configuração fiscal padrão usada em toda emissão de NFS-e pela empresa.
+  codigoServicoPadrao: text("codigo_servico_padrao"),
+  discriminacaoServicoPadrao: text("discriminacao_servico_padrao"),
+  aliquotaIssPadrao: numeric("aliquota_iss_padrao", { precision: 5, scale: 2 }),
+  issRetidoPadrao: boolean("iss_retido_padrao").default(false),
+  linkEmissaoManual: text("link_emissao_manual"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 }, (table) => [
@@ -107,8 +124,25 @@ export const colaboradores = pgTable("colaboradores", {
   centroCustoId: uuid("centro_custo_id").references(() => centrosCusto.id, { onDelete: "set null" }),
   tipoChavePix: text("tipo_chave_pix"),
   dataAniversarioContrato: date("data_aniversario_contrato"),
+  // Dados fiscais pra emissão de NFS-e (prestador de serviço).
+  codigoMunicipioIbge: text("codigo_municipio_ibge"),
+  inscricaoMunicipal: text("inscricao_municipal"),
+  regimeTributario: text("regime_tributario"),
+  // Cadastro do prestador na Focus NFe (certificado digital) — nunca guardamos o certificado
+  // ou a senha, só o resultado do cadastro. Ver lib/focus-nfe.ts.
+  focusStatusCadastro: text("focus_status_cadastro").default("nao_cadastrado"),
+  focusCadastradoEm: timestamp("focus_cadastrado_em", { withTimezone: true }),
+  focusMotivoErroCadastro: text("focus_motivo_erro_cadastro"),
 }, (table) => [
   check("colaboradores_dia_pagamento_check", sql`${table.diaPagamento} IN (1, 15)`),
+  check(
+    "colaboradores_regime_tributario_check",
+    sql`${table.regimeTributario} IS NULL OR ${table.regimeTributario} IN ('simples_nacional', 'simples_nacional_excesso', 'regime_normal')`,
+  ),
+  check(
+    "colaboradores_focus_status_cadastro_check",
+    sql`${table.focusStatusCadastro} IN ('nao_cadastrado', 'cadastrado', 'erro')`,
+  ),
   // SuperAdmin é o único papel sem empresa (opera a plataforma inteira); todos os demais
   // papéis (Adm/Financeiro/Gerente/Supervisor/Colaborador) precisam estar vinculados a uma empresa.
   check(
@@ -204,13 +238,16 @@ export const notasFiscais = pgTable("notas_fiscais", {
   empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
   pedidoId: uuid("pedido_id").references(() => pedidosPagamento.id, { onDelete: "cascade" }).unique(),
   colaboradorId: uuid("colaborador_id").references(() => colaboradores.id, { onDelete: "cascade" }),
-  numeroNfse: text("numero_nfse").notNull(),
+  // numeroNfse e arquivoXmlUrl não são mais NOT NULL: uma emissão via Focus NFe cria a linha
+  // desde "processando_autorizacao", antes de existir número ou XML — só o fluxo manual
+  // (que sempre parte de um arquivo já emitido) continua preenchendo os dois no insert.
+  numeroNfse: text("numero_nfse"),
   chaveAcesso: text("chave_acesso"),
   competenciaMes: integer("competencia_mes").notNull(),
   competenciaAno: integer("competencia_ano").notNull(),
   valorServico: numeric("valor_servico", { precision: 10, scale: 2 }).notNull(),
   cpfCnpjPrestador: text("cpf_cnpj_prestador").notNull(),
-  arquivoXmlUrl: text("arquivo_xml_url").notNull(),
+  arquivoXmlUrl: text("arquivo_xml_url"),
   arquivoPdfUrl: text("arquivo_pdf_url"),
   validacaoIdentidade: boolean("validacao_identidade").default(false),
   validacaoCompetencia: boolean("validacao_competencia").default(false),
@@ -221,6 +258,14 @@ export const notasFiscais = pgTable("notas_fiscais", {
   aprovadoPor: uuid("aprovado_por").references(() => colaboradores.id),
   dataAprovacao: timestamp("data_aprovacao"),
   observacaoFinanceiro: text("observacao_financeiro"),
+  // Origem da nota e dados específicos da emissão via Focus NFe.
+  origem: text("origem").notNull().default("manual"),
+  focusRef: text("focus_ref").unique(),
+  focusStatus: text("focus_status"),
+  focusMotivoErro: text("focus_motivo_erro"),
+  focusNumeroRps: text("focus_numero_rps"),
+  focusSerieRps: text("focus_serie_rps"),
+  focusRawResponse: jsonb("focus_raw_response"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -229,7 +274,33 @@ export const notasFiscais = pgTable("notas_fiscais", {
   check("notas_fiscais_competencia_ano_check", sql`${table.competenciaAno} >= 2020`),
   check("notas_fiscais_valor_servico_check", sql`${table.valorServico} > 0`),
   check("notas_fiscais_status_check", sql`${table.status} IN ('pendente', 'aprovado', 'rejeitado')`),
+  check("notas_fiscais_origem_check", sql`${table.origem} IN ('manual', 'focus_nfe')`),
+  check(
+    "notas_fiscais_focus_status_check",
+    sql`${table.focusStatus} IS NULL OR ${table.focusStatus} IN ('processando_autorizacao', 'autorizado', 'erro_autorizacao', 'cancelado')`,
+  ),
   index("notas_fiscais_empresa_id_idx").on(table.empresaId),
+])
+
+// Log de eventos da integração Focus NFe (cadastro de prestador, emissão, consulta, webhook,
+// erro) — separado de audit_log porque registrarAuditoria() usa headers() do Next (só funciona
+// dentro de uma request ativa, não serve pra um job/cron) e não tem campos pra status HTTP/
+// payload/duração. Nunca grava certificado digital ou senha (sanitizado antes de logar).
+export const focusNfeEventos = pgTable("focus_nfe_eventos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  notaFiscalId: uuid("nota_fiscal_id").references(() => notasFiscais.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").references(() => colaboradores.id, { onDelete: "cascade" }),
+  tipoEvento: text("tipo_evento").notNull(),
+  statusHttp: integer("status_http"),
+  payload: jsonb("payload"),
+  mensagem: text("mensagem"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  check(
+    "focus_nfe_eventos_tipo_evento_check",
+    sql`${table.tipoEvento} IN ('cadastro_empresa_focus', 'emissao_solicitada', 'consulta_status', 'webhook_recebido', 'erro')`,
+  ),
+  index("focus_nfe_eventos_nota_fiscal_id_idx").on(table.notaFiscalId),
 ])
 
 export const faturas = pgTable("faturas", {
@@ -568,10 +639,16 @@ export const historicoReajustesRelations = relations(historicoReajustes, ({ one 
   }),
 }))
 
-export const notasFiscaisRelations = relations(notasFiscais, ({ one }) => ({
+export const notasFiscaisRelations = relations(notasFiscais, ({ one, many }) => ({
   empresa: one(empresas, { fields: [notasFiscais.empresaId], references: [empresas.id] }),
   pedido: one(pedidosPagamento, { fields: [notasFiscais.pedidoId], references: [pedidosPagamento.id] }),
   colaborador: one(colaboradores, { fields: [notasFiscais.colaboradorId], references: [colaboradores.id] }),
+  eventos: many(focusNfeEventos),
+}))
+
+export const focusNfeEventosRelations = relations(focusNfeEventos, ({ one }) => ({
+  notaFiscal: one(notasFiscais, { fields: [focusNfeEventos.notaFiscalId], references: [notasFiscais.id] }),
+  colaborador: one(colaboradores, { fields: [focusNfeEventos.colaboradorId], references: [colaboradores.id] }),
 }))
 
 export const faturasRelations = relations(faturas, ({ one, many }) => ({

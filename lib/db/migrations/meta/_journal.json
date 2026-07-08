@@ -50,6 +50,13 @@
       "when": 1783432114956,
       "tag": "0006_add_dados_empresa_colaborador",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783529845022,
+      "tag": "0007_focus_nfe_integracao",
+      "breakpoints": true
     }
   ]
 }
