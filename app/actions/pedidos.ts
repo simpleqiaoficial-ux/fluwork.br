@@ -382,6 +382,30 @@ export async function listarPedidosPendentes() {
   }
 }
 
+/** Pedidos criados pelo próprio usuário logado — usado pelo Adm em /historico, que não tem
+ *  vínculo de "equipe supervisionada" como Supervisor/Gerente têm (listarPedidosPorSupervisor
+ *  dependia disso e sempre voltava vazio pra Adm sem equipe atribuída). */
+export async function listarPedidosCriadosPorMim() {
+  const session = await getSession()
+  if (!session) throw new Error("Usuário não autenticado")
+
+  try {
+    const rows = await db.query.pedidosPagamento.findMany({
+      where: eq(pedidosPagamento.criadoPorColaboradorId, session.colaboradorId),
+      orderBy: desc(pedidosPagamento.createdAt),
+      with: {
+        colaborador: true,
+        criadoPorColaborador: true,
+      },
+    })
+
+    return rows.map((row: any) => toPedidoDTO({ ...row, criadoPor: row.criadoPorColaborador }))
+  } catch (error) {
+    console.error("[v0] Erro ao listar pedidos criados pelo usuário:", error)
+    throw new Error("Erro ao listar pedidos")
+  }
+}
+
 export async function listarPedidosParaCorrecao() {
   const session = await getSession()
 

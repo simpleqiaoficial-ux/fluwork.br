@@ -1,4 +1,4 @@
-import { listarPedidosPorSupervisor, listarPedidosPorGerente, listarPedidosParaCorrecao } from "@/app/actions/pedidos"
+import { listarPedidosPorSupervisor, listarPedidosPorGerente, listarPedidosCriadosPorMim, listarPedidosParaCorrecao } from "@/app/actions/pedidos"
 import { getSession } from "@/lib/session"
 import { HistoricoList } from "@/components/historico-list"
 import { redirect } from "next/navigation"
@@ -20,6 +20,8 @@ export default async function HistoricoPage() {
   let pedidos: any[] = []
   if (session.tipoAcesso === "Gerente") {
     pedidos = await listarPedidosPorGerente(session.colaboradorId)
+  } else if (session.tipoAcesso === "Adm") {
+    pedidos = await listarPedidosCriadosPorMim()
   } else {
     pedidos = await listarPedidosPorSupervisor(session.colaboradorId)
   }
