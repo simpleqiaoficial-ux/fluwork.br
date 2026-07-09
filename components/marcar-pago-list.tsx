@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import {
   Download,
   Search,
@@ -35,6 +36,7 @@ import type { Equipe } from "@/types/equipe"
 import { useMaskedCurrency } from "@/components/currency-display"
 import { useSystemStatus } from "./system-status-provider"
 import { SystemSuspendedDialog } from "./system-suspended-dialog"
+import { toast } from "sonner"
 
 interface MarcarPagoListProps {
   pedidos: PedidoPagamento[]
@@ -61,7 +63,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
   const [motivoRecusa, setMotivoRecusa] = useState<Record<string, string>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [confirmAprovarId, setConfirmAprovarId] = useState<string | null>(null)
-  const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
+  const [recusarDialogId, setRecusarDialogId] = useState<string | null>(null)
   const [confirmPagoId, setConfirmPagoId] = useState<string | null>(null)
   const [payingId, setPayingId] = useState<string | null>(null)
   const [filtros, setFiltros] = useState({
@@ -98,11 +100,11 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
     try {
       setApprovingId(pedidoId)
       await aprovarNotaFiscal(pedidoId)
-      alert("Nota marcada como recebida com sucesso!")
+      toast.success("Documento fiscal confirmado como recebido.")
       router.refresh()
     } catch (error) {
       console.error("[v0] Erro ao aprovar nota:", error)
-      alert(error instanceof Error ? error.message : "Erro ao aprovar nota fiscal")
+      toast.error(error instanceof Error ? error.message : "Erro ao confirmar recebimento da nota fiscal")
     } finally {
       setApprovingId(null)
     }
@@ -115,18 +117,19 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
     }
     const motivo = motivoRecusa[pedidoId]?.trim()
     if (!motivo) {
-      alert("Por favor, informe o motivo da recusa")
+      toast.error("Por favor, informe o motivo da recusa")
       return
     }
     try {
       setRejectingId(pedidoId)
       await recusarNotaFiscal(pedidoId, motivo)
-      alert("Nota fiscal recusada. O prestador foi notificado.")
+      toast.success("Nota fiscal recusada. O prestador foi notificado.")
       setMotivoRecusa({ ...motivoRecusa, [pedidoId]: "" })
+      setRecusarDialogId(null)
       router.refresh()
     } catch (error) {
       console.error("[v0] Erro ao recusar nota:", error)
-      alert(error instanceof Error ? error.message : "Erro ao recusar nota fiscal")
+      toast.error(error instanceof Error ? error.message : "Erro ao recusar nota fiscal")
     } finally {
       setRejectingId(null)
     }
@@ -140,11 +143,11 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
     try {
       setPayingId(pedidoId)
       await marcarComoPago(pedidoId)
-      alert("Pagamento marcado como pago!")
+      toast.success("Pagamento marcado como pago!")
       router.refresh()
     } catch (error) {
       console.error("[v0] Erro ao marcar como pago:", error)
-      alert(error instanceof Error ? error.message : "Erro ao marcar como pago")
+      toast.error(error instanceof Error ? error.message : "Erro ao marcar como pago")
     } finally {
       setPayingId(null)
     }
@@ -241,6 +244,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                 <TableHead className="text-right">Valor NF</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
                 <TableHead className="w-8" />
               </TableRow>
             </TableHeader>
@@ -287,6 +291,61 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                           {statusLabel}
                         </Badge>
                       </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {aguardandoAcao ? (
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (isSystemSuspended) {
+                                  setSuspendedDialogOpen(true)
+                                  return
+                                }
+                                setConfirmAprovarId(pedido.id)
+                              }}
+                              disabled={approvingId === pedido.id}
+                              className="gap-1.5"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              {approvingId === pedido.id ? "Confirmando..." : "Confirmar Nota Recebida"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive gap-1.5"
+                              onClick={() => {
+                                if (isSystemSuspended) {
+                                  setSuspendedDialogOpen(true)
+                                  return
+                                }
+                                setRecusarDialogId(pedido.id)
+                              }}
+                              disabled={rejectingId === pedido.id}
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              Recusar
+                            </Button>
+                          </div>
+                        ) : pedido.status === "nota_recebida" ? (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (isSystemSuspended) {
+                                setSuspendedDialogOpen(true)
+                                return
+                              }
+                              setConfirmPagoId(pedido.id)
+                            }}
+                            disabled={payingId === pedido.id}
+                            className="gap-1.5"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            {payingId === pedido.id ? "Marcando..." : "Marcar como pago"}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {isExpanded ? (
                           <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -298,7 +357,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
 
                     {isExpanded && (
                       <TableRow key={`${pedido.id}-detail`}>
-                        <TableCell colSpan={6} className="bg-muted/20 px-6 py-5">
+                        <TableCell colSpan={7} className="bg-muted/20 px-6 py-5">
                           <div className="space-y-4">
                             {isReembolsoKm ? (
                               <div className="text-sm">
@@ -357,7 +416,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                                       onClick={(e) => {
                                         if (!pdfUrl || pdfUrl.includes("undefined")) {
                                           e.preventDefault()
-                                          alert("PDF não disponível.")
+                                          toast.error("PDF não disponível.")
                                         }
                                       }}
                                     >
@@ -377,155 +436,105 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                               </div>
                             )}
 
-                            {!aguardandoAcao ? (
-                              <div className="space-y-3 pt-4 border-t">
-                                <div className="flex items-center gap-2 text-success text-sm">
-                                  <CheckCircle className="w-4 h-4" />
-                                  <span className="font-medium">
-                                    {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
-                                  </span>
-                                </div>
-                                {pedido.status === "nota_recebida" && (
-                                  <>
-                                    <Button size="sm" onClick={() => setConfirmPagoId(pedido.id)} disabled={payingId === pedido.id}>
-                                      <CreditCard className="w-4 h-4" />
-                                      {payingId === pedido.id ? "Marcando..." : "Marcar como pago"}
-                                    </Button>
-                                    <AlertDialog
-                                      open={confirmPagoId === pedido.id}
-                                      onOpenChange={(open) => !open && setConfirmPagoId(null)}
-                                    >
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Marcar este pagamento como pago?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            Confirma que o valor foi transferido ao prestador? Essa é a etapa final do
-                                            pagamento.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            onClick={() => {
-                                              setConfirmPagoId(null)
-                                              handleMarcarPago(pedido.id)
-                                            }}
-                                          >
-                                            Confirmar pagamento
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  </>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="space-y-3 pt-4 border-t">
-                                <div className="space-y-1.5">
-                                  <Label htmlFor={`motivo-mp-${pedido.id}`} className="text-xs text-muted-foreground">
-                                    Motivo da recusa (se houver erro)
-                                  </Label>
-                                  <Textarea
-                                    id={`motivo-mp-${pedido.id}`}
-                                    placeholder="Ex: Valor da nota incorreto..."
-                                    value={motivoRecusa[pedido.id] || ""}
-                                    onChange={(e) => setMotivoRecusa({ ...motivoRecusa, [pedido.id]: e.target.value })}
-                                    rows={2}
-                                    className="text-sm"
-                                  />
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    onClick={() => {
-                                      if (isSystemSuspended) {
-                                        setSuspendedDialogOpen(true)
-                                        return
-                                      }
-                                      setConfirmAprovarId(pedido.id)
-                                    }}
-                                    disabled={approvingId === pedido.id}
-                                    size="sm"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                    {approvingId === pedido.id ? "Processando..." : "Nota Recebida"}
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      if (isSystemSuspended) {
-                                        setSuspendedDialogOpen(true)
-                                        return
-                                      }
-                                      if (!motivoRecusa[pedido.id]?.trim()) {
-                                        alert("Por favor, informe o motivo da recusa")
-                                        return
-                                      }
-                                      setConfirmRecusarId(pedido.id)
-                                    }}
-                                    disabled={rejectingId === pedido.id}
-                                    variant="destructive"
-                                    size="sm"
-                                  >
-                                    <XCircle className="w-4 h-4" />
-                                    {rejectingId === pedido.id ? "Recusando..." : "Recusar Nota"}
-                                  </Button>
-                                </div>
-
-                                <AlertDialog
-                                  open={confirmAprovarId === pedido.id}
-                                  onOpenChange={(open) => !open && setConfirmAprovarId(null)}
-                                >
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Marcar nota como recebida?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Confirma que a nota fiscal deste pedido foi recebida e conferida?
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => {
-                                          setConfirmAprovarId(null)
-                                          handleAprovarNota(pedido.id)
-                                        }}
-                                      >
-                                        Confirmar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-
-                                <AlertDialog
-                                  open={confirmRecusarId === pedido.id}
-                                  onOpenChange={(open) => !open && setConfirmRecusarId(null)}
-                                >
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Recusar esta nota fiscal?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        O prestador será notificado e precisará reenviar a nota corrigida.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        className={buttonVariants({ variant: "destructive" })}
-                                        onClick={() => {
-                                          setConfirmRecusarId(null)
-                                          handleRecusarNota(pedido.id)
-                                        }}
-                                      >
-                                        Recusar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                            {!aguardandoAcao && (
+                              <div className="flex items-center gap-2 text-success text-sm pt-4 border-t">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="font-medium">
+                                  {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
+                                </span>
                               </div>
                             )}
                           </div>
                         </TableCell>
                       </TableRow>
                     )}
+
+                    <AlertDialog
+                      open={confirmAprovarId === pedido.id}
+                      onOpenChange={(open) => !open && setConfirmAprovarId(null)}
+                    >
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar recebimento da nota fiscal?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Confirma que a nota fiscal deste pedido foi recebida e conferida? Fica registrado quem
+                            confirmou e a data/hora.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              setConfirmAprovarId(null)
+                              handleAprovarNota(pedido.id)
+                            }}
+                          >
+                            Confirmar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog
+                      open={confirmPagoId === pedido.id}
+                      onOpenChange={(open) => !open && setConfirmPagoId(null)}
+                    >
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Marcar este pagamento como pago?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Confirma que o valor foi transferido ao prestador? Essa é a etapa final do pagamento.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              setConfirmPagoId(null)
+                              handleMarcarPago(pedido.id)
+                            }}
+                          >
+                            Confirmar pagamento
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <Dialog open={recusarDialogId === pedido.id} onOpenChange={(open) => !open && setRecusarDialogId(null)}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Recusar esta nota fiscal?</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-1.5">
+                          <Label htmlFor={`motivo-mp-${pedido.id}`} className="text-xs text-muted-foreground">
+                            Motivo da recusa *
+                          </Label>
+                          <Textarea
+                            id={`motivo-mp-${pedido.id}`}
+                            placeholder="Ex: Valor da nota incorreto..."
+                            value={motivoRecusa[pedido.id] || ""}
+                            onChange={(e) => setMotivoRecusa({ ...motivoRecusa, [pedido.id]: e.target.value })}
+                            rows={3}
+                            className="text-sm"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            O prestador será notificado e precisará reenviar a nota corrigida.
+                          </p>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setRecusarDialogId(null)}>
+                            Cancelar
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleRecusarNota(pedido.id)}
+                            disabled={rejectingId === pedido.id || !motivoRecusa[pedido.id]?.trim()}
+                          >
+                            {rejectingId === pedido.id ? "Recusando..." : "Recusar nota"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </>
                 )
               })}
