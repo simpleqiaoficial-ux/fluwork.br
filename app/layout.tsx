@@ -1,6 +1,5 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Geist_Mono } from "next/font/google"
 import "./globals.css" // Import globals.css here
 import "./main.css"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
@@ -18,16 +17,6 @@ import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
 import { Toaster } from "@/components/ui/sonner"
 import cn from "classnames"
-
-const inter = Inter({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
 
 export const metadata: Metadata = {
   title: "FluWork - Gestão de Prestadores",
@@ -74,7 +63,7 @@ export default async function RootLayout({
   const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
 
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${geistMono.variable}`}>
+    <html lang="pt-BR">
       <body className="antialiased bg-background">
         <ValoresVisibilityProvider>
           {empresaBloqueadaMotivo !== undefined ? (
@@ -94,6 +83,7 @@ export default async function RootLayout({
                     cnpj={session.cnpj}
                     salario={session.salario}
                     empresaNome={empresaNome}
+                    tipoAcesso={session.tipoAcesso}
                   />
                 )}
                 <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0 pb-16 lg:pb-0")}>

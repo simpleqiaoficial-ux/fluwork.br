@@ -132,6 +132,30 @@ function itemMatchesRole(item: NavItem, tipoAcesso?: string) {
   return !item.roles || item.roles.includes(tipoAcesso || "")
 }
 
+export interface BreadcrumbSegment {
+  label: string
+}
+
+/** Localiza o item ativo na árvore de navegação e devolve o caminho até ele
+ *  (workspace > grupo > página) pra alimentar a barra de contexto do header. */
+export function getBreadcrumbForPath(pathname: string, tipoAcesso?: string): BreadcrumbSegment[] {
+  const { workspaces } = getNavForRole(tipoAcesso)
+  for (const ws of workspaces) {
+    for (const group of ws.groups) {
+      for (const item of group.items) {
+        if (item.href.split("?")[0] === pathname) {
+          const segments: BreadcrumbSegment[] = []
+          if (ws.label) segments.push({ label: ws.label })
+          if (group.label) segments.push({ label: group.label })
+          segments.push({ label: item.label })
+          return segments
+        }
+      }
+    }
+  }
+  return []
+}
+
 /** Todos os itens de navegação visíveis pro papel logado, já filtrados por permissão —
  *  usado tanto pra montar a sidebar quanto pra indexar o command palette. */
 export function getNavForRole(tipoAcesso?: string): { workspaces: Workspace[]; flat: NavItem[] } {

@@ -59,6 +59,10 @@ module.exports = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        carimbo: {
+          DEFAULT: "hsl(var(--carimbo))",
+          foreground: "hsl(var(--carimbo-foreground))",
+        },
         chart: {
           1: "hsl(var(--chart-1))",
           2: "hsl(var(--chart-2))",

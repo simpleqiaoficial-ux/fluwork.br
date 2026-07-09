@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
+import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
@@ -80,11 +81,13 @@ function formatDateBR(dateString: string) {
 
 type KpiAccent = "primary" | "success" | "warning" | "destructive"
 
-const KPI_ACCENT_CLASSES: Record<KpiAccent, string> = {
-  primary: "bg-primary/10 text-primary",
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/15 text-warning",
-  destructive: "bg-destructive/10 text-destructive",
+// Cor semântica vive no número em si, não numa forma decorativa em volta do ícone — mantém
+// a leitura "o que precisa de atenção" sem recair no padrão ícone-em-círculo/quadrado genérico.
+const KPI_VALUE_CLASSES: Record<KpiAccent, string> = {
+  primary: "text-foreground",
+  success: "text-success",
+  warning: "text-warning",
+  destructive: "text-destructive",
 }
 
 interface KpiCardProps {
@@ -97,13 +100,13 @@ interface KpiCardProps {
 
 function KpiCard({ icon: Icon, accent, label, value, description }: KpiCardProps) {
   return (
-    <Card className="border shadow-none animate-in fade-in slide-in-from-bottom-1 duration-300">
+    <Card className="shadow-none animate-in fade-in slide-in-from-bottom-1 duration-300">
       <CardContent className="p-5">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${KPI_ACCENT_CLASSES[accent]}`}>
-          <Icon className="h-4 w-4" />
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />
+          <p className="text-xs text-muted-foreground">{label}</p>
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+        <p className={cn("mt-2 text-2xl font-semibold tabular-nums", KPI_VALUE_CLASSES[accent])}>{value}</p>
         {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
