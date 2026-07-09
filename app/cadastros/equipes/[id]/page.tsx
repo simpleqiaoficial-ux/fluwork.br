@@ -22,7 +22,7 @@ export default async function EquipeDetailPage({ params }: EquipeDetailPageProps
   const equipe = await buscarEquipe(id)
 
   if (!equipe) {
-    redirect("/equipes")
+    redirect("/cadastros/equipes")
   }
 
   const [membros, semEquipe, supervisores, gerentes] = await Promise.all([

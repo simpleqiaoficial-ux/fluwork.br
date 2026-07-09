@@ -80,7 +80,7 @@ export default async function NotasPeriodoPage({
   const mes = parseInt(mesStr)
 
   if (isNaN(ano) || isNaN(mes) || mes < 1 || mes > 12) {
-    redirect("/notas")
+    redirect("/gestao/notas")
   }
 
   const notas = await listarNotasDoPeriodo(ano, mes, getEffectiveEmpresaId(usuario)!)
@@ -89,7 +89,7 @@ export default async function NotasPeriodoPage({
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-6xl">
       <div className="mb-6">
-        <Link href="/notas">
+        <Link href="/gestao/notas">
           <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para meses
