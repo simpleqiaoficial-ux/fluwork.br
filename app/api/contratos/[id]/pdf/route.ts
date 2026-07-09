@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { and, eq, or, sql } from "drizzle-orm"
 import { getSession } from "@/lib/session"
-import { getSignedDownloadUrl } from "@/lib/gcs"
+import { downloadFile } from "@/lib/gcs"
 import { db } from "@/lib/db"
 import { contracts, contractSigners } from "@/lib/db/schema"
 
@@ -39,11 +39,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
   }
 
-  try {
-    const signedUrl = await getSignedDownloadUrl(contrato.pdfSignedPath)
-    return NextResponse.redirect(signedUrl)
-  } catch (error) {
-    console.error("[contratos] Erro ao gerar URL assinada:", error)
+  const arquivo = await downloadFile(contrato.pdfSignedPath)
+  if (!arquivo) {
     return NextResponse.json({ error: "Arquivo não encontrado" }, { status: 404 })
   }
+
+  return new NextResponse(new Uint8Array(arquivo.buffer), {
+    headers: {
+      "Content-Type": arquivo.contentType,
+      "Content-Disposition": `inline; filename="contrato-${contrato.numero}.pdf"`,
+      "Cache-Control": "private, max-age=0, no-store",
+    },
+  })
 }

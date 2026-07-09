@@ -19,13 +19,17 @@ export async function uploadFile(buffer: Buffer, path: string, contentType: stri
   return path
 }
 
-export async function getSignedDownloadUrl(path: string, expiresInMinutes = 15): Promise<string> {
+// Baixa o arquivo inteiro no servidor pra ser servido pelo próprio domínio da plataforma —
+// o usuário nunca deve ver a URL do bucket (nem via redirect pra signed URL). Usa a mesma
+// identidade autenticada (ADC) já usada pra upload, sem precisar assinar nada.
+export async function downloadFile(path: string): Promise<{ buffer: Buffer; contentType: string } | null> {
   const bucket = getBucket()
   const file = bucket.file(path)
-  const [url] = await file.getSignedUrl({
-    version: "v4",
-    action: "read",
-    expires: Date.now() + expiresInMinutes * 60 * 1000,
-  })
-  return url
+  try {
+    const [metadata] = await file.getMetadata()
+    const [buffer] = await file.download()
+    return { buffer, contentType: (metadata.contentType as string) || "application/octet-stream" }
+  } catch {
+    return null
+  }
 }
