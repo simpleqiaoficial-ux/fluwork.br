@@ -173,6 +173,10 @@ export const pedidosPagamento = pgTable("pedidos_pagamento", {
   aprovadoPorGerenteId: uuid("aprovado_por_gerente_id").references(() => colaboradores.id),
   aprovadoPorFinanceiroId: uuid("aprovado_por_financeiro_id").references(() => colaboradores.id),
   dataNotaRecebida: timestamp("data_nota_recebida", { withTimezone: true }),
+  // Log + trava de duplicidade dos e-mails automáticos: nulo = nunca enviado, preenchido = já
+  // enviado (data/hora). Nunca reenvia se já tiver valor.
+  emailOrdemLancadaEnviadoEm: timestamp("email_ordem_lancada_enviado_em", { withTimezone: true }),
+  emailOrdemAprovadaEnviadoEm: timestamp("email_ordem_aprovada_enviado_em", { withTimezone: true }),
 }, (table) => [
   // 'nota_recebida' não existe em nenhum dos 59 scripts SQL legados (o CHECK constraint mais
   // recente rastreado, 040_add_status_prorrogacao.sql, não o inclui), mas o valor é usado

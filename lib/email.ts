@@ -106,6 +106,48 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
   })
 }
 
+export async function sendOrdemLancadaEmail(params: {
+  to: string
+  prestadorNome: string
+  valorFormatado: string
+  minhasOrdensUrl: string
+  empresa: EmpresaEmail
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Nova ordem de pagamento — ${params.empresa.nome}`,
+    html: `
+      <p>Olá, ${params.prestadorNome}.</p>
+      <p>Uma ordem de pagamento de serviço foi lançada para você na plataforma, no valor de ${params.valorFormatado}.</p>
+      <p><a href="${params.minhasOrdensUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Acompanhar ordem de pagamento</a></p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
+    `,
+  })
+}
+
+export async function sendOrdemAprovadaEmail(params: {
+  to: string
+  prestadorNome: string
+  valorFormatado: string
+  minhasOrdensUrl: string
+  empresa: EmpresaEmail
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Ordem de pagamento aprovada — ${params.empresa.nome}`,
+    html: `
+      <p>Olá, ${params.prestadorNome}.</p>
+      <p>Sua ordem de pagamento de ${params.valorFormatado} foi aprovada. Você já pode anexar sua nota fiscal na plataforma.</p>
+      <p><a href="${params.minhasOrdensUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Anexar nota fiscal</a></p>
+      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
+    `,
+  })
+}
+
 export async function sendLembreteNotaFiscalEmail(params: {
   to: string
   prestadorNome: string

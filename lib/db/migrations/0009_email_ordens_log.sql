@@ -1,0 +1,2 @@
+ALTER TABLE "pedidos_pagamento" ADD COLUMN "email_ordem_lancada_enviado_em" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "pedidos_pagamento" ADD COLUMN "email_ordem_aprovada_enviado_em" timestamp with time zone;

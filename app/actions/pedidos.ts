@@ -10,8 +10,34 @@ import { getSession } from "@/lib/session"
 import { uploadFile } from "@/lib/gcs"
 import { registrarAuditoria } from "@/lib/audit"
 import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
-import { sendLembreteNotaFiscalEmail } from "@/lib/email"
+import { sendLembreteNotaFiscalEmail, sendOrdemLancadaEmail, sendOrdemAprovadaEmail } from "@/lib/email"
 import { formatCurrency } from "@/lib/utils"
+
+function emailValido(email?: string | null): email is string {
+  return !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+/** Busca nome/e-mail do colaborador e dados da empresa pra montar os e-mails automáticos de
+ *  ordem de pagamento. Retorna null se faltar algo — quem chama decide não enviar nesse caso. */
+async function obterDadosParaEmailOrdem(colaboradorId: string, empresaId: string) {
+  const [colaborador] = await db
+    .select({ nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, colaboradorId))
+  if (!colaborador || !emailValido(colaborador.email)) return null
+
+  const [empresa] = await db
+    .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia, cnpj: empresas.cnpj })
+    .from(empresas)
+    .where(eq(empresas.id, empresaId))
+  if (!empresa) return null
+
+  return {
+    email: colaborador.email,
+    nomeCompleto: colaborador.nomeCompleto,
+    empresa: { nome: empresa.nomeFantasia || empresa.razaoSocial, razaoSocial: empresa.razaoSocial, cnpj: empresa.cnpj },
+  }
+}
 
 export async function criarPedido(data: NovoPedido) {
   const session = await getSession()
@@ -142,6 +168,26 @@ export async function criarPedido(data: NovoPedido) {
     throw new Error("Erro ao criar pedido de pagamento")
   }
 
+  // E-mail automático "ordem lançada" — nunca bloqueia a criação do pedido se falhar.
+  try {
+    const dadosEmail = await obterDadosParaEmailOrdem(pedido.colaboradorId, pedido.empresaId)
+    if (dadosEmail) {
+      await sendOrdemLancadaEmail({
+        to: dadosEmail.email,
+        prestadorNome: dadosEmail.nomeCompleto,
+        valorFormatado: formatCurrency(Number(pedido.valorTotal)),
+        minhasOrdensUrl: `${process.env.APP_BASE_URL || ""}/meus-pagamentos`,
+        empresa: dadosEmail.empresa,
+      })
+      await db
+        .update(pedidosPagamento)
+        .set({ emailOrdemLancadaEnviadoEm: new Date() })
+        .where(eq(pedidosPagamento.id, pedido.id))
+    }
+  } catch (error) {
+    console.error("[v0] Erro ao enviar e-mail de ordem lançada:", error)
+  }
+
   revalidatePath("/pedidos")
   return toPedidoDTO(pedido)
 }
@@ -218,11 +264,39 @@ export async function acaoFinanceiro(data: AcaoPedido) {
     updates.correcaoSolicitadaPor = "financeiro"
   }
 
+  let pedidoAtualizado
   try {
-    await db.update(pedidosPagamento).set(updates).where(eq(pedidosPagamento.id, data.pedido_id))
+    ;[pedidoAtualizado] = await db
+      .update(pedidosPagamento)
+      .set(updates)
+      .where(eq(pedidosPagamento.id, data.pedido_id))
+      .returning()
   } catch (error) {
     console.error("[v0] Erro ao atualizar pedido:", error)
     throw new Error("Erro ao processar ação")
+  }
+
+  // E-mail automático "ordem aprovada" — só quando a aprovação final acontece de verdade, e só
+  // uma vez por pedido (nunca reenvia se emailOrdemAprovadaEnviadoEm já tiver valor).
+  if (data.acao === "aprovar" && pedidoAtualizado && !pedidoAtualizado.emailOrdemAprovadaEnviadoEm) {
+    try {
+      const dadosEmail = await obterDadosParaEmailOrdem(pedidoAtualizado.colaboradorId, pedidoAtualizado.empresaId)
+      if (dadosEmail) {
+        await sendOrdemAprovadaEmail({
+          to: dadosEmail.email,
+          prestadorNome: dadosEmail.nomeCompleto,
+          valorFormatado: formatCurrency(Number(pedidoAtualizado.valorTotal)),
+          minhasOrdensUrl: `${process.env.APP_BASE_URL || ""}/meus-pagamentos`,
+          empresa: dadosEmail.empresa,
+        })
+        await db
+          .update(pedidosPagamento)
+          .set({ emailOrdemAprovadaEnviadoEm: new Date() })
+          .where(eq(pedidosPagamento.id, pedidoAtualizado.id))
+      }
+    } catch (error) {
+      console.error("[v0] Erro ao enviar e-mail de ordem aprovada:", error)
+    }
   }
 
   revalidatePath("/aprovacoes")

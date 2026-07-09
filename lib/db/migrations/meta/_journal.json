@@ -64,6 +64,13 @@
       "when": 1783539723923,
       "tag": "0008_revert_focus_nfe_integracao",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783612899779,
+      "tag": "0009_email_ordens_log",
+      "breakpoints": true
     }
   ]
 }
