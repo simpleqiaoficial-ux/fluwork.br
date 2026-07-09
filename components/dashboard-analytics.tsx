@@ -235,8 +235,13 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
     const conducao = filteredPedidos.reduce((s, p) => s + (p.conducao || 0), 0)
     const comissao = filteredPedidos.reduce((s, p) => s + (p.comissao || 0), 0)
     const pagos = filteredPedidos.filter((p) => p.status === "pago")
-    const aguardandoAprovacao = filteredPedidos.filter((p) =>
-      ["pendente_gerente", "pendente_financeiro"].includes(p.status),
+    // "pendente_financeiro" é reaproveitado pra dois momentos diferentes: pedido novo aguardando
+    // a primeira aprovação de valor, OU pedido já aprovado cuja nota acabou de ser anexada e
+    // está aguardando revisão da NOTA (não do valor) — nota_emitida=true distingue os dois casos.
+    // Sem esse filtro, um pedido já aprovado (nota em revisão) aparecia contado como "aguardando
+    // aprovação", mesmo a aprovação de valor já tendo sido concluída.
+    const aguardandoAprovacao = filteredPedidos.filter(
+      (p) => ["pendente_gerente", "pendente_financeiro"].includes(p.status) && !p.nota_emitida,
     )
     const aprovados = filteredPedidos.filter((p) => p.status === "aprovado")
     const temNota = (p: PedidoPagamento) => Boolean(p.notas_fiscais && (p.notas_fiscais as any).length > 0)
