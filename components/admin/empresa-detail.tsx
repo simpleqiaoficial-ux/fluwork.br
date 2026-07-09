@@ -16,7 +16,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye, Ban, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { atualizarEmpresa, atualizarStatusEmpresa, atualizarCredenciaisUsuario } from "@/app/actions/empresas"
 import { iniciarVisualizacaoComoEmpresa } from "@/app/actions/impersonation"
@@ -55,6 +57,8 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
   const [credenciais, setCredenciais] = useState({ nome_completo: "", email: "", nova_senha: "" })
   const [salvandoCredenciais, setSalvandoCredenciais] = useState(false)
   const [entrando, setEntrando] = useState(false)
+  const [bloqueioDialogAberto, setBloqueioDialogAberto] = useState(false)
+  const [motivoBloqueio, setMotivoBloqueio] = useState("")
 
   // Em caso de sucesso, iniciarVisualizacaoComoEmpresa chama redirect() (que lança um erro
   // especial do Next.js e nunca retorna) — só tratamos explicitamente o caminho de erro.
@@ -109,6 +113,12 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
   }
 
   const handleStatusChange = async (status: string) => {
+    // Bloquear exige motivo — abre o modal em vez de aplicar direto.
+    if (status === "blocked") {
+      setMotivoBloqueio("")
+      setBloqueioDialogAberto(true)
+      return
+    }
     setLoading(true)
     try {
       const result = await atualizarStatusEmpresa(empresa.id, status as "active" | "inactive" | "blocked")
@@ -117,6 +127,26 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
         router.refresh()
       } else {
         toast.error(result.error || "Erro ao atualizar status")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleConfirmarBloqueio = async () => {
+    if (!motivoBloqueio.trim()) {
+      toast.error("Informe o motivo do bloqueio")
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await atualizarStatusEmpresa(empresa.id, "blocked", motivoBloqueio.trim())
+      if (result.success) {
+        toast.success("Empresa bloqueada")
+        setBloqueioDialogAberto(false)
+        router.refresh()
+      } else {
+        toast.error(result.error || "Erro ao bloquear empresa")
       }
     } finally {
       setLoading(false)
@@ -164,6 +194,16 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
           </div>
         </div>
       </div>
+
+      {empresa.status === "blocked" && (
+        <Alert variant="destructive">
+          <Ban className="h-4 w-4" />
+          <AlertDescription>
+            <p className="font-medium">Empresa bloqueada{empresa.bloqueado_por_colaborador ? ` por ${empresa.bloqueado_por_colaborador.nome_completo}` : ""}{empresa.bloqueado_em ? ` em ${new Date(empresa.bloqueado_em).toLocaleString("pt-BR")}` : ""}</p>
+            {empresa.bloqueado_motivo && <p className="mt-1">Motivo: {empresa.bloqueado_motivo}</p>}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => {
@@ -246,6 +286,41 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
           </Table>
         )}
       </div>
+
+      <Dialog open={bloqueioDialogAberto} onOpenChange={(open) => !open && setBloqueioDialogAberto(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              Bloquear esta empresa?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Enquanto estiver bloqueada, nenhum usuário desta empresa vai conseguir navegar no sistema — eles verão
+              uma tela de acesso bloqueado com o motivo abaixo.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="motivo-bloqueio">Motivo do bloqueio *</Label>
+              <Textarea
+                id="motivo-bloqueio"
+                placeholder="Ex: pagamento pendente, solicitação da empresa, etc."
+                value={motivoBloqueio}
+                onChange={(e) => setMotivoBloqueio(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBloqueioDialogAberto(false)} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmarBloqueio} disabled={loading || !motivoBloqueio.trim()}>
+              {loading ? "Bloqueando..." : "Bloquear empresa"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!usuarioEditando} onOpenChange={(open) => !open && setUsuarioEditando(null)}>
         <DialogContent>

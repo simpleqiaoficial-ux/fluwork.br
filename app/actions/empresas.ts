@@ -32,7 +32,10 @@ export async function listarEmpresas() {
 
 export async function getEmpresaById(id: string) {
   await requireSuperAdmin()
-  const [row] = await db.select().from(empresas).where(eq(empresas.id, id))
+  const row = await db.query.empresas.findFirst({
+    where: eq(empresas.id, id),
+    with: { bloqueadoPorColaborador: true },
+  })
   if (!row) return null
   return toEmpresaDTO(row)
 }
@@ -213,11 +216,27 @@ export async function atualizarEmpresa(id: string, data: Partial<EmpresaFormData
   return { success: true }
 }
 
-export async function atualizarStatusEmpresa(id: string, status: "active" | "inactive" | "blocked") {
+export async function atualizarStatusEmpresa(id: string, status: "active" | "inactive" | "blocked", motivo?: string) {
   const usuario = await requireSuperAdmin()
 
+  if (status === "blocked" && !motivo?.trim()) {
+    return { success: false, error: "Informe o motivo do bloqueio" }
+  }
+
+  const updateData: Record<string, unknown> = { status, updatedAt: new Date() }
+  if (status === "blocked") {
+    updateData.bloqueadoMotivo = motivo!.trim()
+    updateData.bloqueadoEm = new Date()
+    updateData.bloqueadoPor = usuario.id
+  } else {
+    // Desbloqueou (voltou pra active/inactive) — limpa o registro do bloqueio anterior.
+    updateData.bloqueadoMotivo = null
+    updateData.bloqueadoEm = null
+    updateData.bloqueadoPor = null
+  }
+
   try {
-    await db.update(empresas).set({ status, updatedAt: new Date() }).where(eq(empresas.id, id))
+    await db.update(empresas).set(updateData).where(eq(empresas.id, id))
   } catch (error) {
     console.error("[empresas] Erro ao atualizar status da empresa:", error)
     return { success: false, error: error instanceof Error ? error.message : "Erro ao atualizar status" }
@@ -229,7 +248,7 @@ export async function atualizarStatusEmpresa(id: string, status: "active" | "ina
     acao: "empresa_status_alterado",
     tabela: "empresas",
     registroId: id,
-    detalhes: { novo_status: status },
+    detalhes: { novo_status: status, motivo: status === "blocked" ? motivo!.trim() : undefined },
   })
 
   revalidatePath("/admin/empresas")

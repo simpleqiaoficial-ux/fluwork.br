@@ -71,6 +71,13 @@
       "when": 1783612899779,
       "tag": "0009_email_ordens_log",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783621647877,
+      "tag": "0010_bloqueio_empresa_motivo",
+      "breakpoints": true
     }
   ]
 }

@@ -45,6 +45,11 @@ export const empresas = pgTable("empresas", {
   representanteDocumento: text("representante_documento"),
   representanteCargo: text("representante_cargo"),
   status: text("status").notNull().default("active"),
+  // Auditoria do bloqueio (status="blocked") — motivo é obrigatório ao bloquear, os três
+  // campos são limpos quando o status volta pra active/inactive.
+  bloqueadoMotivo: text("bloqueado_motivo"),
+  bloqueadoEm: timestamp("bloqueado_em", { withTimezone: true }),
+  bloqueadoPor: uuid("bloqueado_por").references((): AnyPgColumn => colaboradores.id),
   // Link pra onde o botão "Emitir manualmente" leva o prestador (ex.: Emissor Nacional de NFS-e).
   linkEmissaoManual: text("link_emissao_manual"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -514,7 +519,7 @@ export const contractAttachments = pgTable("contract_attachments", {
 
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
-export const empresasRelations = relations(empresas, ({ many }) => ({
+export const empresasRelations = relations(empresas, ({ one, many }) => ({
   colaboradores: many(colaboradores),
   equipes: many(equipes),
   centrosCusto: many(centrosCusto),
@@ -525,6 +530,7 @@ export const empresasRelations = relations(empresas, ({ many }) => ({
   boletos: many(boletos),
   contractTemplates: many(contractTemplates),
   contracts: many(contracts),
+  bloqueadoPorColaborador: one(colaboradores, { fields: [empresas.bloqueadoPor], references: [colaboradores.id] }),
 }))
 
 export const colaboradoresRelations = relations(colaboradores, ({ one, many }) => ({

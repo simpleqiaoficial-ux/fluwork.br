@@ -15,6 +15,7 @@ import { ValoresVisibilityProvider } from "@/contexts/valores-visibility-context
 import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
 import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
+import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
 import { Toaster } from "@/components/ui/sonner"
 import cn from "classnames"
 
@@ -50,6 +51,7 @@ export default async function RootLayout({
   const isChromeless = isAuthPage || isMarketingPage
 
   let empresaNome: string | undefined
+  let empresaBloqueadaMotivo: string | null | undefined
   if (!isChromeless && session) {
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
@@ -57,10 +59,15 @@ export default async function RootLayout({
       empresaNome = "Painel FluWork"
     } else if (session.empresaId) {
       const [empresa] = await db
-        .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia })
+        .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia, status: empresas.status, bloqueadoMotivo: empresas.bloqueadoMotivo })
         .from(empresas)
         .where(eq(empresas.id, session.empresaId))
       empresaNome = empresa?.nomeFantasia || empresa?.razaoSocial
+      // Empresa bloqueada: nenhum usuário dela navega no sistema, independente do papel —
+      // só SuperAdmin (que não pertence a empresa nenhuma) escapa desta checagem.
+      if (empresa?.status === "blocked") {
+        empresaBloqueadaMotivo = empresa.bloqueadoMotivo
+      }
     }
   }
 
@@ -70,37 +77,43 @@ export default async function RootLayout({
     <html lang="pt-BR" className={`${inter.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-background">
         <ValoresVisibilityProvider>
-          {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
+          {empresaBloqueadaMotivo !== undefined ? (
+            <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
+          ) : (
+            <>
+              {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
 
-          <div
-            className={cn("min-h-screen transition-[padding] duration-150", !isChromeless && "lg:pl-[var(--sidebar-w,16rem)]")}
-          >
-            {impersonando && <ImpersonationBanner empresaNome={empresaNome || "Empresa"} />}
-            {!isChromeless && session && (
-              <UserHeader
-                nomeCompleto={session.nomeCompleto}
-                email={session.email}
-                cnpj={session.cnpj}
-                salario={session.salario}
-                empresaNome={empresaNome}
-              />
-            )}
-            <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0 pb-16 lg:pb-0")}>
-              {!isChromeless && session ? (
-                <SystemStatusProvider tipoAcesso={session.tipoAcesso}>
-                  <AutoLogoutProvider>
-                    <TermsAcceptanceProvider
-                      isAuthenticated={!!session}
-                      userName={session.nomeCompleto}
-                      userId={session.colaboradorId}
-                    >
-                      {children}
-                    </TermsAcceptanceProvider>
-                  </AutoLogoutProvider>
-                </SystemStatusProvider>
-              ) : children}
-            </main>
-          </div>
+              <div
+                className={cn("min-h-screen transition-[padding] duration-150", !isChromeless && "lg:pl-[var(--sidebar-w,16rem)]")}
+              >
+                {impersonando && <ImpersonationBanner empresaNome={empresaNome || "Empresa"} />}
+                {!isChromeless && session && (
+                  <UserHeader
+                    nomeCompleto={session.nomeCompleto}
+                    email={session.email}
+                    cnpj={session.cnpj}
+                    salario={session.salario}
+                    empresaNome={empresaNome}
+                  />
+                )}
+                <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0 pb-16 lg:pb-0")}>
+                  {!isChromeless && session ? (
+                    <SystemStatusProvider tipoAcesso={session.tipoAcesso}>
+                      <AutoLogoutProvider>
+                        <TermsAcceptanceProvider
+                          isAuthenticated={!!session}
+                          userName={session.nomeCompleto}
+                          userId={session.colaboradorId}
+                        >
+                          {children}
+                        </TermsAcceptanceProvider>
+                      </AutoLogoutProvider>
+                    </SystemStatusProvider>
+                  ) : children}
+                </main>
+              </div>
+            </>
+          )}
         </ValoresVisibilityProvider>
         <Toaster richColors closeButton position="top-right" />
       </body>

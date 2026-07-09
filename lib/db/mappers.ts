@@ -24,9 +24,17 @@ export function toEmpresaDTO(row: AnyRow) {
     representante_documento: row.representanteDocumento,
     representante_cargo: row.representanteCargo,
     status: row.status,
+    bloqueado_motivo: row.bloqueadoMotivo,
+    bloqueado_em: row.bloqueadoEm,
+    bloqueado_por: row.bloqueadoPor,
     link_emissao_manual: row.linkEmissaoManual,
     created_at: row.createdAt,
     updated_at: row.updatedAt,
+    ...(row.bloqueadoPorColaborador !== undefined && {
+      bloqueado_por_colaborador: row.bloqueadoPorColaborador
+        ? { id: row.bloqueadoPorColaborador.id, nome_completo: row.bloqueadoPorColaborador.nomeCompleto }
+        : row.bloqueadoPorColaborador,
+    }),
   }
 }
 
