@@ -22,7 +22,7 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Detalhes do pedido</span>
+            <span>Detalhes da ordem de pagamento</span>
             <StatusBadge entity="pedido" status={pedido.status} />
           </DialogTitle>
         </DialogHeader>
@@ -60,8 +60,8 @@ export function PedidoDetailModal({ pedido, open, onOpenChange }: PedidoDetailMo
               </div>
             )}
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Tipo de pedido</p>
-              <p className="font-medium">{isReembolsoKm ? "Reembolso de quilometragem" : "Pedido completo"}</p>
+              <p className="text-xs text-muted-foreground mb-1">Tipo de ordem</p>
+              <p className="font-medium">{isReembolsoKm ? "Reembolso de quilometragem" : "Ordem completa"}</p>
             </div>
           </div>
 

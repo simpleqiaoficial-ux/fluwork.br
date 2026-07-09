@@ -218,7 +218,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">
-                    {isReembolsoKm ? "Reembolso de Quilometragem" : "Pedido de Pagamento"}
+                    {isReembolsoKm ? "Reembolso de Quilometragem" : "Ordem de Pagamento"}
                   </h3>
                   {isReembolsoKm && (
                     <Badge variant="outline" className="font-normal">Apenas KM</Badge>
@@ -230,7 +230,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                       }
                       className="font-normal"
                     >
-                      {pedido.status === "pago" ? "Pago" : pedido.status === "nota_recebida" ? "Nota Recebida" : "Em Análise"}
+                      {pedido.status === "pago" ? "Pago" : pedido.status === "nota_recebida" ? "Documento Fiscal Recebido" : "Em Análise"}
                     </Badge>
                   )}
                   {aguardandoProrrogacao && (
@@ -260,7 +260,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
               {/* Timeline de Status do Pedido */}
               {!isHistorico && (
                 <div>
-                  <h4 className="text-xs text-muted-foreground mb-3">Acompanhe o progresso do seu pedido</h4>
+                  <h4 className="text-xs text-muted-foreground mb-3">Acompanhe o progresso da sua ordem</h4>
                   <PedidoTimeline pedido={{ ...pedido, status: pedido.status || "pendente_gerente" } as any} />
                 </div>
               )}
@@ -353,7 +353,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                         <p className="text-sm font-medium">Solicitação de prorrogação em análise</p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Sua solicitação de prorrogação de prazo foi enviada ao financeiro e está aguardando aprovação.
+                        Sua solicitação de prorrogação de prazo foi enviada ao aprovador final e está aguardando aprovação.
                       </p>
                       {pedido.motivo_prorrogacao && (
                         <p className="text-xs text-muted-foreground mt-2">
@@ -370,7 +370,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                         <p className="text-sm font-medium">Prorrogação negada</p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Sua solicitação de prorrogação foi negada pelo financeiro.
+                        Sua solicitação de prorrogação foi negada pelo aprovador final.
                       </p>
                       {pedido.observacao_prorrogacao && (
                         <p className="text-xs text-muted-foreground mt-2">
@@ -551,7 +551,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Sua solicitação será enviada ao financeiro para análise.
+                  Sua solicitação será enviada ao aprovador final para análise.
                 </p>
               </div>
               <DialogFooter>

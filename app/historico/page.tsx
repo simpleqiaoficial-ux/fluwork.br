@@ -31,8 +31,8 @@ export default async function HistoricoPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pedidos</h1>
-        <p className="text-sm text-muted-foreground">Acompanhe o status de todos os pedidos de pagamento que você criou</p>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Minhas Ordens</h1>
+        <p className="text-sm text-muted-foreground">Acompanhe o status de todas as ordens de pagamento que você criou</p>
       </div>
 
       <Tabs defaultValue="historico" className="w-full">

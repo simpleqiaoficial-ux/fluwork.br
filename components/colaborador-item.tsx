@@ -10,6 +10,7 @@ import { ColaboradorEditDialog } from "./colaborador-edit-dialog"
 import { formatCurrency } from "@/lib/utils"
 import { PasswordConfirmDialog } from "./password-confirm-dialog"
 import Link from "next/link"
+import { getPapelLabel } from "@/lib/papel-labels"
 
 interface ColaboradorItemProps {
   colaborador: Colaborador
@@ -69,7 +70,7 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-medium truncate">{colaborador.nome_completo}</p>
-              <Badge className="shrink-0" variant={getTipoAcessoVariant(colaborador.tipo_acesso)}>{colaborador.tipo_acesso}</Badge>
+              <Badge className="shrink-0" variant={getTipoAcessoVariant(colaborador.tipo_acesso)}>{getPapelLabel(colaborador.tipo_acesso)}</Badge>
             </div>
             <p className="text-sm text-muted-foreground truncate">{colaborador.email}</p>
             <p className="text-sm text-muted-foreground truncate">

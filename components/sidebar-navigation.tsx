@@ -90,12 +90,12 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/financeiro",
-        label: "Painel Financeiro",
+        label: "Painel de Aprovação Final",
         icon: DollarSign,
         roles: ["Adm", "Financeiro"],
         badgeKey: "painelFinanceiro",
       },
-      { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt, roles: ["Gerente", "Financeiro"] },
+      { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt, roles: ["Gerente", "Financeiro"] },
     ],
   },
   {
@@ -120,7 +120,7 @@ const NAV_GROUPS: NavGroup[] = [
 const CONTRATOS_MODULE: NavItem = { href: "/contratos", label: "Contratos", icon: FileSignature, roles: ["Adm", "Financeiro"] }
 
 const COLABORADOR_LINKS: NavItem[] = [
-  { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: Receipt },
+  { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt },
   { href: "/meus-contratos", label: "Meus Contratos", icon: FileSignature },
 ]
 
@@ -128,7 +128,7 @@ const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/", label: "Visão Geral", icon: LayoutDashboard },
   { href: "/pedidos", label: "Solicitações", icon: Receipt },
   { href: "/historico", label: "Minhas Solicitações", icon: FileText },
-  { href: "/meus-pagamentos", label: "Meus Pagamentos", icon: DollarSign },
+  { href: "/meus-pagamentos", label: "Minhas Ordens", icon: DollarSign },
   { href: "/supervisor/notas-equipe", label: "Notas da Equipe Operacional", icon: Users },
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
 ]
@@ -138,9 +138,9 @@ const SUPERVISOR_LINKS: NavItem[] = [
 const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
-  { href: "/admin/dados/colaboradores", label: "Colaboradores (todas)", icon: Users },
+  { href: "/admin/dados/colaboradores", label: "Prestadores (todas)", icon: Users },
   { href: "/admin/dados/contratos", label: "Contratos (todas)", icon: FileSignature },
-  { href: "/admin/dados/pedidos", label: "Pedidos (todas)", icon: DollarSign },
+  { href: "/admin/dados/pedidos", label: "Ordens de Pagamento (todas)", icon: DollarSign },
   { href: "/admin/dados/notas-fiscais", label: "Notas fiscais (todas)", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]

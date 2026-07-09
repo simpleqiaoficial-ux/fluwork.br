@@ -43,7 +43,7 @@ interface MarcarPagoListProps {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  nota_recebida: "Nota Recebida",
+  nota_recebida: "Documento Fiscal Recebido",
   pago: "Pago",
 }
 
@@ -157,9 +157,9 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <CreditCard className="w-8 h-8 text-muted-foreground mb-4" />
-        <h3 className="text-base font-semibold mb-1">Nenhum pedido pronto para pagamento</h3>
+        <h3 className="text-base font-semibold mb-1">Nenhuma ordem pronta para pagamento</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
-          Todos os pedidos com nota fiscal já foram pagos ou não há pedidos com nota anexada.
+          Todas as ordens com nota fiscal já foram pagas ou não há ordens com nota anexada.
         </p>
       </div>
     )
@@ -307,7 +307,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                               className="gap-1.5"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
-                              {approvingId === pedido.id ? "Confirmando..." : "Confirmar Nota Recebida"}
+                              {approvingId === pedido.id ? "Confirmando..." : "Confirmar Documento Fiscal Recebido"}
                             </Button>
                             <Button
                               size="sm"

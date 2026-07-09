@@ -118,7 +118,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
               {tipoAcesso === "Financeiro" && dataHoraAprovacaoGerente && (
                 <p className="text-xs text-success flex items-center gap-1">
                   <Check className="w-3 h-3" />
-                  Aprovado pelo gerente em {dataHoraAprovacaoGerente}
+                  Aprovado pelo 1º aprovador em {dataHoraAprovacaoGerente}
                 </p>
               )}
             </div>
@@ -193,13 +193,13 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
             )}
             {pedido.observacao_gerente && (
               <div className="py-2.5">
-                <p className="text-xs text-muted-foreground mb-0.5">Observação do gerente</p>
+                <p className="text-xs text-muted-foreground mb-0.5">Observação do 1º aprovador</p>
                 <p>{pedido.observacao_gerente}</p>
               </div>
             )}
             {pedido.observacao_financeiro && (
               <div className="py-2.5">
-                <p className="text-xs text-muted-foreground mb-0.5">Observação do financeiro</p>
+                <p className="text-xs text-muted-foreground mb-0.5">Observação do aprovador final</p>
                 <p>{pedido.observacao_financeiro}</p>
               </div>
             )}
@@ -225,7 +225,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">
-                Esta data será visível para o prestador, supervisor e gerente
+                Esta data será visível para o prestador, lançador de ordem e 1º aprovador
               </p>
             </div>
           )}

@@ -15,8 +15,8 @@ export function AprovacoesList({ pedidos, tipoAcesso }: AprovacoesListProps) {
     return (
       <EmptyState
         icon={CheckCircle2}
-        title="Nenhum pedido pendente"
-        description="Não há pedidos aguardando aprovação no momento."
+        title="Nenhuma ordem pendente"
+        description="Não há ordens de pagamento aguardando aprovação no momento."
       />
     )
   }

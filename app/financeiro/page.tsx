@@ -60,7 +60,7 @@ export default async function FinanceiroPage({
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Painel Financeiro</h1>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Painel de Aprovação Final</h1>
         <p className="text-sm text-muted-foreground">Gerencie pagamentos, notas fiscais e prorrogações</p>
       </div>
 

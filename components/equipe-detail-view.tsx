@@ -10,6 +10,7 @@ import {
   removerColaboradorEquipe,
 } from "@/app/actions/equipes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getPapelLabel } from "@/lib/papel-labels"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -218,7 +219,7 @@ export function EquipeDetailView({
                     <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{m.email}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="font-normal">
-                        {m.tipo_acesso}
+                        {getPapelLabel(m.tipo_acesso)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -271,7 +272,7 @@ export function EquipeDetailView({
                       <p className="text-xs text-muted-foreground truncate">{c.email}</p>
                     </div>
                     <Badge variant="secondary" className="shrink-0 ml-2 font-normal">
-                      {c.tipo_acesso}
+                      {getPapelLabel(c.tipo_acesso)}
                     </Badge>
                   </button>
                 ))
@@ -298,7 +299,7 @@ export function EquipeDetailView({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-supervisor">Supervisor</Label>
+              <Label htmlFor="edit-supervisor">Lançador de Ordem</Label>
               <select
                 id="edit-supervisor"
                 value={editSupervisorId}
@@ -313,10 +314,10 @@ export function EquipeDetailView({
             </div>
 
             <div className="space-y-2">
-              <Label>Gerentes</Label>
+              <Label>1º Aprovadores</Label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-input bg-muted/30 p-3 space-y-2">
                 {gerentes.length === 0 ? (
-                  <EmptyState icon={Briefcase} title="Nenhum gerente cadastrado" className="py-4" />
+                  <EmptyState icon={Briefcase} title="Nenhum 1º aprovador cadastrado" className="py-4" />
                 ) : (
                   gerentes.map((g) => (
                     <div key={g.id} className="flex items-center gap-2">

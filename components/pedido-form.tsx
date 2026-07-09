@@ -534,7 +534,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
                     <Button type="button" size="sm" onClick={addItem} className="w-full sm:w-auto">
                       <Plus className="h-4 w-4" />
-                      Adicionar ao Pedido
+                      Adicionar à Ordem
                     </Button>
                   </div>
                 )}
@@ -585,7 +585,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
           {/* Step 3: Summary */}
           {selectedColaborador && (
             <section className="pt-8 border-t">
-              <StepHeader n={3} title="Resumo do pedido" />
+              <StepHeader n={3} title="Resumo da ordem" />
 
               <div className="space-y-2">
                 {tipoPedido === "completo" && (
@@ -646,7 +646,7 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
               <Button className="w-full mt-4" size="lg" onClick={handleSubmitClick} disabled={loading || !selectedColaborador}>
                 <Send className="h-4 w-4" />
-                {loading ? "Enviando..." : "Enviar Pedido"}
+                {loading ? "Enviando..." : "Enviar Ordem"}
               </Button>
             </section>
           )}

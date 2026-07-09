@@ -23,11 +23,11 @@ export const CONTRATO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
 }
 
 export const PEDIDO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
-  pendente_gerente: { label: "Aguardando Gerente", variant: "neutral", icon: Clock },
-  pendente_financeiro: { label: "Aguardando Financeiro", variant: "neutral", icon: Clock },
+  pendente_gerente: { label: "Aguardando 1º Aprovador", variant: "neutral", icon: Clock },
+  pendente_financeiro: { label: "Aguardando Aprovador Final", variant: "neutral", icon: Clock },
   aprovado: { label: "Aprovado", variant: "success", icon: CheckCircle2 },
   pago: { label: "Pago", variant: "success", icon: CheckCircle2 },
-  nota_recebida: { label: "Nota Recebida", variant: "success", icon: FileCheck },
+  nota_recebida: { label: "Documento Fiscal Recebido", variant: "success", icon: FileCheck },
   recusado: { label: "Recusado", variant: "destructive", icon: XCircle },
   correcao: { label: "Em Correção", variant: "warning", icon: AlertTriangle },
   aguardando_prorrogacao: { label: "Aguardando Prorrogação", variant: "neutral", icon: Clock },

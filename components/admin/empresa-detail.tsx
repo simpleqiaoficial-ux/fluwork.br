@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { getPapelLabel } from "@/lib/papel-labels"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye, Ban, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
@@ -157,7 +158,7 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
     { label: "Prestadores/usuários", valor: stats.total_colaboradores, icon: Users },
     { label: "Contratos enviados", valor: stats.total_contratos, icon: FileSignature },
     { label: "Contratos assinados", valor: stats.contratos_assinados, icon: CheckCircle2 },
-    { label: "Pedidos de pagamento", valor: stats.total_pedidos, icon: Wallet },
+    { label: "Ordens de pagamento", valor: stats.total_pedidos, icon: Wallet },
   ]
 
   return (
@@ -274,7 +275,7 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
                 <TableRow key={usuario.id}>
                   <TableCell className="font-medium">{usuario.nome_completo}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{usuario.email}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{usuario.tipo_acesso}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{getPapelLabel(usuario.tipo_acesso)}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => abrirEdicaoCredenciais(usuario)}>
                       <KeyRound className="h-4 w-4" />

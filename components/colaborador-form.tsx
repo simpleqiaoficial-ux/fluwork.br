@@ -368,9 +368,9 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Colaborador">Prestador</SelectItem>
-                    <SelectItem value="Supervisor">Supervisor</SelectItem>
-                    <SelectItem value="Gerente">Gerente</SelectItem>
-                    <SelectItem value="Financeiro">Financeiro</SelectItem>
+                    <SelectItem value="Supervisor">Lançador de Ordem</SelectItem>
+                    <SelectItem value="Gerente">1º Aprovador</SelectItem>
+                    <SelectItem value="Financeiro">Aprovador Final</SelectItem>
                     {isAdm && <SelectItem value="Adm">Administrador</SelectItem>}
                   </SelectContent>
                 </Select>

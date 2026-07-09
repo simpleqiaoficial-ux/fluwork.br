@@ -4,6 +4,7 @@ import { PedidoForm } from "@/components/pedido-form"
 import { listarColaboradoresComGerente } from "@/app/actions/colaboradores"
 import { getSession } from "@/lib/session"
 import { AlertCircle, LogIn } from "lucide-react"
+import { getPapelLabel } from "@/lib/papel-labels"
 
 export default async function PedidosPage() {
   const session = await getSession()
@@ -13,13 +14,13 @@ export default async function PedidosPage() {
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
+          <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert>
           <LogIn className="h-4 w-4" />
           <AlertTitle>Login Necessário</AlertTitle>
           <AlertDescription className="mt-2">
-            Você precisa fazer login como <strong>Supervisor ou Gerente</strong> para criar pedidos de pagamento.
+            Você precisa fazer login como <strong>Lançador de Ordem ou 1º Aprovador</strong> para criar ordens de pagamento.
           </AlertDescription>
           <Button asChild className="mt-4">
             <a href="/login">Fazer Login</a>
@@ -34,15 +35,15 @@ export default async function PedidosPage() {
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
+          <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Acesso Restrito</AlertTitle>
           <AlertDescription className="mt-2">
-            Você não tem permissão para criar pedidos de pagamento.
+            Você não tem permissão para criar ordens de pagamento.
             <br />
-            Seu perfil atual: <strong>{session.tipoAcesso}</strong>
+            Seu perfil atual: <strong>{getPapelLabel(session.tipoAcesso)}</strong>
           </AlertDescription>
           <div className="flex gap-2 mt-4">
             <Button asChild variant="outline">
@@ -61,7 +62,7 @@ export default async function PedidosPage() {
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
-          <p className="text-sm text-muted-foreground">Crie pedidos de pagamento para prestadores</p>
+          <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert>
           <AlertCircle className="h-4 w-4" />
@@ -85,8 +86,8 @@ export default async function PedidosPage() {
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
         <p className="text-sm text-muted-foreground">
           {["Gerente", "Financeiro", "Adm"].includes(session.tipoAcesso)
-            ? "Crie pedidos de pagamento para prestadores"
-            : "Crie pedidos de pagamento da sua equipe"}
+            ? "Crie ordens de pagamento para prestadores"
+            : "Crie ordens de pagamento da sua equipe"}
         </p>
       </div>
       <PedidoForm colaboradores={colaboradores} tipoAcesso={session.tipoAcesso} />

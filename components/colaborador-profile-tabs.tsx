@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { ArrowLeft, FileSignature, User } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
+import { getPapelLabel } from "@/lib/papel-labels"
 
 interface SituacaoVigencia {
   chave: string
@@ -87,7 +88,7 @@ export function ColaboradorProfileTabs({ colaborador, contratos }: ColaboradorPr
         <TabsContent value="perfil" className="space-y-4 mt-4">
           <div className="rounded-md border p-4 grid gap-3 sm:grid-cols-2">
             <p className="text-sm"><span className="text-muted-foreground">CNPJ: </span>{colaborador.cnpj}</p>
-            <p className="text-sm"><span className="text-muted-foreground">Tipo de acesso: </span>{colaborador.tipo_acesso}</p>
+            <p className="text-sm"><span className="text-muted-foreground">Papel: </span>{getPapelLabel(colaborador.tipo_acesso)}</p>
             <p className="text-sm"><span className="text-muted-foreground">Equipe: </span>{colaborador.equipe?.nome || "Sem equipe"}</p>
             <p className="text-sm"><span className="text-muted-foreground">Centro de custo: </span>{colaborador.centro_custo?.nome || "—"}</p>
             {colaborador.salario != null && (

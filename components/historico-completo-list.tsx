@@ -219,7 +219,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
         {pedidosFiltrados.length === 0 ? (
           <EmptyState
             icon={Search}
-            title="Nenhum pedido encontrado"
+            title="Nenhuma ordem encontrada"
             description="Ajuste os filtros aplicados para ver mais resultados."
           />
         ) : (
@@ -319,13 +319,13 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t text-sm">
                                   {pedido.observacao_gerente && (
                                     <div>
-                                      <p className="text-xs text-muted-foreground mb-1">Observação do gerente</p>
+                                      <p className="text-xs text-muted-foreground mb-1">Observação do 1º aprovador</p>
                                       <p>{pedido.observacao_gerente}</p>
                                     </div>
                                   )}
                                   {pedido.observacao_financeiro && (
                                     <div>
-                                      <p className="text-xs text-muted-foreground mb-1">Observação do financeiro</p>
+                                      <p className="text-xs text-muted-foreground mb-1">Observação do aprovador final</p>
                                       <p>{pedido.observacao_financeiro}</p>
                                     </div>
                                   )}

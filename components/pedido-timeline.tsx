@@ -46,15 +46,15 @@ function formatarDataHora(valor?: string) {
 }
 
 const SITUACAO_ATUAL: Record<string, { label: string; descricao: string; proxima?: string; tom: "sucesso" | "atencao" | "erro" | "neutro" }> = {
-  pendente_gerente: { label: "Aguardando aprovação do gerente", descricao: "O pedido foi lançado e está na fila do gerente responsável.", proxima: "Aprovação do financeiro", tom: "atencao" },
-  pendente_financeiro: { label: "Aguardando aprovação do financeiro", descricao: "O gerente já aprovou — falta a validação final do financeiro.", proxima: "Pagamento aprovado, prestador anexa a nota fiscal", tom: "atencao" },
-  aprovado: { label: "Aprovado — aguardando nota fiscal", descricao: "O pagamento foi aprovado. O prestador precisa emitir ou anexar a nota fiscal.", proxima: "Financeiro recebe e aprova a nota fiscal", tom: "atencao" },
-  recusado: { label: "Recusado", descricao: "Este pedido foi recusado e não segue mais no fluxo.", tom: "erro" },
-  correcao: { label: "Correção solicitada", descricao: "Foi pedido um ajuste no pedido — revise e reenvie.", proxima: "Reenviar o pedido corrigido", tom: "atencao" },
-  nota_recebida: { label: "Nota fiscal recebida", descricao: "A nota foi aprovada pelo financeiro — falta só o pagamento.", proxima: "Pagamento", tom: "sucesso" },
-  pago: { label: "Pagamento concluído", descricao: "O ciclo deste pedido foi encerrado com sucesso.", tom: "sucesso" },
-  aguardando_prorrogacao: { label: "Prorrogação de prazo em análise", descricao: "O prestador pediu mais tempo pra anexar a nota fiscal.", proxima: "Financeiro decide a prorrogação", tom: "atencao" },
-  prorrogacao_negada: { label: "Prorrogação negada", descricao: "O prazo pra anexar a nota fiscal expirou e a prorrogação foi negada.", proxima: "Falar com o supervisor", tom: "erro" },
+  pendente_gerente: { label: "Aguardando aprovação do 1º Aprovador", descricao: "A ordem foi lançada e está na fila do 1º aprovador responsável.", proxima: "Aprovação final", tom: "atencao" },
+  pendente_financeiro: { label: "Aguardando aprovação final", descricao: "O 1º aprovador já aprovou — falta a validação final.", proxima: "Pagamento aprovado, prestador anexa a nota fiscal", tom: "atencao" },
+  aprovado: { label: "Aprovado — aguardando anexo fiscal", descricao: "O pagamento foi aprovado. O prestador precisa emitir ou anexar a nota fiscal.", proxima: "Aprovador final recebe e aprova o anexo fiscal", tom: "atencao" },
+  recusado: { label: "Recusado", descricao: "Esta ordem foi recusada e não segue mais no fluxo.", tom: "erro" },
+  correcao: { label: "Correção solicitada", descricao: "Foi pedido um ajuste na ordem — revise e reenvie.", proxima: "Reenviar a ordem corrigida", tom: "atencao" },
+  nota_recebida: { label: "Documento fiscal recebido", descricao: "A nota foi aprovada pelo aprovador final — falta só o pagamento.", proxima: "Pagamento", tom: "sucesso" },
+  pago: { label: "Pagamento concluído", descricao: "O ciclo desta ordem foi encerrado com sucesso.", tom: "sucesso" },
+  aguardando_prorrogacao: { label: "Prorrogação de prazo em análise", descricao: "O prestador pediu mais tempo pra anexar a nota fiscal.", proxima: "Aprovador final decide a prorrogação", tom: "atencao" },
+  prorrogacao_negada: { label: "Prorrogação negada", descricao: "O prazo pra anexar a nota fiscal expirou e a prorrogação foi negada.", proxima: "Falar com o lançador da ordem", tom: "erro" },
 }
 
 const TOM_CLASSES: Record<string, string> = {
@@ -96,14 +96,14 @@ export function PedidoTimeline({ pedido }: PedidoTimelineProps) {
   const etapas: Etapa[] = [
     {
       id: "lancado",
-      label: "Pedido lançado",
+      label: "Ordem lançada",
       estado: "completo",
       quem: pedido.criado_por?.nome_completo,
       quando: lancado ? `${lancado.data} às ${lancado.hora}` : undefined,
     },
     {
       id: "gerente",
-      label: gerenteRecusou ? "Recusado pelo gerente" : "Aprovação do gerente",
+      label: gerenteRecusou ? "Recusado pelo 1º Aprovador" : "Aprovação do 1º Aprovador",
       estado: gerenteRecusou ? "erro" : pedido.aprovado_gerente ? "completo" : pedido.status === "pendente_gerente" ? "atual" : "pendente",
       quem: pedido.aprovado_por_gerente?.nome_completo,
       quando: aprovGerente ? `${aprovGerente.data} às ${aprovGerente.hora}` : undefined,
@@ -111,7 +111,7 @@ export function PedidoTimeline({ pedido }: PedidoTimelineProps) {
     },
     {
       id: "financeiro",
-      label: financeiroRecusou ? "Recusado pelo financeiro" : "Aprovação do financeiro",
+      label: financeiroRecusou ? "Recusado pelo Aprovador Final" : "Aprovação Final",
       estado: financeiroRecusou ? "erro" : pedido.aprovado_financeiro ? "completo" : pedido.status === "pendente_financeiro" ? "atual" : "pendente",
       quem: pedido.aprovado_por_financeiro?.nome_completo,
       quando: aprovFinanceiro ? `${aprovFinanceiro.data} às ${aprovFinanceiro.hora}` : undefined,

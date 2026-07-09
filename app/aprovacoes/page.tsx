@@ -28,8 +28,8 @@ export default async function AprovacoesPage() {
         <h1 className="text-2xl font-semibold mb-1 text-foreground">Aprovações Pendentes</h1>
         <p className="text-sm text-muted-foreground">
           {usuario.tipo_acesso === "Gerente"
-            ? "Aprove, recuse ou solicite correções nos pedidos de pagamento"
-            : "Aprove ou recuse os pedidos já aprovados pelo gerente"}
+            ? "Aprove, recuse ou solicite correções nas ordens de pagamento"
+            : "Aprove ou recuse as ordens já aprovadas pelo 1º aprovador"}
         </p>
       </div>
 

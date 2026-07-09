@@ -47,13 +47,13 @@ interface DashboardAnalyticsProps {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pendente_gerente: "Pend. Gerente",
-  pendente_financeiro: "Pend. Financeiro",
+  pendente_gerente: "Pend. 1º Aprovador",
+  pendente_financeiro: "Pend. Aprovador Final",
   aprovado: "Aprovado",
   recusado: "Recusado",
   correcao: "Correção",
   pago: "Pago",
-  nota_recebida: "Nota Recebida",
+  nota_recebida: "Doc. Fiscal Recebido",
 }
 
 // Paleta do gráfico segue os tokens --chart-1..5 do design system (nunca cor hardcoded).
@@ -570,7 +570,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Receipt className="h-4 w-4" />
-              Todos os Pedidos ({filteredPedidos.length})
+              Todas as Ordens ({filteredPedidos.length})
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
@@ -713,7 +713,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                   {filteredPedidos.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-sm">
-                        Nenhum pedido encontrado com os filtros selecionados
+                        Nenhuma ordem encontrada com os filtros selecionados
                       </TableCell>
                     </TableRow>
                   ) : (

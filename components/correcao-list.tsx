@@ -79,8 +79,8 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
     return (
       <EmptyState
         icon={ClipboardCheck}
-        title="Nenhum pedido aguardando correção"
-        description="Todos os pedidos estão em dia, sem pendências de correção."
+        title="Nenhuma ordem aguardando correção"
+        description="Todas as ordens estão em dia, sem pendências de correção."
       />
     )
   }
@@ -174,7 +174,7 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
                             {pedido.observacao_gerente && (
                               <div className="border-l-2 border-border pl-3 py-0.5">
                                 <p className="text-xs font-medium text-muted-foreground mb-0.5">
-                                  Observação do gerente
+                                  Observação do 1º aprovador
                                 </p>
                                 <p className="text-sm">{pedido.observacao_gerente}</p>
                               </div>
@@ -182,7 +182,7 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
                             {pedido.observacao_financeiro && (
                               <div className="border-l-2 border-border pl-3 py-0.5">
                                 <p className="text-xs font-medium text-muted-foreground mb-0.5">
-                                  Observação do financeiro
+                                  Observação do aprovador final
                                 </p>
                                 <p className="text-sm">{pedido.observacao_financeiro}</p>
                               </div>

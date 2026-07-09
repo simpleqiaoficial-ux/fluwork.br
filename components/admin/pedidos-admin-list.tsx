@@ -40,15 +40,15 @@ interface PedidosAdminListProps {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  pendente_gerente: "Pendente (Gerente)",
-  pendente_financeiro: "Pendente (Financeiro)",
+  pendente_gerente: "Pendente (1º Aprovador)",
+  pendente_financeiro: "Pendente (Aprovador Final)",
   aprovado: "Aprovado",
   recusado: "Recusado",
   correcao: "Em correção",
   pago: "Pago",
   aguardando_prorrogacao: "Aguardando prorrogação",
   prorrogacao_negada: "Prorrogação negada",
-  nota_recebida: "Nota recebida",
+  nota_recebida: "Documento fiscal recebido",
 }
 
 function formatarMoeda(valor: number): string {
@@ -90,7 +90,7 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
     setProcessando(true)
     try {
       await deletarPedido(excluindo.id)
-      toast.success("Pedido excluído")
+      toast.success("Ordem de pagamento excluída")
       setExcluindo(null)
       recarregar(page)
     } catch (error) {
@@ -103,7 +103,7 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Pedidos de pagamento (todas as empresas)</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Ordens de pagamento (todas as empresas)</h1>
         <p className="text-sm text-muted-foreground mt-1">Espelho cross-empresa — só leitura e exclusão (status é regido pelo fluxo de aprovação)</p>
       </div>
 
@@ -145,7 +145,7 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
       {registros.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title="Nenhum pedido encontrado"
+          title="Nenhuma ordem encontrada"
           description="Nenhum resultado para os filtros aplicados."
         />
       ) : (
@@ -202,7 +202,7 @@ export function PedidosAdminList({ registrosIniciais, totalInicial, totalPaginas
       <AlertDialog open={!!excluindo} onOpenChange={(open) => !open && setExcluindo(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir este pedido de pagamento?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir esta ordem de pagamento?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Se houver nota fiscal vinculada, a exclusão será bloqueada.
             </AlertDialogDescription>

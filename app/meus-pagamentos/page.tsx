@@ -68,8 +68,8 @@ export default async function MeusPagamentosPage() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Meus Pagamentos</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe o progresso dos seus pedidos de pagamento</p>
+          <h1 className="text-2xl font-semibold mb-1 text-foreground">Minhas Ordens</h1>
+          <p className="text-sm text-muted-foreground">Acompanhe o progresso das suas ordens de pagamento</p>
         </div>
 
         <Tabs defaultValue="andamento" className="w-full">

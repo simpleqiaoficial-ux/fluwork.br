@@ -53,8 +53,8 @@ export function PedidoConfirmationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Confirmar pedido de pagamento</DialogTitle>
-          <DialogDescription>Revise os detalhes antes de enviar o pedido</DialogDescription>
+          <DialogTitle>Confirmar ordem de pagamento</DialogTitle>
+          <DialogDescription>Revise os detalhes antes de enviar a ordem</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

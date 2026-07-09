@@ -129,7 +129,7 @@ export function AnexarNotaDialog({
                       : "Clique para selecionar o arquivo PDF"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Anexe o PDF da nota fiscal para enviar ao financeiro
+                  Anexe o PDF da nota fiscal para enviar ao aprovador final
                 </p>
               </div>
               <input
@@ -162,7 +162,7 @@ export function AnexarNotaDialog({
 
           <p className="text-xs text-muted-foreground">
             Certifique-se de que o PDF da nota fiscal contém todas as informações corretas antes de anexar. O
-            financeiro irá revisar a nota.
+            aprovador final irá revisar a nota.
           </p>
 
           {erro && (

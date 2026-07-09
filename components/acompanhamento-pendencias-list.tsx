@@ -50,8 +50,8 @@ export function AcompanhamentoPendenciasList({ pedidos }: AcompanhamentoPendenci
     return (
       <EmptyState
         icon={FileCheck2}
-        title="Nenhuma pendência de nota fiscal"
-        description="Todos os prestadores estão em dia — nenhum pagamento aprovado aguardando nota fiscal no momento."
+        title="Nenhuma pendência de anexo fiscal"
+        description="Todos os prestadores estão em dia — nenhuma ordem de pagamento aprovada aguardando anexo fiscal no momento."
       />
     )
   }
@@ -59,7 +59,7 @@ export function AcompanhamentoPendenciasList({ pedidos }: AcompanhamentoPendenci
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        {pedidos.length} {pedidos.length === 1 ? "prestador aguardando" : "prestadores aguardando"} nota fiscal
+        {pedidos.length} {pedidos.length === 1 ? "prestador aguardando" : "prestadores aguardando"} anexo fiscal
       </p>
 
       {pedidos.map((pedido) => (
@@ -74,7 +74,7 @@ export function AcompanhamentoPendenciasList({ pedidos }: AcompanhamentoPendenci
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-foreground">{pedido.colaborador?.nome_completo || "Prestador"}</span>
                     <Badge variant="warning" className="font-normal">
-                      Aguardando nota fiscal
+                      Aguardando anexo fiscal
                     </Badge>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

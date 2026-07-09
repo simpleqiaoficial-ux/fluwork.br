@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { getPapelLabel } from "@/lib/papel-labels"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -149,7 +150,7 @@ export function ColaboradoresAdminList({ registrosIniciais, totalInicial, totalP
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Colaboradores (todas as empresas)</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Prestadores (todas as empresas)</h1>
         <p className="text-sm text-muted-foreground mt-1">Espelho cross-empresa para suporte — edição de campos controlados</p>
       </div>
 
@@ -191,7 +192,7 @@ export function ColaboradoresAdminList({ registrosIniciais, totalInicial, totalP
       {registros.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="Nenhum colaborador encontrado"
+          title="Nenhum prestador encontrado"
           description="Nenhum resultado para os filtros aplicados."
         />
       ) : (
@@ -215,7 +216,7 @@ export function ColaboradoresAdminList({ registrosIniciais, totalInicial, totalP
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{registro.empresa_nome || "—"}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{registro.tipo_acesso}</Badge>
+                    <Badge variant="outline">{getPapelLabel(registro.tipo_acesso)}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{registro.equipe_nome || "—"}</TableCell>
                   <TableCell className="text-right">

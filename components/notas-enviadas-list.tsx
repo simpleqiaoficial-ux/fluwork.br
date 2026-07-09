@@ -384,10 +384,10 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
 
                             {!canBeApproved && (
                               <div className="border-l-2 border-destructive pl-4 py-0.5">
-                                <p className="text-sm font-medium text-destructive">Aguardando nota fiscal</p>
+                                <p className="text-sm font-medium text-destructive">Aguardando anexo fiscal</p>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                  O colaborador ainda precisa emitir e anexar a nota fiscal. Este pedido não pode ser
-                                  aprovado até que a nota seja anexada.
+                                  O prestador ainda precisa emitir e anexar a nota fiscal. Esta ordem não pode ser
+                                  aprovada até que o anexo seja enviado.
                                 </p>
                               </div>
                             )}

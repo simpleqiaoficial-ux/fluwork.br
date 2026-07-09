@@ -155,8 +155,8 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Equipe</TableHead>
-                <TableHead className="hidden sm:table-cell">Supervisor</TableHead>
-                <TableHead className="hidden md:table-cell">Gerentes</TableHead>
+                <TableHead className="hidden sm:table-cell">Lançador de Ordem</TableHead>
+                <TableHead className="hidden md:table-cell">1º Aprovadores</TableHead>
                 <TableHead className="hidden sm:table-cell w-[100px] text-center">Membros</TableHead>
                 <TableHead className="w-[80px] text-right">Ações</TableHead>
               </TableRow>
@@ -248,7 +248,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="eq-supervisor">Supervisor</Label>
+              <Label htmlFor="eq-supervisor">Lançador de Ordem</Label>
               <select
                 id="eq-supervisor"
                 value={supervisorId}

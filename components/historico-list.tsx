@@ -17,7 +17,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   if (pedidos.length === 0) {
-    return <EmptyState icon={History} title="Nenhum pedido criado ainda" />
+    return <EmptyState icon={History} title="Nenhuma ordem criada ainda" />
   }
 
   return (
@@ -114,13 +114,13 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t text-sm">
                             {pedido.observacao_gerente && (
                               <div>
-                                <p className="text-xs text-muted-foreground mb-1">Observação do gerente</p>
+                                <p className="text-xs text-muted-foreground mb-1">Observação do 1º aprovador</p>
                                 <p>{pedido.observacao_gerente}</p>
                               </div>
                             )}
                             {pedido.observacao_financeiro && (
                               <div>
-                                <p className="text-xs text-muted-foreground mb-1">Observação do financeiro</p>
+                                <p className="text-xs text-muted-foreground mb-1">Observação do aprovador final</p>
                                 <p>{pedido.observacao_financeiro}</p>
                               </div>
                             )}
