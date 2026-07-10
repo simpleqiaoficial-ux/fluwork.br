@@ -7,7 +7,7 @@ import { HistoricoReajustesList } from "@/components/historico-reajustes-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { colaboradores, pedidosPagamento } from "@/lib/db/schema"
+import { colaboradores, empresas, pedidosPagamento } from "@/lib/db/schema"
 import { toColaboradorDTO, toPedidoDTO } from "@/lib/db/mappers"
 import { TotalRecebidoCard } from "@/components/total-recebido-card"
 
@@ -65,6 +65,19 @@ export default async function MeusPagamentosPage() {
 
   const linkEmissaoManual = await obterLinkEmissaoManual()
 
+  let empresaAtiva = true
+  if (session.tipoAcesso === "Colaborador" && session.empresaId) {
+    const [empresa] = await db
+      .select({ status: empresas.status })
+      .from(empresas)
+      .where(eq(empresas.id, session.empresaId))
+    empresaAtiva = empresa?.status !== "blocked"
+  }
+
+  const prestadorDesde = colaborador?.created_at
+    ? new Date(colaborador.created_at).toLocaleDateString("pt-BR")
+    : "—"
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8">
@@ -73,7 +86,9 @@ export default async function MeusPagamentosPage() {
           <p className="text-sm text-muted-foreground">Acompanhe o progresso das suas ordens de pagamento</p>
         </div>
 
-        {session.tipoAcesso === "Colaborador" && <TotalRecebidoCard pedidos={pedidosConcluidos} />}
+        {session.tipoAcesso === "Colaborador" && (
+          <TotalRecebidoCard pedidos={pedidosConcluidos} empresaAtiva={empresaAtiva} prestadorDesde={prestadorDesde} />
+        )}
 
         <Tabs defaultValue="andamento" className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-3 h-10">
