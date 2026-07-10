@@ -124,6 +124,7 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/ehs/clientes", label: "Clientes", icon: Building2, keywords: ["cliente", "empresa", "contratante"] },
   { href: "/ehs/prestadores", label: "Prestadores", icon: Users, keywords: ["prestador", "colaborador", "documento", "aso", "nr", "certificado"] },
   { href: "/ehs/agenda", label: "Agenda", icon: CalendarClock, keywords: ["agenda", "integracao", "integração", "calendario", "calendário", "agendamento"] },
+  { href: "/ehs/pendencias", label: "Pendências", icon: AlertCircle, keywords: ["pendencia", "pendência", "vencido", "vencimento", "alerta"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
