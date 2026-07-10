@@ -2,7 +2,8 @@
 
 import type { Colaborador } from "@/types/colaborador"
 import { Button } from "@/components/ui/button"
-import { Trash2, User, Pencil, EyeOff, FileSignature } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Trash2, Pencil, EyeOff, FileSignature } from "lucide-react"
 import { deletarColaborador } from "@/app/actions/colaboradores"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,11 @@ import { formatCurrency } from "@/lib/utils"
 import { PasswordConfirmDialog } from "./password-confirm-dialog"
 import Link from "next/link"
 import { getPapelLabel } from "@/lib/papel-labels"
+
+function iniciais(nome: string) {
+  const partes = nome.trim().split(/\s+/).filter(Boolean)
+  return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
+}
 
 interface ColaboradorItemProps {
   colaborador: Colaborador
@@ -62,10 +68,10 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+      <Card className="flex items-center justify-between gap-2 p-4 hover:bg-accent/40 transition-colors">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <User className="w-5 h-5 text-primary" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[11px] font-semibold text-primary">
+            {iniciais(colaborador.nome_completo)}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -102,7 +108,7 @@ export function ColaboradorItem({ colaborador, usuarioLogadoTipoAcesso }: Colabo
             </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       <ColaboradorEditDialog colaborador={colaborador} open={editDialogOpen} onOpenChange={setEditDialogOpen} usuarioLogadoTipoAcesso={usuarioLogadoTipoAcesso} />
 

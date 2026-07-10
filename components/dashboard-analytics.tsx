@@ -248,7 +248,11 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
       (p) => ["pendente_gerente", "pendente_financeiro"].includes(p.status) && !p.nota_emitida,
     )
     const aprovados = filteredPedidos.filter((p) => p.status === "aprovado")
-    const temNota = (p: PedidoPagamento) => Boolean(p.notas_fiscais && (p.notas_fiscais as any).length > 0)
+    // "notas_fiscais" nunca é preenchido pela query que alimenta este dashboard (a relation
+    // notaFiscal do pedido não é carregada aqui) — nota_fiscal_url é o campo que reflete se a
+    // nota foi de fato anexada, já usado em todo o resto do app (ex. "Ver Nota Fiscal" em
+    // Minhas Ordens). Antes disso, "Notas recebidas" ficava travado em zero pra sempre.
+    const temNota = (p: PedidoPagamento) => Boolean(p.nota_fiscal_url)
     const notasRecebidas = filteredPedidos.filter((p) => p.tipo_pedido !== "reembolso_km" && temNota(p))
     const prestadoresSemNota = filteredPedidos.filter(
       (p) => p.tipo_pedido !== "reembolso_km" && ["aprovado", "pago"].includes(p.status) && !temNota(p),
@@ -434,6 +438,13 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
   }
 
+  // Eixo do gráfico precisa de escala compacta pra valores grandes (milhares → "12k"), mas não
+  // pode arredondar tudo pra "0k" quando os valores ainda são pequenos (ex. dados de teste).
+  const formatEixoCompacto = (value: number) => {
+    if (Math.abs(value) >= 1000) return `${(value / 1000).toFixed(0)}k`
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value)
+  }
+
   return (
     <div className="space-y-8">
       {/* Resumo financeiro / Indicadores */}
@@ -502,23 +513,29 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                       fontSize={11}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => (valoresVisiveis ? `${(v / 1000).toFixed(0)}k` : "---")}
+                      width={48}
+                      tickFormatter={(v) => (valoresVisiveis ? formatEixoCompacto(v) : "---")}
                     />
                     <Tooltip
                       formatter={(value: number, name: string) => [formatTooltip(value), TIPO_LABELS[name] || name]}
                       contentStyle={{
-                        borderRadius: "12px",
+                        borderRadius: "6px",
                         border: "1px solid hsl(var(--border))",
                         fontSize: "12px",
                         boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
                       }}
                     />
-                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
-                    <Bar dataKey="salario" name="salario" stackId="a" fill={CHART_COLORS[0]} radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="horas_extras" name="horas_extras" stackId="a" fill={CHART_COLORS[1]} />
-                    <Bar dataKey="reembolso_km" name="reembolso_km" stackId="a" fill={CHART_COLORS[2]} />
-                    <Bar dataKey="plantao" name="plantao" stackId="a" fill={CHART_COLORS[3]} />
-                    <Bar dataKey="conducao" name="conducao" stackId="a" fill={CHART_COLORS[4]} radius={[4, 4, 0, 0]} />
+                    <Legend
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: "11px" }}
+                      formatter={(value: string) => TIPO_LABELS[value] || value}
+                    />
+                    <Bar dataKey="salario" name="salario" stackId="a" fill={CHART_COLORS[0]} radius={[0, 0, 0, 0]} maxBarSize={64} />
+                    <Bar dataKey="horas_extras" name="horas_extras" stackId="a" fill={CHART_COLORS[1]} maxBarSize={64} />
+                    <Bar dataKey="reembolso_km" name="reembolso_km" stackId="a" fill={CHART_COLORS[2]} maxBarSize={64} />
+                    <Bar dataKey="plantao" name="plantao" stackId="a" fill={CHART_COLORS[3]} maxBarSize={64} />
+                    <Bar dataKey="conducao" name="conducao" stackId="a" fill={CHART_COLORS[4]} radius={[4, 4, 0, 0]} maxBarSize={64} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -553,7 +570,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                   <Tooltip
                     formatter={(value: number) => formatTooltip(value)}
                     contentStyle={{
-                      borderRadius: "12px",
+                      borderRadius: "6px",
                       border: "1px solid hsl(var(--border))",
                       fontSize: "12px",
                       boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",

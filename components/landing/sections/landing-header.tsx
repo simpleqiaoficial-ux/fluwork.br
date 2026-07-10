@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { LoginDialog } from "@/components/landing/login-dialog"
 import { ContactDialog } from "@/components/landing/contact-dialog"
 import { Logo } from "@/components/brand/logo"
 import { NAV_LINKS } from "@/lib/landing/data"
@@ -13,7 +12,6 @@ import { cn } from "@/lib/utils"
 
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false)
-  const [loginOpen, setLoginOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
 
   useEffect(() => {
@@ -44,8 +42,8 @@ export function LandingHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="ghost" onClick={() => setLoginOpen(true)}>
-            Fazer Login
+          <Button variant="ghost" asChild>
+            <Link href="/login">Fazer Login</Link>
           </Button>
           <Button className="shadow-sm" onClick={() => setContactOpen(true)}>
             Quero contratar
@@ -73,8 +71,8 @@ export function LandingHeader() {
             </div>
             <div className="mt-6 flex flex-col gap-3 border-t pt-6">
               <SheetClose asChild>
-                <Button variant="outline" onClick={() => setLoginOpen(true)}>
-                  Fazer Login
+                <Button variant="outline" asChild>
+                  <Link href="/login">Fazer Login</Link>
                 </Button>
               </SheetClose>
               <SheetClose asChild>
@@ -85,7 +83,6 @@ export function LandingHeader() {
         </Sheet>
       </div>
 
-      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
       <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
     </header>
   )

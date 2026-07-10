@@ -10,15 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/app/actions/auth"
 import { AlertCircle, Loader2, Eye, EyeOff } from "lucide-react"
 
-interface LoginFormProps {
-  /** Esconde o texto de termos/privacidade — útil quando o form já aparece dentro de um
-   *  modal sobre a landing page, que tem seu próprio rodapé com esses links. */
-  hideTermsNotice?: boolean
-}
-
-/** Formulário de login reutilizado tanto em /login (página própria) quanto no modal
- *  disparado pelo botão "Fazer Login" da landing page — mesma lógica, sem duplicação. */
-export function LoginForm({ hideTermsNotice = false }: LoginFormProps) {
+/** Formulário de login usado em /login — o botão "Fazer Login" da landing page leva direto
+ *  pra essa página (não abre mais como modal flutuando sobre o conteúdo de marketing). */
+export function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -88,18 +82,16 @@ export function LoginForm({ hideTermsNotice = false }: LoginFormProps) {
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
       </Button>
 
-      {!hideTermsNotice && (
-        <p className="text-center text-xs text-muted-foreground">
-          Ao acessar, você concorda com nossos{" "}
-          <Link href="/termos" className="text-foreground hover:underline">
-            Termos de Uso
-          </Link>{" "}
-          e{" "}
-          <Link href="/privacidade" className="text-foreground hover:underline">
-            Política de Privacidade
-          </Link>
-        </p>
-      )}
+      <p className="text-center text-xs text-muted-foreground">
+        Ao acessar, você concorda com nossos{" "}
+        <Link href="/termos" className="text-foreground hover:underline">
+          Termos de Uso
+        </Link>{" "}
+        e{" "}
+        <Link href="/privacidade" className="text-foreground hover:underline">
+          Política de Privacidade
+        </Link>
+      </p>
     </form>
   )
 }

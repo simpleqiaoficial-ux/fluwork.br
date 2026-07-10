@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Badge } from "@/components/ui/badge"
 import {
   Plus,
   Trash2,
@@ -20,7 +23,7 @@ import {
   Award,
   MapPin,
   Send,
-  Search,
+  ChevronsUpDown,
 } from "lucide-react"
 import { criarPedido } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
@@ -120,6 +123,11 @@ interface PedidoFormProps {
   tipoAcesso?: string
 }
 
+function iniciais(nome: string) {
+  const partes = nome.trim().split(/\s+/).filter(Boolean)
+  return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
+}
+
 export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
   const router = useRouter()
   const [selectedColaborador, setSelectedColaborador] = useState("")
@@ -129,8 +137,8 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
   const [error, setError] = useState("")
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [pendingPedido, setPendingPedido] = useState<NovoPedido | null>(null)
-  const [buscaColaborador, setBuscaColaborador] = useState("")
   const [filtroDiaPagamento, setFiltroDiaPagamento] = useState("todos")
+  const [comboboxOpen, setComboboxOpen] = useState(false)
 
   // Item builder state
   const [addingTipo, setAddingTipo] = useState<ItemTipo | "">("")
@@ -145,18 +153,9 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
   const valorDiario = salario / 22
 
   const colaboradoresFiltrados = useMemo(() => {
-    let result = colaboradores
-    if (filtroDiaPagamento !== "todos") {
-      result = result.filter((c) => c.dia_pagamento === Number.parseInt(filtroDiaPagamento))
-    }
-    if (buscaColaborador) {
-      const busca = buscaColaborador.toLowerCase()
-      result = result.filter(
-        (c) => c.nome_completo.toLowerCase().includes(busca) || c.email.toLowerCase().includes(busca),
-      )
-    }
-    return result
-  }, [colaboradores, buscaColaborador, filtroDiaPagamento])
+    if (filtroDiaPagamento === "todos") return colaboradores
+    return colaboradores.filter((c) => c.dia_pagamento === Number.parseInt(filtroDiaPagamento))
+  }, [colaboradores, filtroDiaPagamento])
 
   const calcularValorItem = useCallback(
     (item: PedidoItem): number => {
@@ -366,17 +365,65 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
 
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1 space-y-1">
-                  <Label className="text-xs text-muted-foreground">Buscar prestador</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Nome ou e-mail..."
-                      value={buscaColaborador}
-                      onChange={(e) => setBuscaColaborador(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs text-muted-foreground">Prestador</Label>
+                  <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={comboboxOpen}
+                        className="w-full justify-between font-normal"
+                      >
+                        {colaborador ? (
+                          <span className="flex items-center gap-2 truncate">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[9px] font-semibold text-primary">
+                              {iniciais(colaborador.nome_completo)}
+                            </span>
+                            <span className="truncate">{colaborador.nome_completo}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Selecione o prestador</span>
+                        )}
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar por nome ou e-mail..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum prestador encontrado.</CommandEmpty>
+                          {colaboradoresFiltrados.map((c) => (
+                            <CommandItem
+                              key={c.id}
+                              value={`${c.nome_completo} ${c.email}`}
+                              disabled={c.bloqueado}
+                              onSelect={() => {
+                                if (c.bloqueado) return
+                                setSelectedColaborador(c.id)
+                                setItems([])
+                                setComboboxOpen(false)
+                              }}
+                              className="gap-2"
+                            >
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                                {iniciais(c.nome_completo)}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm">{c.nome_completo}</span>
+                                <span className="block truncate text-xs text-muted-foreground">
+                                  {fmt(c.salario)} · Dia {c.dia_pagamento}
+                                </span>
+                              </span>
+                              {c.bloqueado && (
+                                <Badge variant="outline" className="shrink-0 font-normal">Já lançado</Badge>
+                              )}
+                            </CommandItem>
+                          ))}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Dia de pagamento</Label>
@@ -392,20 +439,6 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                   </Select>
                 </div>
               </div>
-
-              <Select value={selectedColaborador} onValueChange={(v) => { setSelectedColaborador(v); setItems([]) }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o prestador" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colaboradoresFiltrados.map((c) => (
-                    <SelectItem key={c.id} value={c.id} disabled={c.bloqueado}>
-                      {c.nome_completo} - {fmt(c.salario)} (Dia {c.dia_pagamento})
-                      {c.bloqueado ? " [já lançado]" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               {colaborador && (
                 <div className="flex flex-wrap gap-x-5 gap-y-1.5 rounded-md bg-muted/50 px-3 py-2.5 text-xs">

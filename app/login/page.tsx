@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { LoginForm } from "@/components/auth/login-form"
 import { Logo } from "@/components/brand/logo"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function LoginPage() {
   return (
@@ -26,14 +27,18 @@ export default function LoginPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
+      <main className="flex-1 flex items-center justify-center px-4 py-16 bg-muted/30">
         <div className="w-full max-w-sm">
-          <div className="mb-8">
+          <div className="mb-6 text-center">
             <h1 className="text-xl font-semibold tracking-tight">Acesse sua conta</h1>
             <p className="text-sm text-muted-foreground mt-1.5">Entre com suas credenciais para continuar</p>
           </div>
 
-          <LoginForm />
+          <Card>
+            <CardContent className="pt-6">
+              <LoginForm />
+            </CardContent>
+          </Card>
         </div>
       </main>
 
