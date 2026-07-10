@@ -8,6 +8,8 @@ import { useValoresVisibility } from "@/contexts/valores-visibility-context"
 import { Button } from "@/components/ui/button"
 import { getBreadcrumbForPath } from "@/lib/nav-config"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { NotificationBell } from "@/components/notification-bell"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface UserHeaderProps {
   nomeCompleto: string
@@ -88,6 +90,9 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, ti
               <EyeOff className="h-4 w-4 text-foreground" />
             )}
           </Button>
+
+          <NotificationBell />
+          <ThemeToggle />
 
           <Link
             href="/perfil"

@@ -52,6 +52,17 @@
     --chart-3: 264 42% 45%;
     --chart-4: 150 60% 32%;
     --chart-5: 31 68% 42%;
+
+    /* Sidebar de navegação — navy escuro fixo, independente do tema claro/escuro do app (mesmo
+       padrão de console B2B com "sidebar sempre escura + conteúdo claro/escuro por opção"). */
+    --sidebar-background: 226 45% 13%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-muted-foreground: 220 14% 62%;
+    --sidebar-border: 226 30% 21%;
+    --sidebar-hover: 226 28% 19%;
+    --sidebar-active: 217 55% 23%;
+    --sidebar-active-foreground: 210 90% 92%;
+    --sidebar-accent-icon: 213 90% 68%;
   }
 
   .dark {

@@ -17,6 +17,7 @@ import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
 import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from "@/components/theme-provider"
 import cn from "classnames"
 
 const poppins = Poppins({
@@ -71,8 +72,9 @@ export default async function RootLayout({
   const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
 
   return (
-    <html lang="pt-BR" className={poppins.variable}>
+    <html lang="pt-BR" className={poppins.variable} suppressHydrationWarning>
       <body className="antialiased bg-background">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
         <ValoresVisibilityProvider>
           {empresaBloqueadaMotivo !== undefined ? (
             <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
@@ -115,6 +117,7 @@ export default async function RootLayout({
           )}
         </ValoresVisibilityProvider>
         <Toaster richColors closeButton position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   )

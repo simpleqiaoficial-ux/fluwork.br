@@ -94,11 +94,13 @@ export default async function Home() {
     }
   }
 
+  const primeiroNome = session.nomeCompleto.trim().split(/\s+/)[0]
+
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Visão Geral</h1>
-        <p className="text-sm text-muted-foreground">Panorama de contratos, valores e aprovações de prestadores</p>
+        <h1 className="text-2xl font-semibold mb-1 text-foreground">Olá, {primeiroNome}! 👋</h1>
+        <p className="text-sm text-muted-foreground">Aqui está o resumo geral da plataforma.</p>
       </div>
 
       <DashboardAnalytics pedidos={pedidos} equipes={equipes} prorrogacoesPendentes={prorrogacoesPendentes} />

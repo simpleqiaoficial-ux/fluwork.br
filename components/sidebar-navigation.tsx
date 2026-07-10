@@ -146,11 +146,14 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           "group relative flex items-center gap-2.5 py-1.5 text-[13px] font-medium rounded-md transition-colors duration-100",
           iconOnly ? "justify-center px-0" : levelPadding,
           isActive
-            ? "bg-primary/10 text-primary before:absolute before:inset-y-0.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+            ? "bg-sidebar-active text-sidebar-active-foreground before:absolute before:inset-y-0.5 before:left-0 before:w-0.5 before:rounded-full before:bg-sidebar-icon"
+            : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover",
         )}
       >
-        <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
+        <Icon
+          className={cn("h-[15px] w-[15px] shrink-0", isActive && "text-sidebar-icon")}
+          strokeWidth={1.75}
+        />
         {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
         {badge > 0 && !iconOnly && (
           <span className="ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground">
@@ -191,7 +194,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           onClick={() => setOpenGroups((prev) => ({ ...prev, [group.label]: !prev[group.label] }))}
           className={cn(
             "w-full flex items-center gap-2 pl-6 pr-3 py-1.5 text-[13px] font-medium rounded-md transition-colors duration-100",
-            groupHasActiveItem && !isOpen ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+            groupHasActiveItem && !isOpen ? "text-sidebar-icon" : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover",
           )}
         >
           <span className="flex-1 truncate text-left">{group.label}</span>
@@ -220,7 +223,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         <button
           type="button"
           onClick={() => toggleWorkspace(workspace.id)}
-          className="w-full flex items-center gap-2 px-3 py-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted/70 hover:text-sidebar-muted transition-colors"
         >
           <WsIcon className="h-3 w-3 shrink-0" strokeWidth={1.75} />
           <span className="flex-1 truncate text-left">{workspace.label}</span>
@@ -267,18 +270,18 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen hidden lg:flex flex-col border-r bg-card transition-[width] duration-150",
+          "fixed top-0 left-0 z-40 h-screen hidden lg:flex flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-150",
           collapsed ? "lg:w-[4.5rem]" : "lg:w-64",
         )}
       >
-        <div className={cn("flex items-center h-14 px-4 border-b", collapsed && "lg:justify-center lg:px-0")}>
+        <div className={cn("flex items-center h-14 px-4 border-b border-sidebar-border", collapsed && "lg:justify-center lg:px-0")}>
           {collapsed ? (
             <Link href="/" className="flex items-center justify-center">
-              <Logo showWordmark={false} size={30} />
+              <Logo showWordmark={false} size={30} dark />
             </Link>
           ) : (
             <Link href="/" className="flex items-center">
-              <Logo />
+              <Logo dark />
             </Link>
           )}
         </div>
@@ -288,11 +291,11 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="flex w-full items-center gap-2 rounded-md border bg-background/60 px-2.5 h-8 text-[13px] text-muted-foreground hover:border-border hover:text-foreground transition-colors"
+              className="flex w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-hover/60 px-2.5 h-8 text-[13px] text-sidebar-muted hover:border-sidebar-muted/40 hover:text-sidebar-foreground transition-colors"
             >
               <Search className="h-3.5 w-3.5 shrink-0" />
               <span className="flex-1 text-left">Buscar...</span>
-              <span className="flex items-center gap-0.5 rounded border bg-muted px-1 py-0.5 text-[10px] font-medium">
+              <span className="flex items-center gap-0.5 rounded border border-sidebar-border bg-sidebar px-1 py-0.5 text-[10px] font-medium">
                 <Command className="h-2.5 w-2.5" />K
               </span>
             </button>
@@ -301,7 +304,12 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
 
         {collapsed ? <CollapsedRail /> : <NavBody />}
 
-        <div className="border-t p-2.5 space-y-0.5">
+        <div className="border-t border-sidebar-border p-2.5 space-y-0.5">
+          {!collapsed && (
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted/70">
+              Configurações
+            </p>
+          )}
           <NavLink item={perfilLink} iconOnly={collapsed} />
           <NavLink item={bottomLink} iconOnly={collapsed} />
           {tipoAcesso && (
@@ -309,7 +317,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
               variant="ghost"
               onClick={handleLogout}
               className={cn(
-                "w-full justify-start gap-2.5 text-muted-foreground hover:text-foreground h-8 text-[13px] font-medium",
+                "w-full justify-start gap-2.5 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover h-8 text-[13px] font-medium",
                 collapsed && "justify-center px-0",
               )}
             >
@@ -317,11 +325,14 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
               <span className={cn(collapsed && "hidden")}>Sair</span>
             </Button>
           )}
+        </div>
+
+        <div className="p-2.5">
           <Button
             variant="ghost"
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              "w-full justify-start gap-2.5 text-muted-foreground hover:text-foreground h-8 text-[13px] font-medium",
+              "w-full justify-start gap-2.5 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover h-8 text-[13px] font-medium",
               collapsed && "justify-center px-0",
             )}
           >
@@ -335,12 +346,12 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       {mobileOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-foreground/50 lg:hidden" onClick={() => setMobileOpen(false)} />
-          <aside className="fixed top-0 left-0 z-50 h-screen w-72 bg-card border-r lg:hidden flex flex-col animate-in slide-in-from-left duration-200">
-            <div className="flex items-center justify-between h-14 px-4 border-b">
+          <aside className="fixed top-0 left-0 z-50 h-screen w-72 bg-sidebar border-r border-sidebar-border lg:hidden flex flex-col animate-in slide-in-from-left duration-200">
+            <div className="flex items-center justify-between h-14 px-4 border-b border-sidebar-border">
               <Link href="/" className="flex items-center">
-                <Logo />
+                <Logo dark />
               </Link>
-              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} className="h-8 w-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -352,7 +363,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
                   setMobileOpen(false)
                   setPaletteOpen(true)
                 }}
-                className="flex w-full items-center gap-2 rounded-md border bg-background/60 px-2.5 h-8 text-[13px] text-muted-foreground"
+                className="flex w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-hover/60 px-2.5 h-8 text-[13px] text-sidebar-muted"
               >
                 <Search className="h-3.5 w-3.5 shrink-0" />
                 <span className="flex-1 text-left">Buscar...</span>
@@ -361,14 +372,17 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
 
             <NavBody onLinkClick={() => setMobileOpen(false)} />
 
-            <div className="border-t p-2.5">
+            <div className="border-t border-sidebar-border p-2.5">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted/70">
+                Configurações
+              </p>
               <NavLink item={perfilLink} onClick={() => setMobileOpen(false)} />
               <NavLink item={bottomLink} onClick={() => setMobileOpen(false)} />
               {tipoAcesso && (
                 <Button
                   variant="ghost"
                   onClick={handleLogout}
-                  className="w-full justify-start gap-2.5 text-muted-foreground hover:text-foreground h-9 text-[13px] font-medium"
+                  className="w-full justify-start gap-2.5 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover h-9 text-[13px] font-medium"
                 >
                   <LogOut className="h-[15px] w-[15px]" />
                   <span>Sair</span>
