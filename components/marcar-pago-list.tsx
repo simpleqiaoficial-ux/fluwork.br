@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -235,221 +235,206 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
           {pedidos.length} {pedidos.length === 1 ? "pedido pronto" : "pedidos prontos"} para pagamento
         </p>
 
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Prestador</TableHead>
-                <TableHead>Emitida em</TableHead>
-                <TableHead className="text-right">Valor NF</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-                <TableHead className="w-8" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pedidos.map((pedido) => {
-                let notaFiscal = null
-                if (pedido.notas_fiscais) {
-                  notaFiscal = Array.isArray(pedido.notas_fiscais) ? pedido.notas_fiscais[0] || null : pedido.notas_fiscais
-                }
-                const pdfUrl = notaFiscal?.arquivo_pdf_url || pedido.nota_fiscal_url
-                const xmlUrl = notaFiscal?.arquivo_xml_url
+        <div className="space-y-3">
+          {pedidos.map((pedido) => {
+            let notaFiscal = null
+            if (pedido.notas_fiscais) {
+              notaFiscal = Array.isArray(pedido.notas_fiscais) ? pedido.notas_fiscais[0] || null : pedido.notas_fiscais
+            }
+            const pdfUrl = notaFiscal?.arquivo_pdf_url || pedido.nota_fiscal_url
+            const xmlUrl = notaFiscal?.arquivo_xml_url
 
-                const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
-                const valorEsperadoNF = isReembolsoKm
-                  ? pedido.valor_km
-                  : (pedido.colaborador?.salario || 0) +
-                    (pedido.horas_extras || 0) +
-                    (pedido.valor_plantao || 0) +
-                    (pedido.comissao || 0) -
-                    (pedido.valor_desconto || 0)
+            const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
+            const valorEsperadoNF = isReembolsoKm
+              ? pedido.valor_km
+              : (pedido.colaborador?.salario || 0) +
+                (pedido.horas_extras || 0) +
+                (pedido.valor_plantao || 0) +
+                (pedido.comissao || 0) -
+                (pedido.valor_desconto || 0)
 
-                const isExpanded = expandedId === pedido.id
-                const aguardandoAcao = pedido.status !== "nota_recebida" && pedido.status !== "pago"
-                const statusLabel = STATUS_LABELS[pedido.status] || (isReembolsoKm ? "Reembolso KM" : "Nota Anexada")
-                const statusVariant = STATUS_VARIANT[pedido.status] || "outline"
+            const isExpanded = expandedId === pedido.id
+            const aguardandoAcao = pedido.status !== "nota_recebida" && pedido.status !== "pago"
+            const statusLabel = STATUS_LABELS[pedido.status] || (isReembolsoKm ? "Reembolso KM" : "Nota Anexada")
+            const statusVariant = STATUS_VARIANT[pedido.status] || "outline"
 
-                return (
-                  <>
-                    <TableRow
-                      key={pedido.id}
-                      className="cursor-pointer"
-                      onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
-                    >
-                      <TableCell className="font-medium">{pedido.colaborador?.nome_completo || "Prestador"}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {pedido.data_emissao_nota
-                          ? new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")
-                          : new Date(pedido.created_at).toLocaleDateString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">{formatValue(valorEsperadoNF)}</TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">{formatValue(pedido.valor_total)}</TableCell>
-                      <TableCell>
-                        <Badge variant={statusVariant} className="font-normal">
-                          {statusLabel}
-                        </Badge>
-                      </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        {aguardandoAcao ? (
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                if (isSystemSuspended) {
-                                  setSuspendedDialogOpen(true)
-                                  return
-                                }
-                                setConfirmAprovarId(pedido.id)
-                              }}
-                              disabled={approvingId === pedido.id}
-                              className="gap-1.5"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              {approvingId === pedido.id ? "Confirmando..." : "Confirmar Documento Fiscal Recebido"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive hover:text-destructive gap-1.5"
-                              onClick={() => {
-                                if (isSystemSuspended) {
-                                  setSuspendedDialogOpen(true)
-                                  return
-                                }
-                                setRecusarDialogId(pedido.id)
-                              }}
-                              disabled={rejectingId === pedido.id}
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              Recusar
-                            </Button>
-                          </div>
-                        ) : pedido.status === "nota_recebida" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              if (isSystemSuspended) {
-                                setSuspendedDialogOpen(true)
-                                return
-                              }
-                              setConfirmPagoId(pedido.id)
-                            }}
-                            disabled={payingId === pedido.id}
-                            className="gap-1.5"
-                          >
-                            <CreditCard className="w-3.5 h-3.5" />
-                            {payingId === pedido.id ? "Marcando..." : "Marcar como pago"}
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </TableCell>
-                    </TableRow>
+            return (
+              <Card key={pedido.id}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
+                  className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 p-4 text-left"
+                >
+                  <div className="min-w-0 flex-1 basis-40">
+                    <p className="truncate font-medium text-sm">{pedido.colaborador?.nome_completo || "Prestador"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Emitida em{" "}
+                      {pedido.data_emissao_nota
+                        ? new Date(pedido.data_emissao_nota).toLocaleDateString("pt-BR")
+                        : new Date(pedido.created_at).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-sm font-semibold tabular-nums">{formatValue(pedido.valor_total)}</p>
+                  </div>
+                  <Badge variant={statusVariant} className="font-normal shrink-0">
+                    {statusLabel}
+                  </Badge>
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  )}
+                </button>
 
-                    {isExpanded && (
-                      <TableRow key={`${pedido.id}-detail`}>
-                        <TableCell colSpan={7} className="bg-muted/20 px-6 py-5">
-                          <div className="space-y-4">
-                            {isReembolsoKm ? (
-                              <div className="text-sm">
-                                <p className="text-xs text-muted-foreground mb-1">Quilometragem (reembolso)</p>
-                                <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Valor contratual</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.colaborador?.salario || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Horas extras</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.horas_extras || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Plantão</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.valor_plantao || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Comissão</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.comissao || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Condução (fora da NF)</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.conducao || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Quilometragem (fora da NF)</p>
-                                  <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
-                                </div>
-                                {(pedido.valor_desconto || 0) > 0 && (
-                                  <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Desconto</p>
-                                    <p className="font-medium tabular-nums text-destructive">
-                                      -{formatValue(pedido.valor_desconto || 0)}
-                                    </p>
-                                    {pedido.motivo_desconto && (
-                                      <p className="text-xs text-muted-foreground mt-1">{pedido.motivo_desconto}</p>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {(pdfUrl || xmlUrl) && (
-                              <div className="flex gap-2 pt-4 border-t">
-                                {pdfUrl && (
-                                  <Button asChild variant="outline" size="sm">
-                                    <a
-                                      href={pdfUrl}
-                                      download
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        if (!pdfUrl || pdfUrl.includes("undefined")) {
-                                          e.preventDefault()
-                                          toast.error("PDF não disponível.")
-                                        }
-                                      }}
-                                    >
-                                      <Download className="w-3.5 h-3.5" />
-                                      PDF
-                                    </a>
-                                  </Button>
-                                )}
-                                {xmlUrl && (
-                                  <Button asChild variant="outline" size="sm">
-                                    <a href={xmlUrl} download target="_blank" rel="noopener noreferrer">
-                                      <Download className="w-3.5 h-3.5" />
-                                      XML
-                                    </a>
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-
-                            {!aguardandoAcao && (
-                              <div className="flex items-center gap-2 text-success text-sm pt-4 border-t">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="font-medium">
-                                  {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
-                                </span>
-                              </div>
+                {isExpanded && (
+                  <CardContent className="space-y-4 border-t pt-4">
+                    {isReembolsoKm ? (
+                      <div className="text-sm">
+                        <p className="text-xs text-muted-foreground mb-1">Quilometragem (reembolso)</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-4 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Valor da nota</p>
+                          <p className="font-medium tabular-nums">{formatValue(valorEsperadoNF)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Valor contratual</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.colaborador?.salario || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Horas extras</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.horas_extras || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Plantão</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.valor_plantao || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Comissão</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.comissao || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Condução (fora da NF)</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.conducao || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Quilometragem (fora da NF)</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.valor_km || 0)}</p>
+                        </div>
+                        {(pedido.valor_desconto || 0) > 0 && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Desconto</p>
+                            <p className="font-medium tabular-nums text-destructive">
+                              -{formatValue(pedido.valor_desconto || 0)}
+                            </p>
+                            {pedido.motivo_desconto && (
+                              <p className="text-xs text-muted-foreground mt-1">{pedido.motivo_desconto}</p>
                             )}
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        )}
+                      </div>
                     )}
 
-                    <AlertDialog
+                    {(pdfUrl || xmlUrl) && (
+                      <div className="flex flex-wrap gap-2 pt-4 border-t">
+                        {pdfUrl && (
+                          <Button asChild variant="outline" size="sm">
+                            <a
+                              href={pdfUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                if (!pdfUrl || pdfUrl.includes("undefined")) {
+                                  e.preventDefault()
+                                  toast.error("PDF não disponível.")
+                                }
+                              }}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              PDF
+                            </a>
+                          </Button>
+                        )}
+                        {xmlUrl && (
+                          <Button asChild variant="outline" size="sm">
+                            <a href={xmlUrl} download target="_blank" rel="noopener noreferrer">
+                              <Download className="w-3.5 h-3.5" />
+                              XML
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {aguardandoAcao ? (
+                      <div className="flex flex-wrap gap-2 pt-4 border-t">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (isSystemSuspended) {
+                              setSuspendedDialogOpen(true)
+                              return
+                            }
+                            setConfirmAprovarId(pedido.id)
+                          }}
+                          disabled={approvingId === pedido.id}
+                          className="gap-1.5"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          {approvingId === pedido.id ? "Confirmando..." : "Confirmar recebimento"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive hover:text-destructive gap-1.5"
+                          onClick={() => {
+                            if (isSystemSuspended) {
+                              setSuspendedDialogOpen(true)
+                              return
+                            }
+                            setRecusarDialogId(pedido.id)
+                          }}
+                          disabled={rejectingId === pedido.id}
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Recusar
+                        </Button>
+                      </div>
+                    ) : pedido.status === "nota_recebida" ? (
+                      <div className="pt-4 border-t">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (isSystemSuspended) {
+                              setSuspendedDialogOpen(true)
+                              return
+                            }
+                            setConfirmPagoId(pedido.id)
+                          }}
+                          disabled={payingId === pedido.id}
+                          className="gap-1.5"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          {payingId === pedido.id ? "Marcando..." : "Marcar como pago"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-success text-sm pt-4 border-t">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-medium">
+                          {pedido.status === "pago" ? "Pagamento concluído" : "Nota recebida — aguardando pagamento"}
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+
+                <AlertDialog
                       open={confirmAprovarId === pedido.id}
                       onOpenChange={(open) => !open && setConfirmAprovarId(null)}
                     >
@@ -535,11 +520,9 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                  </>
-                )
-              })}
-            </TableBody>
-          </Table>
+                  </Card>
+            )
+          })}
         </div>
       </div>
     </div>
