@@ -44,10 +44,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // Se estiver logado como Colaborador, só pode acessar meus-pagamentos, meus-contratos
-  // e o link público de assinatura (que pode abrir estando logado, se clicar no próprio e-mail).
+  // Se estiver logado como Colaborador, só pode acessar meus-pagamentos, meus-contratos,
+  // o link público de assinatura (que pode abrir estando logado, se clicar no próprio e-mail),
+  // e as duas páginas de autoatendimento da própria conta (perfil e redefinir senha) — ambas
+  // já linkadas na sidebar pra todo mundo, então precisam estar liberadas aqui também.
   if (session?.tipoAcesso === "Colaborador") {
-    const rotasPermitidas = ["/meus-pagamentos", "/meus-contratos", "/contratos/assinar"]
+    const rotasPermitidas = ["/meus-pagamentos", "/meus-contratos", "/contratos/assinar", "/perfil", "/redefinir-senha"]
     if (!rotasPermitidas.some((rota) => request.nextUrl.pathname.startsWith(rota))) {
       return NextResponse.redirect(new URL("/meus-pagamentos", request.url))
     }
