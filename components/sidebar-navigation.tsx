@@ -133,7 +133,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   }) => {
     const Icon = item.icon
     const isActive = isItemActive(item.href)
-    const badge = item.badgeKey ? pendencias[item.badgeKey] : 0
+    const badge = item.badgeKey ? (pendencias?.[item.badgeKey] ?? 0) : 0
     const levelPadding = level === 2 ? "pl-9 pr-3" : level === 1 ? "pl-6 pr-3" : "px-3"
 
     return (

@@ -485,6 +485,47 @@ export async function listarContratosDoUsuario() {
   return rows.filter((r) => r.contract).map((r) => toContratoDTO(r.contract))
 }
 
+// Self-service: o próprio prestador gera um novo link de assinatura pro contrato que já está
+// esperando ele — sem precisar de e-mail, já que ele está autenticado aqui agora. O token
+// original nunca fica recuperável (só o hash é guardado, igual senha), então a única forma de
+// "reabrir" a assinatura é gerar um token novo, igual reenviarContrato faz do lado do admin.
+export async function gerarLinkAssinaturaProprio(contratoId: string) {
+  const usuario = await getUsuarioLogado()
+  if (!usuario) return { success: false, error: "Não autenticado" }
+
+  const [contrato] = await db.select().from(contracts).where(eq(contracts.id, contratoId))
+  if (!contrato || !["sent", "viewed", "expired"].includes(contrato.status)) {
+    return { success: false, error: "Este contrato não está mais disponível para assinatura" }
+  }
+
+  const [signer] = await db
+    .select()
+    .from(contractSigners)
+    .where(
+      and(
+        eq(contractSigners.contractId, contratoId),
+        or(eq(contractSigners.colaboradorId, usuario.id), sql`lower(${contractSigners.email}) = lower(${usuario.email})`),
+      ),
+    )
+  if (!signer) return { success: false, error: "Você não é o signatário deste contrato" }
+
+  const token = gerarToken()
+  const tokenHash = hashToken(token)
+  const tokenExpiraEm = gerarExpiracao(7)
+
+  await db
+    .update(contractSigners)
+    .set({ tokenHash, tokenExpiraEm, status: "pendente", colaboradorId: usuario.id, updatedAt: new Date() })
+    .where(eq(contractSigners.id, signer.id))
+
+  await db
+    .update(contracts)
+    .set({ status: "sent", expiraEm: tokenExpiraEm, updatedAt: new Date() })
+    .where(eq(contracts.id, contratoId))
+
+  return { success: true, url: `/contratos/assinar/${token}` }
+}
+
 // Histórico contratual completo de um colaborador — usado na aba "Contratos" do perfil dele.
 export async function listarContratosDoColaborador(colaboradorId: string) {
   const usuario = await exigirAdmin()

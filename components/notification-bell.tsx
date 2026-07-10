@@ -38,8 +38,8 @@ export function NotificationBell() {
     return () => clearInterval(interval)
   }, [])
 
-  const itensComPendencia = PENDENCIA_ITEMS.filter((item) => pendencias[item.key] > 0)
-  const total = itensComPendencia.reduce((sum, item) => sum + pendencias[item.key], 0)
+  const itensComPendencia = PENDENCIA_ITEMS.filter((item) => (pendencias?.[item.key] ?? 0) > 0)
+  const total = itensComPendencia.reduce((sum, item) => sum + (pendencias?.[item.key] ?? 0), 0)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,7 +70,7 @@ export function NotificationBell() {
               >
                 <span>{item.label}</span>
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold tabular-nums text-primary-foreground">
-                  {pendencias[item.key]}
+                  {pendencias?.[item.key] ?? 0}
                 </span>
               </Link>
             ))}

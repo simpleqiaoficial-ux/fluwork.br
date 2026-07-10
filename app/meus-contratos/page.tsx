@@ -4,6 +4,8 @@ import { listarContratosDoUsuario } from "@/app/actions/contratos"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { AssinarAgoraButton } from "@/components/contratos/assinar-agora-button"
 import { FileSignature, Download, Clock } from "lucide-react"
 
 function formatarMoeda(valor: number): string {
@@ -35,34 +37,38 @@ export default async function MeusContratosPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="space-y-3">
           {contratos.map((contrato: any) => {
+            const aguardandoAssinatura = contrato.status === "sent" || contrato.status === "viewed" || contrato.status === "expired"
             return (
-              <div key={contrato.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{contrato.tipo_servico}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {contrato.numero} · {formatarMoeda(contrato.valor)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {contrato.status === "sent" || contrato.status === "viewed" ? (
-                    <Badge variant="warning">
-                      <Clock className="h-3 w-3" />
-                      Aguardando sua assinatura
-                    </Badge>
-                  ) : (
-                    <StatusBadge entity="contrato" status={contrato.status} />
-                  )}
-                  {contrato.status === "signed" && (
-                    <a href={`/api/contratos/${contrato.id}/pdf`} target="_blank" rel="noreferrer">
-                      <Button size="icon" variant="ghost" className="h-8 w-8">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              </div>
+              <Card key={contrato.id}>
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{contrato.tipo_servico}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {contrato.numero} · {formatarMoeda(contrato.valor)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {aguardandoAssinatura ? (
+                      <Badge variant="warning">
+                        <Clock className="h-3 w-3" />
+                        Aguardando sua assinatura
+                      </Badge>
+                    ) : (
+                      <StatusBadge entity="contrato" status={contrato.status} />
+                    )}
+                    {aguardandoAssinatura && <AssinarAgoraButton contratoId={contrato.id} />}
+                    {contrato.status === "signed" && (
+                      <a href={`/api/contratos/${contrato.id}/pdf`} target="_blank" rel="noreferrer">
+                        <Button size="icon" variant="ghost" className="h-8 w-8">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )
           })}
         </div>
