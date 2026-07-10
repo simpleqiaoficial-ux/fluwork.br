@@ -22,7 +22,7 @@ export default async function MeusContratosPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">Meus Contratos</h1>
+        <h1 className="text-xl font-semibold text-foreground">Meus Contratos</h1>
         <p className="text-sm text-muted-foreground mt-1">Contratos enviados para você assinar</p>
       </div>
 

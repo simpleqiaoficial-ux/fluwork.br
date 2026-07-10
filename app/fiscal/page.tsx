@@ -62,7 +62,7 @@ export default async function FiscalPage() {
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-semibold text-foreground">Fiscal</h1>
+            <h1 className="text-xl font-semibold text-foreground">Fiscal</h1>
             <Badge variant="secondary" className="text-xs font-medium">
               Em Desenvolvimento
             </Badge>

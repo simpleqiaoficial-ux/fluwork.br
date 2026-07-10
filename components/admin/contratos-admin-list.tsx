@@ -121,7 +121,7 @@ export function ContratosAdminList({ registrosIniciais, totalInicial, totalPagin
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Contratos (todas as empresas)</h1>
+        <h1 className="text-xl font-semibold text-foreground">Contratos (todas as empresas)</h1>
         <p className="text-sm text-muted-foreground mt-1">Espelho cross-empresa — cancelar/arquivar reaproveita as mesmas ações do módulo de Contratos</p>
       </div>
 

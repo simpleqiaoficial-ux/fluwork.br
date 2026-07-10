@@ -34,7 +34,7 @@ export default async function ColaboradoresPage() {
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-4xl">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Prestadores</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Prestadores</h1>
           <p className="text-sm text-muted-foreground">Gerencie os prestadores da sua empresa</p>
         </div>
         <Link href="/cadastros/colaboradores/novo">

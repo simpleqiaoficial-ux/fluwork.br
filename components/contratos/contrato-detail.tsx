@@ -141,7 +141,7 @@ export function ContratoDetail({ contrato }: ContratoDetailProps) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold text-foreground">{contrato.numero}</h1>
+              <h1 className="text-xl font-semibold text-foreground">{contrato.numero}</h1>
               <StatusBadge entity="contrato" status={contrato.status} />
             </div>
             <p className="text-sm text-muted-foreground mt-1">{contrato.tipo_servico}</p>

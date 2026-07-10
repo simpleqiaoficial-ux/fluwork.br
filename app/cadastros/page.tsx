@@ -40,7 +40,7 @@ export default async function CadastrosPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Cadastros</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Cadastros</h1>
         <p className="text-sm text-muted-foreground">
           Gerencie prestadores, equipes e centros de custo do sistema
         </p>

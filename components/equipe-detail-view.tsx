@@ -158,7 +158,7 @@ export function EquipeDetailView({
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">{equipe.nome}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">{equipe.nome}</h1>
           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
             {equipe.supervisor && (
               <span className="flex items-center gap-1.5">

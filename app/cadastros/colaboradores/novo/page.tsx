@@ -38,7 +38,7 @@ export default async function NovoColaboradorPage() {
           <ArrowLeft className="h-4 w-4" />
           Voltar para prestadores
         </Link>
-        <h1 className="text-2xl font-semibold mt-3 mb-1 text-foreground">Novo Prestador</h1>
+        <h1 className="text-xl font-semibold mt-3 mb-1 text-foreground">Novo Prestador</h1>
         <p className="text-sm text-muted-foreground">Cadastre um novo prestador de serviços da sua empresa</p>
       </div>
 

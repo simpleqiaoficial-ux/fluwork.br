@@ -93,7 +93,7 @@ export function AceitesTermosList() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Aceites de Termos de Uso</h1>
+        <h1 className="text-xl font-semibold text-foreground">Aceites de Termos de Uso</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Gerencie e acompanhe os aceites dos termos de uso pelos colaboradores
         </p>
@@ -103,22 +103,22 @@ export function AceitesTermosList() {
       <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Total de usuários</p>
-          <p className="text-2xl font-semibold tabular-nums">{stats.totalUsers}</p>
+          <p className="text-xl font-semibold tabular-nums">{stats.totalUsers}</p>
           <p className="text-xs text-muted-foreground mt-1">Usuários ativos no sistema</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Termos aceitos</p>
-          <p className="text-2xl font-semibold tabular-nums text-success">{stats.acceptedCurrentVersion}</p>
+          <p className="text-xl font-semibold tabular-nums text-success">{stats.acceptedCurrentVersion}</p>
           <p className="text-xs text-muted-foreground mt-1">Versão {CURRENT_TERMS_VERSION}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Pendentes</p>
-          <p className="text-2xl font-semibold tabular-nums text-warning">{stats.pendingAcceptance}</p>
+          <p className="text-xl font-semibold tabular-nums text-warning">{stats.pendingAcceptance}</p>
           <p className="text-xs text-muted-foreground mt-1">Ainda não aceitaram</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Recusados</p>
-          <p className="text-2xl font-semibold tabular-nums text-destructive">{stats.declinedCurrentVersion}</p>
+          <p className="text-xl font-semibold tabular-nums text-destructive">{stats.declinedCurrentVersion}</p>
           <p className="text-xs text-muted-foreground mt-1">Recusaram os termos</p>
         </div>
       </div>

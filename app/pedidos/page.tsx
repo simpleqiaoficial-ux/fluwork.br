@@ -13,7 +13,7 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Solicitações</h1>
           <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert>
@@ -34,7 +34,7 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Solicitações</h1>
           <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert variant="destructive">
@@ -61,7 +61,7 @@ export default async function PedidosPage() {
     return (
       <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Solicitações</h1>
           <p className="text-sm text-muted-foreground">Crie ordens de pagamento para prestadores</p>
         </div>
         <Alert>
@@ -83,7 +83,7 @@ export default async function PedidosPage() {
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Solicitações</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Solicitações</h1>
         <p className="text-sm text-muted-foreground">
           {["Gerente", "Financeiro", "Adm"].includes(session.tipoAcesso)
             ? "Crie ordens de pagamento para prestadores"

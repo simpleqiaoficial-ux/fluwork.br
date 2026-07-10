@@ -11,7 +11,7 @@ export default async function NovaEmpresaPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">Nova empresa</h1>
+        <h1 className="text-xl font-semibold text-foreground">Nova empresa</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Cria a empresa cliente e o primeiro usuário administrador dela
         </p>

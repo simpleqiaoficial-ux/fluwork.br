@@ -127,7 +127,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Equipes</h1>
+          <h1 className="text-xl font-semibold text-foreground">Equipes</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gerencie as equipes e seus membros
           </p>

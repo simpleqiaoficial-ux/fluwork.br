@@ -100,7 +100,7 @@ export function ReajustesPageContent() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Aplicar Reajustes</h1>
+          <h1 className="text-xl font-semibold text-foreground">Aplicar Reajustes</h1>
           <p className="text-sm text-muted-foreground">
             Aplique reajustes contratuais aos prestadores e consulte o histórico.
           </p>

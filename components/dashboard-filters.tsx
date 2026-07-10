@@ -234,23 +234,23 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
       <div className="flex flex-wrap gap-x-10 gap-y-5 pb-6 border-b">
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Total de pedidos</p>
-          <p className="text-2xl font-semibold tabular-nums">{stats.total}</p>
+          <p className="text-xl font-semibold tabular-nums">{stats.total}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Valor total</p>
-          <p className="text-2xl font-semibold tabular-nums">{formatCurrency(stats.valorTotal)}</p>
+          <p className="text-xl font-semibold tabular-nums">{formatCurrency(stats.valorTotal)}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Pendentes</p>
-          <p className="text-2xl font-semibold tabular-nums">{stats.pendentes}</p>
+          <p className="text-xl font-semibold tabular-nums">{stats.pendentes}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Aprovados</p>
-          <p className="text-2xl font-semibold tabular-nums">{stats.aprovados}</p>
+          <p className="text-xl font-semibold tabular-nums">{stats.aprovados}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Pagos</p>
-          <p className="text-2xl font-semibold tabular-nums">{stats.pagos}</p>
+          <p className="text-xl font-semibold tabular-nums">{stats.pagos}</p>
         </div>
       </div>
 

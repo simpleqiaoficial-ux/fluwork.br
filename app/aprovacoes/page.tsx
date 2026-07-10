@@ -25,7 +25,7 @@ export default async function AprovacoesPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Aprovações Pendentes</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Aprovações Pendentes</h1>
         <p className="text-sm text-muted-foreground">
           {usuario.tipo_acesso === "Gerente"
             ? "Aprove, recuse ou solicite correções nas ordens de pagamento"

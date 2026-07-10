@@ -23,7 +23,7 @@ export default function PrivacidadePage() {
 
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
-        <h1 className="text-2xl font-semibold tracking-tight">Política de Privacidade</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Política de Privacidade</h1>
         <p className="text-sm text-muted-foreground mt-2">FluWork - LGPD (Lei nº 13.709/2018)</p>
         <p className="text-xs text-muted-foreground mt-3">
           Vigência: 02/04/2026 · Versão 2.1 · CNPJ 26.344.386/0001-42

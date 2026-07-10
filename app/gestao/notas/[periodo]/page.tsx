@@ -96,7 +96,7 @@ export default async function NotasPeriodoPage({
           </Button>
         </Link>
 
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">
+        <h1 className="text-xl font-semibold mb-1 text-foreground">
           {mesNome} {ano}
         </h1>
         <p className="text-sm text-muted-foreground">

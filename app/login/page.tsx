@@ -29,7 +29,7 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-sm">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight">Acesse sua conta</h1>
+            <h1 className="text-xl font-semibold tracking-tight">Acesse sua conta</h1>
             <p className="text-sm text-muted-foreground mt-1.5">Entre com suas credenciais para continuar</p>
           </div>
 

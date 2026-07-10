@@ -20,7 +20,7 @@ export default async function AcompanhamentoPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Aguardando Anexo Fiscal</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Aguardando Anexo Fiscal</h1>
         <p className="text-sm text-muted-foreground">
           Prestadores com ordem de pagamento aprovada que ainda não emitiram ou anexaram o documento fiscal
         </p>

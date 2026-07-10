@@ -133,7 +133,7 @@ export default function FAQPage() {
 
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Central de Ajuda</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Central de Ajuda</h1>
         <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas dúvidas sobre o FluWork</p>
 
         {/* Search */}

@@ -99,7 +99,7 @@ export default async function Home() {
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Olá, {primeiroNome}! 👋</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Olá, {primeiroNome}! 👋</h1>
         <p className="text-sm text-muted-foreground">Aqui está o resumo geral da plataforma.</p>
       </div>
 

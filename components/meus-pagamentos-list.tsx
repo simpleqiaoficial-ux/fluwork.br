@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Wallet } from "lucide-react"
+import { getNumeroPedido } from "@/lib/pedido-numero"
 
 interface Pedido {
   id: string
@@ -218,6 +219,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
             <Card key={pedido.id}>
             <CardContent className="p-6 space-y-4">
               <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">
                     {isReembolsoKm ? "Reembolso de Quilometragem" : "Ordem de Pagamento"}
@@ -241,6 +243,8 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                   {prorrogacaoNegada && (
                     <Badge variant="destructive" className="font-normal">Prorrogação Negada</Badge>
                   )}
+                </div>
+                <p className="text-xs font-mono text-muted-foreground">{getNumeroPedido(pedido)}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-sm text-muted-foreground">
@@ -274,7 +278,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                       <p className="text-xs text-muted-foreground mb-1">
                         {isReembolsoKm ? "Quilometragem (Reembolso)" : "Valor para Nota Fiscal"}
                       </p>
-                      <p className="text-2xl font-semibold tabular-nums">
+                      <p className="text-xl font-semibold tabular-nums">
                         {formatValue(isReembolsoKm ? pedido.valor_km : valorParaEmitir)}
                       </p>
                     </div>
@@ -392,7 +396,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                         <p className="text-xs text-muted-foreground mb-2">
                           Salário base + horas extras + condução + plantão − desconto
                         </p>
-                        <p className="text-2xl font-semibold tabular-nums">{formatValue(valorParaEmitir)}</p>
+                        <p className="text-xl font-semibold tabular-nums">{formatValue(valorParaEmitir)}</p>
                       </div>
 
                       {pedido.nota_emitida ? (

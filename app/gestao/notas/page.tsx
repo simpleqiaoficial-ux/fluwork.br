@@ -80,7 +80,7 @@ export default async function NotasPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold mb-1 text-foreground">Gerenciamento de Notas</h1>
+        <h1 className="text-xl font-semibold mb-1 text-foreground">Gerenciamento de Notas</h1>
         <p className="text-sm text-muted-foreground">
           Visualize e gerencie as notas fiscais dos prestadores organizadas por mês de competência.
         </p>

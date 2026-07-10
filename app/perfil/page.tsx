@@ -38,7 +38,7 @@ export default async function PerfilPage() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8 max-w-3xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Meu Perfil</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Meu Perfil</h1>
           <p className="text-sm text-muted-foreground">Atualize seus dados pessoais e sua foto de perfil</p>
         </div>
 

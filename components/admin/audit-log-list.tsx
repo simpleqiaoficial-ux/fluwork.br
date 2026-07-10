@@ -63,7 +63,7 @@ export function AuditLogList({ registrosIniciais, totalInicial, totalPaginasInic
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Log de auditoria</h1>
+        <h1 className="text-xl font-semibold text-foreground">Log de auditoria</h1>
         <p className="text-sm text-muted-foreground mt-1">Ações administrativas realizadas na plataforma</p>
       </div>
 

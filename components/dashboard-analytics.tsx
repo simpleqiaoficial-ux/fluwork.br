@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useMaskedCurrency } from "@/components/currency-display"
+import { getNumeroPedido } from "@/lib/pedido-numero"
 import {
   TrendingUp,
   Search,
@@ -106,7 +107,7 @@ function KpiCard({ icon: Icon, accent, label, value, description }: KpiCardProps
           <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />
           <p className="text-xs text-muted-foreground">{label}</p>
         </div>
-        <p className={cn("mt-2 text-2xl font-semibold tabular-nums", KPI_VALUE_CLASSES[accent])}>{value}</p>
+        <p className={cn("mt-2 text-xl font-semibold tabular-nums", KPI_VALUE_CLASSES[accent])}>{value}</p>
         {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
@@ -683,6 +684,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    <TableHead className="text-xs">Ordem</TableHead>
                     <TableHead
                       className="cursor-pointer hover:text-foreground text-xs"
                       onClick={() => handleSort("created_at")}
@@ -715,7 +717,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                 <TableBody>
                   {filteredPedidos.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-sm">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-sm">
                         Nenhuma ordem encontrada com os filtros selecionados
                       </TableCell>
                     </TableRow>
@@ -727,12 +729,13 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                       const tipo = p.tipo_pedido === "reembolso_km" ? "Reembolso KM" : "Completo"
 
                       return (
-                        <> 
+                        <>
                           <TableRow
                             key={p.id}
                             className="cursor-pointer hover:bg-muted/30"
                             onClick={() => setExpandedRow(isExpanded ? null : p.id)}
                           >
+                            <TableCell className="text-xs font-mono text-muted-foreground">{getNumeroPedido(p)}</TableCell>
                             <TableCell className="text-xs font-mono">{formatDateBR(p.created_at)}</TableCell>
                             <TableCell className="text-sm font-medium">{nome}</TableCell>
                             <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">

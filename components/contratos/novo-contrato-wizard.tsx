@@ -118,7 +118,7 @@ export function NovoContratoWizard({ empresa, equipes }: NovoContratoWizardProps
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Novo contrato</h1>
+        <h1 className="text-xl font-semibold text-foreground">Novo contrato</h1>
         <p className="text-sm text-muted-foreground mt-1">Crie um contrato e envie para assinatura eletrônica</p>
       </div>
 

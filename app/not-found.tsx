@@ -17,7 +17,7 @@ export default async function NotFound() {
         <FileQuestion className="h-8 w-8 text-muted-foreground" />
       </div>
 
-      <h1 className="mt-6 text-2xl font-semibold text-foreground">Página não encontrada</h1>
+      <h1 className="mt-6 text-xl font-semibold text-foreground">Página não encontrada</h1>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         O link que você acessou não existe ou foi movido. Confira o endereço ou volte para um lugar conhecido.
       </p>

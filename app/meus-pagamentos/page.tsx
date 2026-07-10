@@ -9,6 +9,7 @@ import { and, desc, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { colaboradores, pedidosPagamento } from "@/lib/db/schema"
 import { toColaboradorDTO, toPedidoDTO } from "@/lib/db/mappers"
+import { TotalRecebidoCard } from "@/components/total-recebido-card"
 
 export default async function MeusPagamentosPage() {
   const session = await getSession()
@@ -68,9 +69,11 @@ export default async function MeusPagamentosPage() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 lg:px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-1 text-foreground">Minhas Ordens</h1>
+          <h1 className="text-xl font-semibold mb-1 text-foreground">Minhas Ordens</h1>
           <p className="text-sm text-muted-foreground">Acompanhe o progresso das suas ordens de pagamento</p>
         </div>
+
+        {session.tipoAcesso === "Colaborador" && <TotalRecebidoCard pedidos={pedidosConcluidos} />}
 
         <Tabs defaultValue="andamento" className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-3 h-10">

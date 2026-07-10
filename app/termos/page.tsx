@@ -22,7 +22,7 @@ export default function TermosPage() {
 
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
-        <h1 className="text-2xl font-semibold tracking-tight">Termos de Uso</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Termos de Uso</h1>
         <p className="text-sm text-muted-foreground mt-2">FluWork - Plataforma de Gestão de Prestadores de Serviço</p>
         <p className="text-xs text-muted-foreground mt-3">Última atualização: 02/04/2026 · Versão 2.1</p>
       </div>

@@ -172,7 +172,7 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
           <div className="flex items-center gap-3">
             <Building2 className="h-6 w-6 text-muted-foreground" />
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">{empresa.nome_fantasia || empresa.razao_social}</h1>
+              <h1 className="text-xl font-semibold text-foreground">{empresa.nome_fantasia || empresa.razao_social}</h1>
               <p className="text-sm text-muted-foreground">{empresa.razao_social} · CNPJ {empresa.cnpj}</p>
             </div>
           </div>
@@ -215,7 +215,7 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
                 <Icon className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wide">{card.label}</span>
               </div>
-              <p className="text-2xl font-semibold tabular-nums mt-2">{card.valor}</p>
+              <p className="text-xl font-semibold tabular-nums mt-2">{card.valor}</p>
             </div>
           )
         })}
