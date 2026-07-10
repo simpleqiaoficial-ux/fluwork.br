@@ -18,12 +18,6 @@ export default async function PerfilPage() {
       dataNascimento: colaboradores.dataNascimento,
       cnpj: colaboradores.cnpj,
       razaoSocial: colaboradores.razaoSocial,
-      dataAbertura: colaboradores.dataAbertura,
-      enderecoCep: colaboradores.enderecoCep,
-      enderecoLogradouro: colaboradores.enderecoLogradouro,
-      enderecoNumero: colaboradores.enderecoNumero,
-      enderecoComplemento: colaboradores.enderecoComplemento,
-      enderecoBairro: colaboradores.enderecoBairro,
       enderecoCidade: colaboradores.enderecoCidade,
       enderecoUf: colaboradores.enderecoUf,
       chavePix: colaboradores.chavePix,
@@ -45,7 +39,7 @@ export default async function PerfilPage() {
       <main className="container mx-auto px-4 lg:px-6 py-8 max-w-3xl">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-1 text-foreground">Meu Perfil</h1>
-          <p className="text-sm text-muted-foreground">Atualize seus dados pessoais, fiscais e de pagamento</p>
+          <p className="text-sm text-muted-foreground">Atualize seus dados pessoais e sua foto de perfil</p>
         </div>
 
         <PerfilForm
@@ -55,12 +49,6 @@ export default async function PerfilPage() {
             dataNascimento: colaborador.dataNascimento,
             cnpj: colaborador.cnpj,
             razaoSocial: colaborador.razaoSocial,
-            dataAbertura: colaborador.dataAbertura,
-            enderecoCep: colaborador.enderecoCep,
-            enderecoLogradouro: colaborador.enderecoLogradouro,
-            enderecoNumero: colaborador.enderecoNumero,
-            enderecoComplemento: colaborador.enderecoComplemento,
-            enderecoBairro: colaborador.enderecoBairro,
             enderecoCidade: colaborador.enderecoCidade,
             enderecoUf: colaborador.enderecoUf,
             chavePix: colaborador.chavePix,

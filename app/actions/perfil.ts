@@ -11,26 +11,16 @@ export interface AtualizarPerfilInput {
   nome_completo?: string
   email?: string
   data_nascimento?: string | null
-  cnpj?: string | null
-  razao_social?: string | null
-  data_abertura?: string | null
-  endereco_cep?: string | null
-  endereco_logradouro?: string | null
-  endereco_numero?: string | null
-  endereco_complemento?: string | null
-  endereco_bairro?: string | null
-  endereco_cidade?: string | null
-  endereco_uf?: string | null
-  chave_pix?: string | null
-  tipo_chave_pix?: string | null
 }
 
 // Auto-serviço: qualquer papel logado edita só a própria linha (session.colaboradorId), nunca
-// outro cadastro. Campos administrativos (tipo_acesso, salário, equipe, centro de custo, dia de
-// pagamento) ficam de fora de propósito — mudam de mão via app/actions/colaboradores.ts
-// (atualizarColaborador, restrito a Adm/Financeiro/SuperAdmin) e, no caso do salário, via
-// histórico de reajustes auditado. Deixar o próprio prestador alterar esses campos seria abrir
-// escalonamento de privilégio e furar a integridade da folha de pagamento.
+// outro cadastro, e só os campos de "Dados pessoais" (nome, email, nascimento) + a foto (ver
+// uploadFotoPerfil abaixo). CNPJ/razão social/endereço e chave PIX ficam de fora de propósito:
+// são dados fiscais/de pagamento que o financeiro precisa poder confiar sem depender de o que o
+// próprio prestador digitou por último — mudam de mão via app/actions/colaboradores.ts
+// (atualizarColaborador, restrito a Adm/Financeiro/SuperAdmin). O mesmo vale pros campos
+// administrativos (tipo_acesso, salário, equipe, dia de pagamento): abrir qualquer um desses pro
+// auto-serviço seria escalonamento de privilégio ou risco de fraude no destino do pagamento.
 export async function atualizarMeuPerfil(data: AtualizarPerfilInput) {
   const session = await getSession()
   if (!session) {
@@ -66,21 +56,6 @@ export async function atualizarMeuPerfil(data: AtualizarPerfilInput) {
   }
 
   if (data.data_nascimento !== undefined) updateData.dataNascimento = data.data_nascimento || null
-  if (data.cnpj !== undefined) {
-    updateData.cnpj = data.cnpj || null
-    sessionUpdate.cnpj = data.cnpj || undefined
-  }
-  if (data.razao_social !== undefined) updateData.razaoSocial = data.razao_social || null
-  if (data.data_abertura !== undefined) updateData.dataAbertura = data.data_abertura || null
-  if (data.endereco_cep !== undefined) updateData.enderecoCep = data.endereco_cep || null
-  if (data.endereco_logradouro !== undefined) updateData.enderecoLogradouro = data.endereco_logradouro || null
-  if (data.endereco_numero !== undefined) updateData.enderecoNumero = data.endereco_numero || null
-  if (data.endereco_complemento !== undefined) updateData.enderecoComplemento = data.endereco_complemento || null
-  if (data.endereco_bairro !== undefined) updateData.enderecoBairro = data.endereco_bairro || null
-  if (data.endereco_cidade !== undefined) updateData.enderecoCidade = data.endereco_cidade || null
-  if (data.endereco_uf !== undefined) updateData.enderecoUf = data.endereco_uf || null
-  if (data.chave_pix !== undefined) updateData.chavePix = data.chave_pix || null
-  if (data.tipo_chave_pix !== undefined) updateData.tipoChavePix = data.tipo_chave_pix || null
 
   if (Object.keys(updateData).length === 0) {
     return { success: true }

@@ -4,15 +4,13 @@ import type React from "react"
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Loader2, CheckCircle2, AlertTriangle, Camera } from "lucide-react"
+import { Loader2, Camera, Lock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { atualizarMeuPerfil, uploadFotoPerfil } from "@/app/actions/perfil"
-import { consultarCnpj } from "@/app/actions/cnpj"
 import { getPapelLabel } from "@/lib/papel-labels"
 import { useMaskedCurrency } from "@/components/currency-display"
 
@@ -22,12 +20,6 @@ interface PerfilColaborador {
   dataNascimento: string | null
   cnpj: string | null
   razaoSocial: string | null
-  dataAbertura: string | null
-  enderecoCep: string | null
-  enderecoLogradouro: string | null
-  enderecoNumero: string | null
-  enderecoComplemento: string | null
-  enderecoBairro: string | null
   enderecoCidade: string | null
   enderecoUf: string | null
   chavePix: string | null
@@ -42,6 +34,14 @@ interface PerfilFormProps {
   diaPagamento: number
 }
 
+const TIPO_CHAVE_PIX_LABELS: Record<string, string> = {
+  cpf: "CPF",
+  cnpj: "CNPJ",
+  email: "E-mail",
+  telefone: "Telefone",
+  aleatoria: "Chave Aleatória",
+}
+
 function formatarCnpj(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 14)
   return digits
@@ -51,14 +51,18 @@ function formatarCnpj(value: string) {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2")
 }
 
-function formatarCep(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 8)
-  return digits.replace(/(\d{5})(\d)/, "$1-$2")
-}
-
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/).filter(Boolean)
   return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
+}
+
+function CampoSomenteLeitura({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value || "—"}</p>
+    </div>
+  )
 }
 
 export function PerfilForm({ colaborador, tipoAcesso, salario, diaPagamento }: PerfilFormProps) {
@@ -70,51 +74,11 @@ export function PerfilForm({ colaborador, tipoAcesso, salario, diaPagamento }: P
     nome_completo: colaborador.nomeCompleto,
     email: colaborador.email,
     data_nascimento: colaborador.dataNascimento || "",
-    cnpj: colaborador.cnpj ? formatarCnpj(colaborador.cnpj) : "",
-    razao_social: colaborador.razaoSocial || "",
-    data_abertura: colaborador.dataAbertura || "",
-    endereco_cep: colaborador.enderecoCep ? formatarCep(colaborador.enderecoCep) : "",
-    endereco_logradouro: colaborador.enderecoLogradouro || "",
-    endereco_numero: colaborador.enderecoNumero || "",
-    endereco_complemento: colaborador.enderecoComplemento || "",
-    endereco_bairro: colaborador.enderecoBairro || "",
-    endereco_cidade: colaborador.enderecoCidade || "",
-    endereco_uf: colaborador.enderecoUf || "",
-    chave_pix: colaborador.chavePix || "",
-    tipo_chave_pix: colaborador.tipoChavePix || "",
   })
 
   const [fotoUrl, setFotoUrl] = useState(colaborador.fotoUrl)
   const [uploadingFoto, setUploadingFoto] = useState(false)
   const [salvando, setSalvando] = useState(false)
-  const [cnpjStatus, setCnpjStatus] = useState<"idle" | "loading" | "found" | "not-found">("idle")
-
-  const handleCnpjBlur = async () => {
-    const digits = form.cnpj.replace(/\D/g, "")
-    if (digits.length !== 14) {
-      setCnpjStatus("idle")
-      return
-    }
-    setCnpjStatus("loading")
-    const resultado = await consultarCnpj(digits)
-    if (!resultado.success) {
-      setCnpjStatus("not-found")
-      return
-    }
-    setCnpjStatus("found")
-    setForm((prev) => ({
-      ...prev,
-      razao_social: resultado.razaoSocial || prev.razao_social,
-      data_abertura: resultado.dataAbertura || prev.data_abertura,
-      endereco_cep: resultado.endereco?.cep ? formatarCep(resultado.endereco.cep) : prev.endereco_cep,
-      endereco_logradouro: resultado.endereco?.logradouro || prev.endereco_logradouro,
-      endereco_numero: resultado.endereco?.numero || prev.endereco_numero,
-      endereco_complemento: resultado.endereco?.complemento || prev.endereco_complemento,
-      endereco_bairro: resultado.endereco?.bairro || prev.endereco_bairro,
-      endereco_cidade: resultado.endereco?.cidade || prev.endereco_cidade,
-      endereco_uf: resultado.endereco?.uf || prev.endereco_uf,
-    }))
-  }
 
   const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -148,18 +112,6 @@ export function PerfilForm({ colaborador, tipoAcesso, salario, diaPagamento }: P
         nome_completo: form.nome_completo,
         email: form.email,
         data_nascimento: form.data_nascimento || null,
-        cnpj: form.cnpj.replace(/\D/g, "") || null,
-        razao_social: form.razao_social || null,
-        data_abertura: form.data_abertura || null,
-        endereco_cep: form.endereco_cep.replace(/\D/g, "") || null,
-        endereco_logradouro: form.endereco_logradouro || null,
-        endereco_numero: form.endereco_numero || null,
-        endereco_complemento: form.endereco_complemento || null,
-        endereco_bairro: form.endereco_bairro || null,
-        endereco_cidade: form.endereco_cidade || null,
-        endereco_uf: form.endereco_uf || null,
-        chave_pix: form.chave_pix || null,
-        tipo_chave_pix: form.tipo_chave_pix || null,
       })
       if (!result.success) {
         toast.error(result.error || "Erro ao salvar")
@@ -235,174 +187,42 @@ export function PerfilForm({ colaborador, tipoAcesso, salario, diaPagamento }: P
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Dados do CNPJ</CardTitle>
-          <CardDescription>Preenchidos automaticamente ao informar o CNPJ — revise antes de salvar.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="cnpj">CNPJ</Label>
-            <div className="relative">
-              <Input
-                id="cnpj"
-                placeholder="00.000.000/0000-00"
-                value={form.cnpj}
-                onChange={(e) => setForm({ ...form, cnpj: formatarCnpj(e.target.value) })}
-                onBlur={handleCnpjBlur}
-                className="pr-9"
-              />
-              {cnpjStatus === "loading" && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-              )}
-              {cnpjStatus === "found" && (
-                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" />
-              )}
-              {cnpjStatus === "not-found" && (
-                <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-warning" />
-              )}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="razao_social">Razão Social</Label>
-            <Input
-              id="razao_social"
-              value={form.razao_social}
-              onChange={(e) => setForm({ ...form, razao_social: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="data_abertura">Data de abertura</Label>
-            <Input
-              id="data_abertura"
-              type="date"
-              value={form.data_abertura}
-              onChange={(e) => setForm({ ...form, data_abertura: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_cep">CEP</Label>
-            <Input
-              id="endereco_cep"
-              value={form.endereco_cep}
-              onChange={(e) => setForm({ ...form, endereco_cep: formatarCep(e.target.value) })}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="endereco_logradouro">Logradouro</Label>
-            <Input
-              id="endereco_logradouro"
-              value={form.endereco_logradouro}
-              onChange={(e) => setForm({ ...form, endereco_logradouro: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_numero">Número</Label>
-            <Input
-              id="endereco_numero"
-              value={form.endereco_numero}
-              onChange={(e) => setForm({ ...form, endereco_numero: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_complemento">Complemento</Label>
-            <Input
-              id="endereco_complemento"
-              value={form.endereco_complemento}
-              onChange={(e) => setForm({ ...form, endereco_complemento: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_bairro">Bairro</Label>
-            <Input
-              id="endereco_bairro"
-              value={form.endereco_bairro}
-              onChange={(e) => setForm({ ...form, endereco_bairro: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_cidade">Cidade</Label>
-            <Input
-              id="endereco_cidade"
-              value={form.endereco_cidade}
-              onChange={(e) => setForm({ ...form, endereco_cidade: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endereco_uf">UF</Label>
-            <Input
-              id="endereco_uf"
-              maxLength={2}
-              value={form.endereco_uf}
-              onChange={(e) => setForm({ ...form, endereco_uf: e.target.value.toUpperCase() })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Dados de pagamento</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="tipo_chave_pix">Tipo de chave PIX</Label>
-            <Select
-              value={form.tipo_chave_pix || "none"}
-              onValueChange={(value) => setForm({ ...form, tipo_chave_pix: value === "none" ? "" : value })}
-            >
-              <SelectTrigger id="tipo_chave_pix">
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem PIX</SelectItem>
-                <SelectItem value="cpf">CPF</SelectItem>
-                <SelectItem value="cnpj">CNPJ</SelectItem>
-                <SelectItem value="email">E-mail</SelectItem>
-                <SelectItem value="telefone">Telefone</SelectItem>
-                <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {form.tipo_chave_pix && (
-            <div className="space-y-2">
-              <Label htmlFor="chave_pix">Chave PIX</Label>
-              <Input
-                id="chave_pix"
-                value={form.chave_pix}
-                onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="bg-muted/30 border-dashed">
-        <CardContent className="p-5 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Perfil de acesso</p>
-            <Badge variant="outline">{getPapelLabel(tipoAcesso)}</Badge>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Valor contratual</p>
-            <p className="font-medium tabular-nums">{formatValue(salario)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Dia de pagamento</p>
-            <p className="font-medium">Dia {diaPagamento}</p>
-          </div>
-          <p className="text-xs text-muted-foreground w-full">
-            Esses dados são definidos pelo administrador da empresa.
-          </p>
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end">
         <Button onClick={handleSalvar} disabled={salvando}>
           {salvando && <Loader2 className="h-4 w-4 animate-spin" />}
           {salvando ? "Salvando..." : "Salvar alterações"}
         </Button>
       </div>
+
+      <Card className="bg-muted/30 border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+            Definido pelo administrador
+          </CardTitle>
+          <CardDescription>
+            Esses dados são de responsabilidade da empresa — fale com o administrador ou o financeiro pra alterá-los.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Perfil de acesso</p>
+            <Badge variant="outline">{getPapelLabel(tipoAcesso)}</Badge>
+          </div>
+          <CampoSomenteLeitura label="Valor contratual" value={formatValue(salario)} />
+          <CampoSomenteLeitura label="Dia de pagamento" value={`Dia ${diaPagamento}`} />
+          <CampoSomenteLeitura label="CNPJ" value={colaborador.cnpj ? formatarCnpj(colaborador.cnpj) : ""} />
+          <CampoSomenteLeitura label="Razão Social" value={colaborador.razaoSocial || ""} />
+          <CampoSomenteLeitura
+            label="Cidade/UF"
+            value={[colaborador.enderecoCidade, colaborador.enderecoUf].filter(Boolean).join(" / ")}
+          />
+          <CampoSomenteLeitura
+            label="Chave PIX"
+            value={colaborador.chavePix ? `${colaborador.chavePix} (${TIPO_CHAVE_PIX_LABELS[colaborador.tipoChavePix || ""] || colaborador.tipoChavePix})` : ""}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
