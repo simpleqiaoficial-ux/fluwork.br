@@ -510,3 +510,49 @@ export function toAuditLogDTO(row: AnyRow) {
     }),
   }
 }
+
+// ---------- Módulo EHS & Compliance ----------
+
+export function toClienteEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    empresa_id: row.empresaId,
+    nome: row.nome,
+    razao_social: row.razaoSocial,
+    cnpj: row.cnpj,
+    endereco_cep: row.enderecoCep,
+    endereco_logradouro: row.enderecoLogradouro,
+    endereco_numero: row.enderecoNumero,
+    endereco_complemento: row.enderecoComplemento,
+    endereco_bairro: row.enderecoBairro,
+    endereco_cidade: row.enderecoCidade,
+    endereco_uf: row.enderecoUf,
+    observacoes: row.observacoes,
+    status: row.status,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.responsaveis !== undefined && {
+      responsaveis: Array.isArray(row.responsaveis) ? row.responsaveis.map(toClienteResponsavelEhsDTO) : row.responsaveis,
+    }),
+    ...(row.criadoPorColaborador !== undefined && {
+      criado_por_colaborador: row.criadoPorColaborador
+        ? { id: row.criadoPorColaborador.id, nome_completo: row.criadoPorColaborador.nomeCompleto }
+        : row.criadoPorColaborador,
+    }),
+  }
+}
+
+export function toClienteResponsavelEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    cliente_id: row.clienteId,
+    nome: row.nome,
+    cargo: row.cargo,
+    telefone: row.telefone,
+    email: row.email,
+    created_at: row.createdAt,
+  }
+}

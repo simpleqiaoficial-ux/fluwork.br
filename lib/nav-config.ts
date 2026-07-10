@@ -120,6 +120,7 @@ export const SUPERVISOR_LINKS: NavItem[] = [
 // página real por trás, pra nunca linkar pra rota que ainda não existe.
 export const EHS_LINKS: NavItem[] = [
   { href: "/ehs", label: "Dashboard EHS", icon: LayoutDashboard },
+  { href: "/ehs/clientes", label: "Clientes", icon: Building2, keywords: ["cliente", "empresa", "contratante"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
