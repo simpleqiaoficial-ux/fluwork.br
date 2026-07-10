@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowRight, CalendarClock, Wallet, HardHat, Stethoscope, Users, FolderKanban } from "lucide-react"
+import { ArrowRight, CalendarClock, Wallet, HardHat, Users, FolderKanban } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardMockup } from "@/components/landing/ui/dashboard-mockup"
 import { FloatingBadge } from "@/components/landing/ui/floating-badge"
@@ -78,8 +78,7 @@ export function LandingHero() {
             <FloatingBadge icon={Wallet} label="Financeiro" className="-left-6 -top-6 hidden sm:flex" delay={0.4} duration={4.5} />
             <FloatingBadge icon={Users} label="Prestadores" className="-right-4 top-8 hidden sm:flex" delay={0.7} duration={5} />
             <FloatingBadge icon={HardHat} label="EHS" className="-left-8 bottom-16 hidden lg:flex" delay={1} duration={4.2} />
-            <FloatingBadge icon={Stethoscope} label="ASO" className="-right-6 bottom-6 hidden sm:flex" delay={1.3} duration={4.8} />
-            <FloatingBadge icon={FolderKanban} label="Documentos" className="left-1/3 -bottom-8 hidden lg:flex" delay={1.6} duration={4.6} />
+            <FloatingBadge icon={FolderKanban} label="Documentos" className="-right-6 bottom-6 hidden sm:flex" delay={1.3} duration={4.8} />
           </div>
         </motion.div>
       </div>

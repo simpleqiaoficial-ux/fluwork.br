@@ -14,14 +14,12 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
   description:
-    "FluWork é o ecossistema empresarial que conecta, organiza e impulsiona sua operação: financeiro, prestadores de serviço, EHS, medicina ocupacional, documentos e muito mais, em uma única plataforma.",
+    "FluWork é o ecossistema empresarial que conecta, organiza e impulsiona sua operação: financeiro, prestadores de serviço, EHS, documentos e muito mais, em uma única plataforma.",
   keywords: [
     "ecossistema empresarial",
     "plataforma de gestão empresarial",
     "gestão de prestadores de serviço",
     "EHS",
-    "medicina ocupacional",
-    "ASO",
     "gestão de documentos",
     "dashboard executivo",
     "software de gestão",
@@ -29,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FluWork — Tudo o que sua empresa precisa em um único lugar",
     description:
-      "Uma plataforma completa para conectar, organizar e impulsionar sua empresa. Módulos de financeiro, prestadores, EHS, ASO, documentos e muito mais.",
+      "Uma plataforma completa para conectar, organizar e impulsionar sua empresa. Módulos de financeiro, prestadores, EHS, documentos e muito mais.",
     type: "website",
     locale: "pt_BR",
     siteName: "FluWork",
