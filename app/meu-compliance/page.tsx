@@ -25,6 +25,7 @@ export default async function MeuCompliancePage() {
 
   const integracoesFuturas = portal.integracoes.filter((i: any) => ["agendado", "confirmado", "reagendado"].includes(i.status))
   const integracoesPassadas = portal.integracoes.filter((i: any) => !["agendado", "confirmado", "reagendado"].includes(i.status))
+  const documentosAusentes = portal.documentosPorTipo.filter((d: any) => !d.atual).length
 
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-4xl">
@@ -39,10 +40,30 @@ export default async function MeuCompliancePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 flex flex-col items-center justify-center p-6 gap-3">
-          <ComplianceRing score={portal.compliance.score} cor={portal.compliance.cor} size={128} />
-          <p className="text-sm text-muted-foreground">Seu Compliance Score</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <Card className="lg:col-span-1">
+          <CardContent className="flex flex-col items-center gap-4 p-6">
+            <ComplianceRing score={portal.compliance.score} cor={portal.compliance.cor} size={128} />
+            <p className="text-sm text-muted-foreground -mt-1">Seu Compliance Score</p>
+            <div className="grid grid-cols-2 gap-3 w-full pt-2 border-t">
+              <div>
+                <p className="text-xs text-muted-foreground">Válidos</p>
+                <p className="text-lg font-semibold tabular-nums text-success">{portal.compliance.validos}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Vencidos</p>
+                <p className="text-lg font-semibold tabular-nums text-destructive">{portal.compliance.vencidos}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Vencendo em breve</p>
+                <p className="text-lg font-semibold tabular-nums text-warning">{portal.compliance.proximosVencer}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Não enviados</p>
+                <p className="text-lg font-semibold tabular-nums text-muted-foreground">{documentosAusentes}</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         <div className="lg:col-span-2 space-y-6">
