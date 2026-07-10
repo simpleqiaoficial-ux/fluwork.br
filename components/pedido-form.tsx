@@ -128,6 +128,17 @@ function iniciais(nome: string) {
   return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
 }
 
+function AvatarPrestador({ nome, fotoUrl, className }: { nome: string; fotoUrl?: string | null; className: string }) {
+  if (fotoUrl) {
+    return <img src={fotoUrl} alt="" className={`${className} object-cover`} />
+  }
+  return (
+    <span className={`${className} flex items-center justify-center bg-primary/10 font-semibold text-primary`}>
+      {iniciais(nome)}
+    </span>
+  )
+}
+
 export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
   const router = useRouter()
   const [selectedColaborador, setSelectedColaborador] = useState("")
@@ -377,9 +388,11 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                       >
                         {colaborador ? (
                           <span className="flex items-center gap-2 truncate">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[9px] font-semibold text-primary">
-                              {iniciais(colaborador.nome_completo)}
-                            </span>
+                            <AvatarPrestador
+                              nome={colaborador.nome_completo}
+                              fotoUrl={colaborador.foto_url}
+                              className="h-5 w-5 shrink-0 rounded-md text-[9px]"
+                            />
                             <span className="truncate">{colaborador.nome_completo}</span>
                           </span>
                         ) : (
@@ -406,9 +419,11 @@ export function PedidoForm({ colaboradores, tipoAcesso }: PedidoFormProps) {
                               }}
                               className="gap-2"
                             >
-                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
-                                {iniciais(c.nome_completo)}
-                              </span>
+                              <AvatarPrestador
+                                nome={c.nome_completo}
+                                fotoUrl={c.foto_url}
+                                className="h-6 w-6 shrink-0 rounded-md text-[10px]"
+                              />
                               <span className="min-w-0 flex-1">
                                 <span className="block truncate text-sm">{c.nome_completo}</span>
                                 <span className="block truncate text-xs text-muted-foreground">
