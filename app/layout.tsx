@@ -41,7 +41,14 @@ export default async function RootLayout({
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") || ""
 
-  const isAuthPage = pathname === "/login" || pathname === "/setup" || pathname === "/faq" || pathname === "/termos" || pathname === "/privacidade"
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/esqueci-senha" ||
+    pathname.startsWith("/redefinir-senha") ||
+    pathname === "/setup" ||
+    pathname === "/faq" ||
+    pathname === "/termos" ||
+    pathname === "/privacidade"
   // "/" sem sessão é a landing page pública (marketing) — não deve ganhar sidebar/header do
   // app autenticado (ela tem seu próprio header/rodapé). Com sessão, "/" continua sendo o
   // dashboard normal, com todo o chrome de sempre.
