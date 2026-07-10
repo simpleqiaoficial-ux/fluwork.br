@@ -149,7 +149,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
         )}
       >
-        <Icon className="h-[15px] w-[15px] shrink-0" />
+        <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
         {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
         {badge > 0 && !iconOnly && (
           <span className="ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground">
@@ -221,7 +221,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           onClick={() => toggleWorkspace(workspace.id)}
           className="w-full flex items-center gap-2 px-3 py-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
         >
-          <WsIcon className="h-3 w-3 shrink-0" />
+          <WsIcon className="h-3 w-3 shrink-0" strokeWidth={1.75} />
           <span className="flex-1 truncate text-left">{workspace.label}</span>
           <ChevronDown className={cn("h-3 w-3 shrink-0 transition-transform duration-100", !isOpen && "-rotate-90")} />
         </button>

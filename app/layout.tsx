@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { Poppins } from "next/font/google"
 import "./globals.css" // Import globals.css here
 import "./main.css"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
@@ -17,6 +18,13 @@ import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
 import { Toaster } from "@/components/ui/sonner"
 import cn from "classnames"
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "FluWork - Gestão de Prestadores",
@@ -63,7 +71,7 @@ export default async function RootLayout({
   const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={poppins.variable}>
       <body className="antialiased bg-background">
         <ValoresVisibilityProvider>
           {empresaBloqueadaMotivo !== undefined ? (

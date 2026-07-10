@@ -43,7 +43,7 @@ export function CommandPalette({ open, onOpenChange, tipoAcesso }: CommandPalett
                   value={[item.label, ...(item.keywords || [])].join(" ")}
                   onSelect={() => goTo(item.href)}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4" strokeWidth={1.75} />
                   {item.label}
                 </CommandItem>
               ))}
@@ -56,7 +56,7 @@ export function CommandPalette({ open, onOpenChange, tipoAcesso }: CommandPalett
                   value={[item.label, ...(item.keywords || [])].join(" ")}
                   onSelect={() => goTo(item.href)}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4" strokeWidth={1.75} />
                   {item.label}
                 </CommandItem>
               ))}

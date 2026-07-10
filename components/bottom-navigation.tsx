@@ -2,14 +2,13 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { Menu } from "lucide-react"
+import { Menu, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { ComponentType } from "react"
 
 interface BottomNavItem {
   href: string
   label: string
-  icon: ComponentType<{ className?: string }>
+  icon: LucideIcon
 }
 
 interface BottomNavigationProps {
@@ -46,7 +45,7 @@ export function BottomNavigation({ items, onMoreClick }: BottomNavigationProps) 
               active ? "text-primary" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-5 w-5" strokeWidth={1.75} />
             <span className="max-w-[64px] truncate">{item.label}</span>
           </Link>
         )
