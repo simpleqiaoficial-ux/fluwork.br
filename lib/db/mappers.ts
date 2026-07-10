@@ -556,3 +556,38 @@ export function toClienteResponsavelEhsDTO(row: AnyRow) {
     created_at: row.createdAt,
   }
 }
+
+export function toTipoDocumentoEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    nome: row.nome,
+    categoria: row.categoria,
+    ativo: row.ativo,
+  }
+}
+
+export function toDocumentoEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    empresa_id: row.empresaId,
+    colaborador_id: row.colaboradorId,
+    tipo_documento_id: row.tipoDocumentoId,
+    versao: row.versao,
+    object_path: row.objectPath,
+    url: `/api/files/${row.objectPath}`,
+    hash_sha256: row.hashSha256,
+    tamanho_bytes: row.tamanhoBytes,
+    data_emissao: row.dataEmissao,
+    data_validade: row.dataValidade,
+    status: row.status,
+    observacoes: row.observacoes,
+    responsavel_id: row.responsavelId,
+    created_at: row.createdAt,
+    ...(row.tipoDocumento !== undefined && { tipo_documento: toTipoDocumentoEhsDTO(row.tipoDocumento) }),
+    ...(row.responsavelColaborador !== undefined && {
+      responsavel: row.responsavelColaborador ? { id: row.responsavelColaborador.id, nome_completo: row.responsavelColaborador.nomeCompleto } : row.responsavelColaborador,
+    }),
+  }
+}

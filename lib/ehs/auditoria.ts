@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
-import { desc, eq, and } from "drizzle-orm"
+import { desc, eq, and, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { ehsAuditoria } from "@/lib/db/schema"
+import { ehsAuditoria, ehsDocumentos } from "@/lib/db/schema"
 
 interface RegistrarAuditoriaParams {
   empresaId: string
@@ -65,6 +65,32 @@ export async function registrarDiffAuditoriaEhs(
 export async function listarAuditoriaEhs(tabela: string, registroId: string) {
   const rows = await db.query.ehsAuditoria.findMany({
     where: and(eq(ehsAuditoria.tabela, tabela), eq(ehsAuditoria.registroId, registroId)),
+    orderBy: [desc(ehsAuditoria.createdAt)],
+    with: { ator: true },
+  })
+  return rows.map((row) => ({
+    id: row.id,
+    acao: row.acao,
+    campo: row.campo,
+    valor_antigo: row.valorAntigo,
+    valor_novo: row.valorNovo,
+    ator_nome: row.ator?.nomeCompleto || null,
+    created_at: row.createdAt,
+  }))
+}
+
+/** Auditoria de todos os documentos de um prestador — junta ehs_auditoria (tabela
+ *  "ehs_documentos") com os documentos que pertencem a esse colaborador, pra alimentar a aba
+ *  "Auditoria" do Prestador sem precisar guardar colaboradorId direto na linha de auditoria. */
+export async function listarAuditoriaDocumentosPrestadorEhs(colaboradorId: string) {
+  const documentos = await db
+    .select({ id: ehsDocumentos.id })
+    .from(ehsDocumentos)
+    .where(eq(ehsDocumentos.colaboradorId, colaboradorId))
+  if (documentos.length === 0) return []
+
+  const rows = await db.query.ehsAuditoria.findMany({
+    where: and(eq(ehsAuditoria.tabela, "ehs_documentos"), inArray(ehsAuditoria.registroId, documentos.map((d) => d.id))),
     orderBy: [desc(ehsAuditoria.createdAt)],
     with: { ator: true },
   })
