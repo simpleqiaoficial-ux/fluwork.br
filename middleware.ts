@@ -14,6 +14,8 @@ export async function middleware(request: NextRequest) {
 
   const publicRoutes = [
     "/login",
+    "/esqueci-senha",
+    "/redefinir-senha",
     "/setup",
     "/faq",
     "/termos",
@@ -46,16 +48,18 @@ export async function middleware(request: NextRequest) {
 
   // Se estiver logado como Colaborador, só pode acessar meus-pagamentos, meus-contratos,
   // o link público de assinatura (que pode abrir estando logado, se clicar no próprio e-mail),
-  // as duas páginas de autoatendimento da própria conta (perfil e redefinir senha) — ambas já
-  // linkadas na sidebar pra todo mundo — e o proxy de arquivos (nota fiscal, contrato assinado
-  // etc.), que o matcher deste middleware intercepta como qualquer outra rota (não é asset
-  // estático) mas não é uma "página" navegável, é o PDF que o próprio Colaborador anexou.
+  // a página de autoatendimento da própria conta (perfil — já linkada na sidebar pra todo
+  // mundo), o fluxo de recuperação de senha (pode abrir mesmo logado, ex. num outro
+  // dispositivo) e o proxy de arquivos (nota fiscal, contrato assinado etc.), que o matcher
+  // deste middleware intercepta como qualquer outra rota (não é asset estático) mas não é uma
+  // "página" navegável, é o PDF que o próprio Colaborador anexou.
   if (session?.tipoAcesso === "Colaborador") {
     const rotasPermitidas = [
       "/meus-pagamentos",
       "/meus-contratos",
       "/contratos/assinar",
       "/perfil",
+      "/esqueci-senha",
       "/redefinir-senha",
       "/api/files",
     ]

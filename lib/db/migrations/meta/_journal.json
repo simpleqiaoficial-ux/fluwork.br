@@ -85,6 +85,13 @@
       "when": 1783689835039,
       "tag": "0011_add_foto_url_colaboradores",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1783700198372,
+      "tag": "0012_add_reset_token_colaboradores",
+      "breakpoints": true
     }
   ]
 }

@@ -126,8 +126,6 @@ export const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]
 
-export const REDEFINIR_SENHA_ITEM: NavItem = { href: "/redefinir-senha", label: "Redefinir Senha", icon: Users }
-
 function itemMatchesRole(item: NavItem, tipoAcesso?: string) {
   return !item.roles || item.roles.includes(tipoAcesso || "")
 }

@@ -115,6 +115,11 @@ export const colaboradores = pgTable("colaboradores", {
   tipoChavePix: text("tipo_chave_pix"),
   dataAniversarioContrato: date("data_aniversario_contrato"),
   fotoUrl: text("foto_url"),
+  // Recuperação de senha por e-mail (fluxo "esqueci minha senha") — token é um hash sha256 do
+  // valor enviado por e-mail (nunca o valor cru), single-use (limpo após redefinir com sucesso)
+  // e com validade curta.
+  resetToken: text("reset_token"),
+  resetTokenExpiraEm: timestamp("reset_token_expira_em", { withTimezone: true }),
 }, (table) => [
   check("colaboradores_dia_pagamento_check", sql`${table.diaPagamento} IN (1, 15)`),
   // SuperAdmin é o único papel sem empresa (opera a plataforma inteira); todos os demais

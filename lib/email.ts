@@ -26,7 +26,38 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;")
 }
 
-// Texto placeholder — revisar antes de valer como comunicação oficial da empresa.
+// Mesmo azul de marca usado em todo o app (--primary: 224 76% 48%) — clientes de e-mail não
+// leem CSS custom properties, então o hex precisa ficar hardcoded aqui.
+const BRAND_BLUE = "#1E4FD8"
+
+// Casco visual único reaproveitado em todo e-mail transacional — cabeçalho com a marca, corpo
+// com o conteúdo específico de cada tipo de e-mail, rodapé com aviso padrão. Sem isso, cada
+// e-mail era um parágrafo solto sem identidade nenhuma da FluWork.
+function emailShell(innerHtml: string) {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background:#F3F5F8; padding:32px 16px; margin:0;">
+      <div style="max-width:480px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #E2E8F0;">
+        <div style="padding:22px 32px; border-bottom:1px solid #E2E8F0;">
+          <span style="font-size:18px; font-weight:700; color:${BRAND_BLUE}; letter-spacing:-0.01em;">FluWork</span>
+        </div>
+        <div style="padding:32px; color:#0F172A; font-size:14px; line-height:1.65;">
+          ${innerHtml}
+        </div>
+        <div style="padding:18px 32px; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:12px; color:#64748B; line-height:1.5;">
+          Este é um e-mail automático da FluWork — não é necessário responder.
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function emailButton(href: string, label: string) {
+  return `<p style="margin:24px 0;"><a href="${href}" style="display:inline-block;background:${BRAND_BLUE};color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">${label}</a></p>`
+}
+
+function empresaRodape(empresa: EmpresaEmail) {
+  return `<p style="margin-top:24px; color:#64748B; font-size:12px;">${empresa.nome} · ${empresa.razaoSocial} · CNPJ ${empresa.cnpj}</p>`
+}
 
 export async function sendContratoConviteEmail(params: {
   to: string
@@ -48,14 +79,14 @@ export async function sendContratoConviteEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `Contrato para assinatura — ${params.empresa.nome}`,
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
-      <p>Você recebeu um contrato de prestação de serviços (${params.tipoServico}, valor ${params.valorFormatado}) da ${params.empresa.nome} para revisar e assinar eletronicamente.</p>
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
+      <p>Você recebeu um contrato de prestação de serviços (${escapeHtml(params.tipoServico)}, valor ${params.valorFormatado}) da ${escapeHtml(params.empresa.nome)} para revisar e assinar eletronicamente.</p>
       ${introducaoAcesso}
-      <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">${params.precisaDefinirSenha ? "Definir senha e assinar contrato" : "Visualizar e assinar contrato"}</a></p>
-      <p>Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+      ${emailButton(params.signingUrl, params.precisaDefinirSenha ? "Definir senha e assinar contrato" : "Visualizar e assinar contrato")}
+      <p style="color:#64748B; font-size:13px;">Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
+      ${empresaRodape(params.empresa)}
+    `),
   })
 }
 
@@ -73,13 +104,13 @@ export async function sendAditivoConviteEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `${params.tipoAditivoLabel} — contrato ${params.numeroContrato} · ${params.empresa.nome}`,
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
-      <p>A ${params.empresa.nome} enviou um termo aditivo (${params.tipoAditivoLabel}) referente ao seu contrato nº ${params.numeroContrato} para revisar e assinar eletronicamente.</p>
-      <p><a href="${params.signingUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Visualizar e assinar aditivo</a></p>
-      <p>Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
+      <p>A ${escapeHtml(params.empresa.nome)} enviou um termo aditivo (${escapeHtml(params.tipoAditivoLabel)}) referente ao seu contrato nº ${params.numeroContrato} para revisar e assinar eletronicamente.</p>
+      ${emailButton(params.signingUrl, "Visualizar e assinar aditivo")}
+      <p style="color:#64748B; font-size:13px;">Este link é pessoal e expira em ${params.expiraEmFormatado}.</p>
+      ${empresaRodape(params.empresa)}
+    `),
   })
 }
 
@@ -95,11 +126,11 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: "Contrato assinado com sucesso",
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
       <p>Seu contrato nº ${params.numero} foi assinado com sucesso. Segue em anexo a versão final em PDF.</p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+      ${empresaRodape(params.empresa)}
+    `),
     attachments: [
       { filename: `contrato-${params.numero}.pdf`, content: params.pdfBuffer },
     ],
@@ -118,12 +149,12 @@ export async function sendOrdemLancadaEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `Nova ordem de pagamento — ${params.empresa.nome}`,
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
       <p>Uma ordem de pagamento de serviço foi lançada para você na plataforma, no valor de ${params.valorFormatado}.</p>
-      <p><a href="${params.minhasOrdensUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Acompanhar ordem de pagamento</a></p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+      ${emailButton(params.minhasOrdensUrl, "Acompanhar ordem de pagamento")}
+      ${empresaRodape(params.empresa)}
+    `),
   })
 }
 
@@ -139,12 +170,12 @@ export async function sendOrdemAprovadaEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `Ordem de pagamento aprovada — ${params.empresa.nome}`,
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
       <p>Sua ordem de pagamento de ${params.valorFormatado} foi aprovada. Você já pode anexar sua nota fiscal na plataforma.</p>
-      <p><a href="${params.minhasOrdensUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Anexar nota fiscal</a></p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+      ${emailButton(params.minhasOrdensUrl, "Anexar nota fiscal")}
+      ${empresaRodape(params.empresa)}
+    `),
   })
 }
 
@@ -161,12 +192,12 @@ export async function sendLembreteNotaFiscalEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `Lembrete: nota fiscal pendente — ${params.empresa.nome}`,
-    html: `
-      <p>Olá, ${params.prestadorNome}.</p>
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
       <p>Seu pagamento de ${params.valorFormatado}, aprovado em ${params.dataAprovacaoFormatada}, está aguardando a nota fiscal pra seguir pro pagamento.</p>
-      <p><a href="${params.meusPagamentosUrl}" style="display:inline-block;background:#1a56db;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Emitir ou anexar nota fiscal</a></p>
-      <p>${params.empresa.nome} · ${params.empresa.razaoSocial} · CNPJ ${params.empresa.cnpj}</p>
-    `,
+      ${emailButton(params.meusPagamentosUrl, "Emitir ou anexar nota fiscal")}
+      ${empresaRodape(params.empresa)}
+    `),
   })
 }
 
@@ -183,13 +214,13 @@ export async function sendContatoComercialEmail(params: {
     to: "simpleqia.oficial@gmail.com",
     replyTo: params.email,
     subject: `Novo contato comercial — ${params.empresa}`,
-    html: `
+    html: emailShell(`
       <p><strong>Nome:</strong> ${escapeHtml(params.nome)}</p>
       <p><strong>Empresa:</strong> ${escapeHtml(params.empresa)}</p>
       <p><strong>E-mail:</strong> ${escapeHtml(params.email)}</p>
       ${params.telefone ? `<p><strong>Telefone:</strong> ${escapeHtml(params.telefone)}</p>` : ""}
       ${params.mensagem ? `<p><strong>Mensagem:</strong><br/>${escapeHtml(params.mensagem).replace(/\n/g, "<br/>")}</p>` : ""}
-    `,
+    `),
   })
 }
 
@@ -204,9 +235,30 @@ export async function sendContratoAssinadoEmpresaEmail(params: {
     from: getFromAddress(),
     to: params.to,
     subject: `Contrato assinado: ${params.prestadorNome}`,
-    html: `
-      <p>O contrato nº ${params.numero}, de ${params.prestadorNome}, foi assinado eletronicamente.</p>
-      <p><a href="${params.contractDetailUrl}">Ver detalhes do contrato</a></p>
-    `,
+    html: emailShell(`
+      <p>O contrato nº ${params.numero}, de ${escapeHtml(params.prestadorNome)}, foi assinado eletronicamente.</p>
+      ${emailButton(params.contractDetailUrl, "Ver detalhes do contrato")}
+    `),
+  })
+}
+
+export async function sendRecuperarSenhaEmail(params: {
+  to: string
+  nomeCompleto: string
+  resetUrl: string
+  expiraEmFormatado: string
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: "Redefinir sua senha — FluWork",
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeCompleto)}.</p>
+      <p>Recebemos uma solicitação para redefinir a senha da sua conta na FluWork.</p>
+      ${emailButton(params.resetUrl, "Redefinir minha senha")}
+      <p style="color:#64748B; font-size:13px;">Este link é pessoal, só pode ser usado uma vez e expira em ${params.expiraEmFormatado}.</p>
+      <p style="color:#64748B; font-size:13px;">Se você não pediu essa alteração, ignore este e-mail — sua senha continua a mesma.</p>
+    `),
   })
 }

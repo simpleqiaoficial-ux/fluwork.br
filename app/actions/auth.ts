@@ -1,12 +1,14 @@
 "use server"
 
-import { eq } from "drizzle-orm"
+import { eq, and, gt } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { colaboradores } from "@/lib/db/schema"
 import { createSession, destroySession, getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import bcrypt from "bcryptjs"
+import crypto from "crypto"
+import { sendRecuperarSenhaEmail } from "@/lib/email"
 
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>()
 
@@ -125,75 +127,115 @@ export async function getUsuarioLogado() {
   return await getSession()
 }
 
-export async function redefinirSenha(senhaAtual: string, novaSenha: string) {
-  const session = await getSession()
+const resetAttempts = new Map<string, { count: number; lastAttempt: number }>()
 
-  if (!session?.colaboradorId) {
-    return {
-      success: false,
-      error: "Usuário não autenticado",
+function checkResetRateLimit(email: string): boolean {
+  const now = Date.now()
+  const attempt = resetAttempts.get(email)
+  if (attempt) {
+    if (now - attempt.lastAttempt > 15 * 60 * 1000) {
+      resetAttempts.delete(email)
+      return true
     }
+    if (attempt.count >= 3) return false
+    attempt.count++
+    attempt.lastAttempt = now
+  } else {
+    resetAttempts.set(email, { count: 1, lastAttempt: now })
+  }
+  return true
+}
+
+function hashResetToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex")
+}
+
+const MENSAGEM_GENERICA_RECUPERACAO = "Se este e-mail estiver cadastrado, você vai receber um link para redefinir sua senha em instantes."
+
+// Não existe mais autoatendimento de troca de senha dentro do app (era só entrar já logado e
+// trocar) — agora é sempre "esqueci minha senha" a partir do login, por e-mail, com link
+// pessoal e de uso único. Resposta é sempre genérica (mesmo se o e-mail não existir) pra não
+// vazar quais e-mails têm conta na plataforma.
+export async function solicitarRecuperacaoSenha(email: string) {
+  const sanitizedEmail = email.trim().toLowerCase()
+  if (!sanitizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
+    return { success: false, error: "Informe um e-mail válido" }
+  }
+
+  if (!checkResetRateLimit(sanitizedEmail)) {
+    return { success: false, error: "Muitas solicitações. Tente novamente em alguns minutos." }
+  }
+
+  const [colaborador] = await db
+    .select({ id: colaboradores.id, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
+    .from(colaboradores)
+    .where(eq(colaboradores.email, sanitizedEmail))
+
+  if (colaborador?.email) {
+    const rawToken = crypto.randomBytes(32).toString("hex")
+    const expiraEm = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
+
+    await db
+      .update(colaboradores)
+      .set({ resetToken: hashResetToken(rawToken), resetTokenExpiraEm: expiraEm })
+      .where(eq(colaboradores.id, colaborador.id))
+
+    const resetUrl = `${process.env.APP_BASE_URL || ""}/redefinir-senha/${rawToken}`
+    try {
+      await sendRecuperarSenhaEmail({
+        to: colaborador.email,
+        nomeCompleto: colaborador.nomeCompleto,
+        resetUrl,
+        expiraEmFormatado: "1 hora",
+      })
+    } catch (error) {
+      console.error("[v0] Erro ao enviar e-mail de recuperação de senha:", error)
+    }
+  }
+
+  return { success: true, message: MENSAGEM_GENERICA_RECUPERACAO }
+}
+
+export async function validarTokenRecuperacaoSenha(token: string) {
+  if (!token) return false
+  const [colaborador] = await db
+    .select({ id: colaboradores.id })
+    .from(colaboradores)
+    .where(and(eq(colaboradores.resetToken, hashResetToken(token)), gt(colaboradores.resetTokenExpiraEm, new Date())))
+  return Boolean(colaborador)
+}
+
+export async function redefinirSenhaComToken(token: string, novaSenha: string) {
+  if (!token) {
+    return { success: false, error: "Link inválido" }
   }
 
   if (novaSenha.length < 8) {
-    return {
-      success: false,
-      error: "A nova senha deve ter no mínimo 8 caracteres",
-    }
+    return { success: false, error: "A nova senha deve ter no mínimo 8 caracteres" }
   }
-
   if (!/[A-Z]/.test(novaSenha) || !/[a-z]/.test(novaSenha) || !/[0-9]/.test(novaSenha)) {
-    return {
-      success: false,
-      error: "A senha deve conter letras maiúsculas, minúsculas e números",
-    }
+    return { success: false, error: "A senha deve conter letras maiúsculas, minúsculas e números" }
   }
 
-  // Verificar senha atual
   const [colaborador] = await db
-    .select({ senhaHash: colaboradores.senhaHash })
+    .select({ id: colaboradores.id })
     .from(colaboradores)
-    .where(eq(colaboradores.id, session.colaboradorId))
+    .where(and(eq(colaboradores.resetToken, hashResetToken(token)), gt(colaboradores.resetTokenExpiraEm, new Date())))
 
   if (!colaborador) {
-    return {
-      success: false,
-      error: "Prestador não encontrado",
-    }
+    return { success: false, error: "Este link é inválido ou já expirou. Solicite um novo." }
   }
 
-  let senhaAtualValida = false
-  const isBcryptHash = colaborador.senhaHash?.startsWith("$2a$") || colaborador.senhaHash?.startsWith("$2b$")
-
-  if (isBcryptHash) {
-    senhaAtualValida = await bcrypt.compare(senhaAtual, colaborador.senhaHash!)
-  } else {
-    // Legacy plain text password
-    senhaAtualValida = colaborador.senhaHash === senhaAtual
-  }
-
-  if (!senhaAtualValida) {
-    return {
-      success: false,
-      error: "Senha atual incorreta",
-    }
-  }
-
-  // Hash the new password
   const hashedPassword = await bcrypt.hash(novaSenha, 10)
 
-  // Atualizar senha
   try {
-    await db.update(colaboradores).set({ senhaHash: hashedPassword }).where(eq(colaboradores.id, session.colaboradorId))
+    await db
+      .update(colaboradores)
+      .set({ senhaHash: hashedPassword, resetToken: null, resetTokenExpiraEm: null })
+      .where(eq(colaboradores.id, colaborador.id))
   } catch (error) {
-    return {
-      success: false,
-      error: "Erro ao atualizar senha: " + (error instanceof Error ? error.message : String(error)),
-    }
+    return { success: false, error: "Erro ao atualizar senha. Tente novamente." }
   }
 
-  return {
-    success: true,
-    message: "Senha atualizada com sucesso!",
-  }
+  return { success: true, message: "Senha redefinida com sucesso! Faça login com sua nova senha." }
 }
