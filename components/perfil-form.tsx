@@ -95,6 +95,9 @@ export function PerfilForm({ colaborador, tipoAcesso, salario, diaPagamento }: P
       setFotoUrl(result.url)
       toast.success("Foto de perfil atualizada")
       router.refresh()
+    } catch (error) {
+      console.error("[v0] Erro ao enviar foto de perfil:", error)
+      toast.error("Erro ao enviar a imagem. Tente uma imagem menor ou tente novamente.")
     } finally {
       setUploadingFoto(false)
       if (fileInputRef.current) fileInputRef.current.value = ""

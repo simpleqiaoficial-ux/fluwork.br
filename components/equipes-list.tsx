@@ -255,7 +255,7 @@ export function EquipesList({ equipes, membrosCount = {} }: EquipesListProps) {
                 onChange={(e) => setSupervisorId(e.target.value)}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <option value="">Sem supervisor</option>
+                <option value="">Sem Lançador de Ordem</option>
                 {supervisores.map((s) => (
                   <option key={s.id} value={s.id}>{s.nome_completo}</option>
                 ))}
