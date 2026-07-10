@@ -58,7 +58,18 @@ export const EHS_DOCUMENTO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
   rejeitado: { label: "Rejeitado", variant: "destructive", icon: XCircle },
 }
 
-export type StatusEntity = "contrato" | "pedido" | "empresa" | "nota_fiscal" | "ehs_cliente" | "ehs_documento"
+export const EHS_INTEGRACAO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  agendado: { label: "Agendado", variant: "neutral", icon: Clock },
+  confirmado: { label: "Confirmado", variant: "info", icon: CheckCircle2 },
+  compareceu: { label: "Compareceu", variant: "success", icon: CheckCircle2 },
+  nao_compareceu: { label: "Não compareceu", variant: "destructive", icon: XCircle },
+  reagendado: { label: "Reagendado", variant: "warning", icon: Clock },
+  cancelado: { label: "Cancelado", variant: "neutral", icon: Ban },
+  concluido: { label: "Concluído", variant: "success", icon: FileCheck },
+  vencido: { label: "Vencido", variant: "destructive", icon: AlertTriangle },
+}
+
+export type StatusEntity = "contrato" | "pedido" | "empresa" | "nota_fiscal" | "ehs_cliente" | "ehs_documento" | "ehs_integracao"
 
 const CONFIG_BY_ENTITY: Record<StatusEntity, Record<string, StatusConfigEntry>> = {
   contrato: CONTRATO_STATUS_CONFIG,
@@ -67,6 +78,7 @@ const CONFIG_BY_ENTITY: Record<StatusEntity, Record<string, StatusConfigEntry>> 
   nota_fiscal: NOTA_FISCAL_STATUS_CONFIG,
   ehs_cliente: EHS_CLIENTE_STATUS_CONFIG,
   ehs_documento: EHS_DOCUMENTO_STATUS_CONFIG,
+  ehs_integracao: EHS_INTEGRACAO_STATUS_CONFIG,
 }
 
 export function getStatusConfig(entity: StatusEntity, status: string): StatusConfigEntry {

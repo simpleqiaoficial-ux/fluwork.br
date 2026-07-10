@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { FileText, History, ShieldCheck, LayoutGrid, Loader2, ExternalLink, Upload, XCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { FileText, History, ShieldCheck, LayoutGrid, Loader2, ExternalLink, Upload, XCircle, ChevronDown, ChevronUp, CalendarClock, Plus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,10 +12,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { EmptyState } from "@/components/ui/empty-state"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { ComplianceRing } from "@/components/ehs/compliance-ring"
 import { DocumentoUploadDialog } from "@/components/ehs/documento-upload-dialog"
 import { calcularSituacaoValidade } from "@/lib/ehs/validade"
 import { CATEGORIA_LABELS } from "@/lib/ehs/documento-categorias"
+import { situacaoExibicaoIntegracao } from "@/lib/ehs/integracoes"
 import { rejeitarDocumentoEhs } from "@/app/actions/ehs-documentos"
 import type { ComplianceResultado } from "@/lib/ehs/compliance"
 
@@ -60,11 +63,21 @@ interface AuditoriaEventoDTO {
   created_at: string | Date
 }
 
+interface IntegracaoResumoDTO {
+  id: string
+  status: string
+  data_agendada: string
+  horario: string | null
+  data_validade: string | null
+  cliente?: { id: string; nome: string } | null
+}
+
 interface PrestadorDetailTabsProps {
   colaboradorId: string
   documentosPorTipo: DocumentoAgrupado[]
   timeline: TimelineEventoDTO[]
   auditoria: AuditoriaEventoDTO[]
+  integracoes: IntegracaoResumoDTO[]
   compliance: ComplianceResultado
 }
 
@@ -94,7 +107,7 @@ const AUDITORIA_LABELS: Record<string, string> = {
   excluido: "Documento removido",
 }
 
-export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline, auditoria, compliance }: PrestadorDetailTabsProps) {
+export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline, auditoria, integracoes, compliance }: PrestadorDetailTabsProps) {
   const router = useRouter()
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("todos")
   const [uploadAberto, setUploadAberto] = useState(false)
@@ -143,6 +156,10 @@ export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline
           <TabsTrigger value="documentos" className="gap-1.5">
             <FileText className="h-3.5 w-3.5" />
             Documentos
+          </TabsTrigger>
+          <TabsTrigger value="integracoes" className="gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5" />
+            Integrações
           </TabsTrigger>
           <TabsTrigger value="timeline" className="gap-1.5">
             <History className="h-3.5 w-3.5" />
@@ -294,6 +311,37 @@ export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline
               )
             })}
           </div>
+        </TabsContent>
+
+        <TabsContent value="integracoes" className="space-y-3">
+          <div className="flex justify-end">
+            <Button asChild size="sm" className="gap-1.5">
+              <Link href={`/ehs/integracoes/nova?prestador=${colaboradorId}`}>
+                <Plus className="h-3.5 w-3.5" />
+                Nova integração
+              </Link>
+            </Button>
+          </div>
+          {integracoes.length === 0 ? (
+            <EmptyState icon={CalendarClock} title="Nenhuma integração agendada" description="Agende este prestador em um cliente para começar a acompanhar presenças e crachás." className="py-16" />
+          ) : (
+            <div className="space-y-2">
+              {integracoes.map((integracao) => (
+                <Link key={integracao.id} href={`/ehs/integracoes/${integracao.id}`}>
+                  <Card className="p-3 flex flex-wrap items-center justify-between gap-3 hover:border-primary/40 transition-colors">
+                    <div>
+                      <p className="text-sm font-medium">{integracao.cliente?.nome || "Cliente"}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formatarData(integracao.data_agendada)}
+                        {integracao.horario ? ` às ${integracao.horario}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge entity="ehs_integracao" status={situacaoExibicaoIntegracao(integracao)} />
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="timeline">

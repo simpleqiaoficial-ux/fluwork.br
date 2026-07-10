@@ -557,6 +557,39 @@ export function toClienteResponsavelEhsDTO(row: AnyRow) {
   }
 }
 
+export function toIntegracaoEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    empresa_id: row.empresaId,
+    cliente_id: row.clienteId,
+    colaborador_id: row.colaboradorId,
+    status: row.status,
+    data_agendada: row.dataAgendada,
+    horario: row.horario,
+    endereco_local: row.enderecoLocal,
+    cidade: row.cidade,
+    sala: row.sala,
+    local: row.local,
+    responsavel_id: row.responsavelId,
+    telefone: row.telefone,
+    observacoes: row.observacoes,
+    tempo_estimado_minutos: row.tempoEstimadoMinutos,
+    checklist: row.checklist,
+    data_realizada: row.dataRealizada,
+    data_validade: row.dataValidade,
+    object_path: row.objectPath,
+    url: row.objectPath ? `/api/files/${row.objectPath}` : null,
+    confirmado_em: row.confirmadoEm,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.cliente !== undefined && { cliente: row.cliente ? { id: row.cliente.id, nome: row.cliente.nome } : row.cliente }),
+    ...(row.colaborador !== undefined && { colaborador: row.colaborador ? { id: row.colaborador.id, nome_completo: row.colaborador.nomeCompleto, foto_url: row.colaborador.fotoUrl } : row.colaborador }),
+    ...(row.responsavel !== undefined && { responsavel: row.responsavel ? { id: row.responsavel.id, nome_completo: row.responsavel.nomeCompleto } : row.responsavel }),
+  }
+}
+
 export function toTipoDocumentoEhsDTO(row: AnyRow) {
   if (!row) return row
   return {

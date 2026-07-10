@@ -1,14 +1,20 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Users, Building2, Pencil, ShieldAlert, UserCircle2, History } from "lucide-react"
+import { ArrowLeft, Users, Building2, Pencil, ShieldAlert, UserCircle2, History, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { KpiCard } from "@/components/ui/kpi-card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { buscarClienteEhsPorId } from "@/app/actions/ehs-clientes"
+import { listarIntegracoesEhs } from "@/app/actions/ehs-integracoes"
 import { listarAuditoriaEhs } from "@/lib/ehs/auditoria"
 import { ClienteStatusToggle } from "@/components/ehs/cliente-status-toggle"
+
+function iniciais(nome: string) {
+  return nome.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
+}
 
 const AUDITORIA_LABELS: Record<string, string> = {
   criado: "Cliente cadastrado",
@@ -25,7 +31,15 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
   const cliente = await buscarClienteEhsPorId(id)
   if (!cliente) notFound()
 
-  const auditoria = await listarAuditoriaEhs("ehs_clientes", id)
+  const [auditoria, integracoes] = await Promise.all([
+    listarAuditoriaEhs("ehs_clientes", id),
+    listarIntegracoesEhs({ clienteId: id }),
+  ])
+
+  const hoje = new Date().toISOString().slice(0, 10)
+  const em7dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const integracoesVencidas = integracoes.filter((i) => i.status === "concluido" && i.data_validade && i.data_validade < hoje).length
+  const integracoesProximas = integracoes.filter((i) => ["agendado", "confirmado", "reagendado"].includes(i.status) && i.data_agendada >= hoje && i.data_agendada <= em7dias).length
 
   return (
     <div className="container mx-auto py-8 px-4 lg:px-6 max-w-6xl">
@@ -47,6 +61,12 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button asChild size="sm" className="gap-1.5">
+            <Link href={`/ehs/integracoes/nova?cliente=${cliente.id}`}>
+              <Plus className="h-3.5 w-3.5" />
+              Nova integração
+            </Link>
+          </Button>
           <ClienteStatusToggle clienteId={cliente.id} status={cliente.status} />
           <Button asChild variant="outline" size="sm" className="gap-1.5">
             <Link href={`/ehs/clientes/${cliente.id}/editar`}>
@@ -59,8 +79,8 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-8">
         <KpiCard icon={Users} accent="primary" label="Prestadores vinculados" value={String(cliente.prestadores.length)} />
-        <KpiCard icon={ShieldAlert} accent="warning" label="Integrações vencidas" value="0" />
-        <KpiCard icon={ShieldAlert} accent="warning" label="Integrações próximas" value="0" />
+        <KpiCard icon={ShieldAlert} accent="warning" label="Integrações vencidas" value={String(integracoesVencidas)} />
+        <KpiCard icon={ShieldAlert} accent="warning" label="Integrações próximas (7d)" value={String(integracoesProximas)} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -77,16 +97,22 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
                 <EmptyState
                   icon={Users}
                   title="Nenhum prestador integrado ainda"
-                  description="A vinculação entre prestador e cliente acontece através de uma Integração — recurso das próximas fases do módulo."
+                  description="A vinculação entre prestador e cliente acontece através de uma Integração — agende a primeira acima."
                   className="py-10"
                 />
               ) : (
                 <div className="space-y-2">
-                  {cliente.prestadores.map((prestador) => (
-                    <div key={prestador.id} className="flex items-center justify-between rounded-md border p-3 text-sm">
-                      <span className="font-medium">{prestador.nome_completo}</span>
-                      <span className="text-xs text-muted-foreground">{prestador.status}</span>
-                    </div>
+                  {cliente.prestadores.map((prestador: any) => (
+                    <Link key={prestador.id} href={`/ehs/prestadores/${prestador.id}`} className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm hover:border-primary/40 transition-colors">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Avatar className="h-7 w-7 shrink-0">
+                          <AvatarImage src={prestador.foto_url || undefined} />
+                          <AvatarFallback className="text-[10px]">{iniciais(prestador.nome_completo)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium truncate">{prestador.nome_completo}</span>
+                      </span>
+                      <StatusBadge entity="ehs_integracao" status={prestador.status} />
+                    </Link>
                   ))}
                 </div>
               )}

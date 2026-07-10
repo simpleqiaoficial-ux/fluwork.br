@@ -8,6 +8,7 @@ import { listarTimelineEhs } from "@/lib/ehs/timeline"
 import { listarAuditoriaDocumentosPrestadorEhs } from "@/lib/ehs/auditoria"
 import { buscarPrestadorEhsPorId } from "@/app/actions/ehs-prestadores"
 import { listarDocumentosPrestadorEhs } from "@/app/actions/ehs-documentos"
+import { listarIntegracoesEhs } from "@/app/actions/ehs-integracoes"
 import { PrestadorDetailTabs } from "@/components/ehs/prestador-detail-tabs"
 
 function iniciais(nome: string) {
@@ -31,10 +32,11 @@ export default async function PrestadorEhsDetailPage({ params }: PrestadorEhsDet
   const prestador = await buscarPrestadorEhsPorId(id)
   if (!prestador) notFound()
 
-  const [documentosPorTipo, timeline, auditoria] = await Promise.all([
+  const [documentosPorTipo, timeline, auditoria, integracoes] = await Promise.all([
     listarDocumentosPrestadorEhs(id),
     listarTimelineEhs(id),
     listarAuditoriaDocumentosPrestadorEhs(id),
+    listarIntegracoesEhs({ colaboradorId: id }),
   ])
 
   return (
@@ -55,7 +57,7 @@ export default async function PrestadorEhsDetailPage({ params }: PrestadorEhsDet
         </div>
       </div>
 
-      <PrestadorDetailTabs colaboradorId={id} documentosPorTipo={documentosPorTipo} timeline={timeline} auditoria={auditoria} compliance={prestador.compliance} />
+      <PrestadorDetailTabs colaboradorId={id} documentosPorTipo={documentosPorTipo} timeline={timeline} auditoria={auditoria} integracoes={integracoes} compliance={prestador.compliance} />
     </div>
   )
 }

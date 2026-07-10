@@ -8,6 +8,7 @@ import { assertNaoImpersonando, getTenantScope } from "@/lib/tenant"
 import { exigirPermissaoEhs } from "@/lib/ehs/permissions"
 import { registrarAuditoriaEhs, registrarDiffAuditoriaEhs } from "@/lib/ehs/auditoria"
 import { toClienteEhsDTO } from "@/lib/db/mappers"
+import { situacaoExibicaoIntegracao } from "@/lib/ehs/integracoes"
 
 export interface ClienteEhsResponsavelInput {
   nome: string
@@ -41,8 +42,7 @@ export async function listarClientesEhs() {
     orderBy: [desc(ehsClientes.createdAt)],
   })
 
-  // Prestadores vinculados por cliente, via integrações — fica 0 até a Fase de Integrações
-  // existir de verdade, mas a consulta já é a certa pra quando existir.
+  // Prestadores vinculados por cliente — via integrações agendadas/concluídas.
   return Promise.all(
     rows.map(async (cliente) => {
       const vinculos = await db
@@ -73,13 +73,14 @@ export async function buscarClienteEhsPorId(id: string) {
     orderBy: [desc(ehsIntegracoes.createdAt)],
   })
 
-  const prestadoresMap = new Map<string, { id: string; nome_completo: string; status: string }>()
+  const prestadoresMap = new Map<string, { id: string; nome_completo: string; foto_url: string | null; status: string }>()
   for (const integ of integracoesRows) {
     if (!integ.colaborador || prestadoresMap.has(integ.colaboradorId)) continue
     prestadoresMap.set(integ.colaboradorId, {
       id: integ.colaborador.id,
       nome_completo: integ.colaborador.nomeCompleto,
-      status: integ.status,
+      foto_url: integ.colaborador.fotoUrl,
+      status: situacaoExibicaoIntegracao({ status: integ.status, data_validade: integ.dataValidade }),
     })
   }
 
