@@ -1,4 +1,4 @@
-export type TipoAcesso = "Colaborador" | "Supervisor" | "Gerente" | "Financeiro" | "Adm"
+export type TipoAcesso = "Colaborador" | "Supervisor" | "Gerente" | "Financeiro" | "Adm" | "SuperAdmin"
 
 export interface Colaborador {
   id: string
@@ -24,6 +24,7 @@ export interface Colaborador {
   chave_pix: string | null
   tipo_chave_pix: string | null
   centro_custo_id: string | null
+  foto_url: string | null
   created_at: string
   equipe?: {
     id: string

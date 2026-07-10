@@ -78,6 +78,13 @@
       "when": 1783621647877,
       "tag": "0010_bloqueio_empresa_motivo",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783689835039,
+      "tag": "0011_add_foto_url_colaboradores",
+      "breakpoints": true
     }
   ]
 }

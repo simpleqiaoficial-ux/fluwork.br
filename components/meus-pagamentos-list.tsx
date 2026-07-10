@@ -3,6 +3,7 @@
 import type { Colaborador } from "@/types/colaborador"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Calendar,
   Clock,
@@ -194,7 +195,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
     }
 
     return (
-      <div className="divide-y">
+      <div className="space-y-4">
         {pedidos.map((pedido) => {
           // Valor da NF = Salário + HE + Plantão - Desconto (sem condução e KM)
           const valorParaEmitir =
@@ -214,7 +215,8 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
           const isExpandedHistorico = isHistorico && expandedHistorico === pedido.id
 
           return (
-            <div key={pedido.id} className="py-6 first:pt-0 last:pb-0 space-y-4">
+            <Card key={pedido.id}>
+            <CardContent className="p-6 space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">
@@ -511,7 +513,8 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                   </div>
                 </>
               )}
-            </div>
+            </CardContent>
+            </Card>
           )
         })}
       </div>

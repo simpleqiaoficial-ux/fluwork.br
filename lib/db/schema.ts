@@ -114,6 +114,7 @@ export const colaboradores = pgTable("colaboradores", {
   centroCustoId: uuid("centro_custo_id").references(() => centrosCusto.id, { onDelete: "set null" }),
   tipoChavePix: text("tipo_chave_pix"),
   dataAniversarioContrato: date("data_aniversario_contrato"),
+  fotoUrl: text("foto_url"),
 }, (table) => [
   check("colaboradores_dia_pagamento_check", sql`${table.diaPagamento} IN (1, 15)`),
   // SuperAdmin é o único papel sem empresa (opera a plataforma inteira); todos os demais

@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, useMemo } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
 import { useValoresVisibility } from "@/contexts/valores-visibility-context"
@@ -15,6 +16,7 @@ interface UserHeaderProps {
   salario?: number
   empresaNome?: string
   tipoAcesso?: string
+  fotoUrl?: string
 }
 
 function iniciais(nome: string) {
@@ -22,7 +24,7 @@ function iniciais(nome: string) {
   return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
 }
 
-export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, tipoAcesso }: UserHeaderProps) {
+export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, tipoAcesso, fotoUrl }: UserHeaderProps) {
   const { valoresVisiveis, toggleValoresVisiveis, mascararValor } = useValoresVisibility()
   const pathname = usePathname()
   const crumbs = useMemo(() => getBreadcrumbForPath(pathname, tipoAcesso), [pathname, tipoAcesso])
@@ -87,12 +89,19 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, ti
             )}
           </Button>
 
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-[11px] font-semibold text-primary shrink-0"
+          <Link
+            href="/perfil"
             title={`${nomeCompleto} · ${email}`}
+            className="shrink-0 rounded-md ring-offset-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {iniciais(nomeCompleto)}
-          </div>
+            {fotoUrl ? (
+              <img src={fotoUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-[11px] font-semibold text-primary">
+                {iniciais(nomeCompleto)}
+              </div>
+            )}
+          </Link>
         </div>
       </div>
     </header>

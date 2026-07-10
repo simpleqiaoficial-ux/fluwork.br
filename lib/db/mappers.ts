@@ -65,6 +65,7 @@ export function toColaboradorDTO(row: AnyRow) {
     chave_pix: row.chavePix,
     tipo_chave_pix: row.tipoChavePix,
     centro_custo_id: row.centroCustoId,
+    foto_url: row.fotoUrl,
     senha_hash: row.senhaHash,
     created_at: row.createdAt,
     ...(row.equipe !== undefined && { equipe: row.equipe ? { id: row.equipe.id, nome: row.equipe.nome } : row.equipe }),

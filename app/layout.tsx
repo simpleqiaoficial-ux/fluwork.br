@@ -92,6 +92,7 @@ export default async function RootLayout({
                     salario={session.salario}
                     empresaNome={empresaNome}
                     tipoAcesso={session.tipoAcesso}
+                    fotoUrl={session.fotoUrl}
                   />
                 )}
                 <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0 pb-16 lg:pb-0")}>

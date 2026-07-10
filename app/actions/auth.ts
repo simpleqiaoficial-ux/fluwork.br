@@ -101,6 +101,7 @@ export async function login(email: string, password: string) {
     empresaId: colaborador.empresaId,
     cnpj: colaborador.cnpj ?? undefined,
     salario: Number(colaborador.salario),
+    fotoUrl: colaborador.fotoUrl ?? undefined,
   })
 
   revalidatePath("/", "layout")

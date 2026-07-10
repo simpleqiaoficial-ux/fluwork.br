@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/brand/logo"
-import { LogOut, X, Lock, ChevronsLeft, ChevronsRight, ChevronDown, Search, Command } from "lucide-react"
+import { LogOut, X, Lock, UserCircle, ChevronsLeft, ChevronsRight, ChevronDown, Search, Command } from "lucide-react"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
@@ -19,6 +19,7 @@ interface SidebarNavigationProps {
 
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"
 const WORKSPACES_OPEN_KEY = "fluwork_workspaces_open"
+const perfilLink: NavItem = { href: "/perfil", label: "Meu Perfil", icon: UserCircle }
 const bottomLink: NavItem = { href: "/redefinir-senha", label: "Redefinir Senha", icon: Lock }
 
 function itemPath(href: string) {
@@ -301,6 +302,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         {collapsed ? <CollapsedRail /> : <NavBody />}
 
         <div className="border-t p-2.5 space-y-0.5">
+          <NavLink item={perfilLink} iconOnly={collapsed} />
           <NavLink item={bottomLink} iconOnly={collapsed} />
           {tipoAcesso && (
             <Button
@@ -360,6 +362,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
             <NavBody onLinkClick={() => setMobileOpen(false)} />
 
             <div className="border-t p-2.5">
+              <NavLink item={perfilLink} onClick={() => setMobileOpen(false)} />
               <NavLink item={bottomLink} onClick={() => setMobileOpen(false)} />
               {tipoAcesso && (
                 <Button

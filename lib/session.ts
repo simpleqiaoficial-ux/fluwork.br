@@ -9,6 +9,7 @@ export interface SessionData {
   empresaId: string | null
   cnpj?: string
   salario?: number
+  fotoUrl?: string
   // Só é setado quando tipoAcesso === "SuperAdmin" e ele está "visualizando como" uma
   // empresa cliente (somente leitura) — nunca troca a identidade real do usuário, só serve
   // de escopo extra pras consultas (ver lib/tenant.ts:getEffectiveEmpresaId).
