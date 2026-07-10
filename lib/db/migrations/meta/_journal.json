@@ -92,6 +92,13 @@
       "when": 1783700198372,
       "tag": "0012_add_reset_token_colaboradores",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1783708324813,
+      "tag": "0013_add_ehs_modulo",
+      "breakpoints": true
     }
   ]
 }

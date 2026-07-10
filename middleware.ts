@@ -68,6 +68,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Papel EHS só enxerga o módulo EHS — nunca rotas financeiras/contratuais. Esta é a camada
+  // mais forte das três que restringem o papel (as outras duas são lib/nav-config.ts, que
+  // nem lista os itens financeiros pra esse papel, e lib/ehs/permissions.ts, pro controle fino
+  // de ação dentro do próprio módulo) — bloqueia no edge, antes de qualquer página carregar.
+  if (session?.tipoAcesso === "EHS") {
+    const rotasPermitidasEhs = ["/ehs", "/perfil", "/esqueci-senha", "/redefinir-senha", "/api/files"]
+    if (!rotasPermitidasEhs.some((rota) => request.nextUrl.pathname.startsWith(rota))) {
+      return NextResponse.redirect(new URL("/ehs", request.url))
+    }
+  }
+
   // /admin é exclusivo do time do FluWork (SuperAdmin) — qualquer outro papel é redirecionado.
   if (request.nextUrl.pathname.startsWith("/admin") && session?.tipoAcesso !== "SuperAdmin") {
     return NextResponse.redirect(new URL("/", request.url))

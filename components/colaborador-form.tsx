@@ -372,6 +372,7 @@ export function ColaboradorForm({ usuarioLogadoTipoAcesso }: ColaboradorFormProp
                     <SelectItem value="Gerente">1º Aprovador</SelectItem>
                     <SelectItem value="Financeiro">Aprovador Final</SelectItem>
                     {isAdm && <SelectItem value="Adm">Administrador</SelectItem>}
+                    {isAdm && <SelectItem value="EHS">EHS</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>

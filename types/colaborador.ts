@@ -1,4 +1,4 @@
-export type TipoAcesso = "Colaborador" | "Supervisor" | "Gerente" | "Financeiro" | "Adm" | "SuperAdmin"
+export type TipoAcesso = "Colaborador" | "Supervisor" | "Gerente" | "Financeiro" | "Adm" | "SuperAdmin" | "EHS"
 
 export interface Colaborador {
   id: string

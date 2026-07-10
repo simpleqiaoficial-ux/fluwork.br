@@ -54,6 +54,12 @@ async function attachBloqueio(rows: any[], dataLimite: Date) {
 export async function criarColaborador(data: NovoColaborador) {
   const session = await checkPermission(["Adm", "Financeiro"])
 
+  // Financeiro pode criar prestadores/gerentes, mas não pode conceder papéis administrativos
+  // ou de módulo — só quem já é Adm (ou SuperAdmin) pode criar outro Adm ou um usuário EHS.
+  if (["Adm", "EHS"].includes(data.tipo_acesso) && !["Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
+    throw new Error("Você não tem permissão para criar um usuário com este perfil de acesso")
+  }
+
   const sanitizedEmail = data.email?.trim().toLowerCase()
   if (!sanitizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
     throw new Error("Email inválido")
@@ -338,6 +344,11 @@ export async function deletarColaborador(id: string) {
 
 export async function atualizarColaborador(id: string, data: Partial<NovoColaborador>) {
   const session = await checkPermission(["Adm", "Financeiro", "SuperAdmin"])
+
+  // Mesma regra de criarColaborador: Financeiro não pode promover ninguém a Adm ou EHS.
+  if (data.tipo_acesso && ["Adm", "EHS"].includes(data.tipo_acesso) && !["Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
+    throw new Error("Você não tem permissão para conceder este perfil de acesso")
+  }
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(id)) {

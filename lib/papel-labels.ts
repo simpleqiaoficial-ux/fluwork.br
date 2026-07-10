@@ -9,6 +9,7 @@ export const PAPEL_LABELS: Record<string, string> = {
   Financeiro: "Aprovador Final",
   Adm: "Administrador",
   SuperAdmin: "SuperAdmin",
+  EHS: "EHS",
 }
 
 export function getPapelLabel(tipoAcesso?: string | null): string {

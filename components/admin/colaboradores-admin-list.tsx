@@ -50,7 +50,7 @@ interface ColaboradoresAdminListProps {
   empresas: Array<{ id: string; nome: string }>
 }
 
-const TIPO_ACESSO_OPCOES = ["Colaborador", "Supervisor", "Gerente", "Financeiro", "Adm"]
+const TIPO_ACESSO_OPCOES = ["Colaborador", "Supervisor", "Gerente", "Financeiro", "Adm", "EHS"]
 
 function formatarData(data: string): string {
   return new Intl.DateTimeFormat("pt-BR").format(new Date(data))

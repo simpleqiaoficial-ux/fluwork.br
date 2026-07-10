@@ -11,6 +11,7 @@ import {
   Clock,
   FileSignature,
   ScrollText,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react"
 
@@ -114,6 +115,13 @@ export const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
 ]
 
+// Módulo EHS & Compliance — papel próprio, nunca vê os workspaces financeiros/contratuais
+// acima (nem passa pelo filtro genérico deles). Cresce fase a fase; só entram aqui itens com
+// página real por trás, pra nunca linkar pra rota que ainda não existe.
+export const EHS_LINKS: NavItem[] = [
+  { href: "/ehs", label: "Dashboard EHS", icon: LayoutDashboard },
+]
+
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
 // operacionais de uma empresa cliente.
 export const SUPERADMIN_LINKS: NavItem[] = [
@@ -165,6 +173,9 @@ export function getNavForRole(tipoAcesso?: string): { workspaces: Workspace[]; f
   }
   if (tipoAcesso === "SuperAdmin") {
     return { workspaces: [{ id: "superadmin", label: "", icon: LayoutDashboard, groups: [{ label: "", items: SUPERADMIN_LINKS }] }], flat: SUPERADMIN_LINKS }
+  }
+  if (tipoAcesso === "EHS") {
+    return { workspaces: [{ id: "ehs", label: "EHS & Compliance", icon: ShieldCheck, groups: [{ label: "", items: EHS_LINKS }] }], flat: EHS_LINKS }
   }
 
   const workspaces = WORKSPACES.map((ws) => ({

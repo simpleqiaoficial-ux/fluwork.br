@@ -26,6 +26,11 @@ export const tipoAcessoEnum = pgEnum("tipo_acesso", [
   // Papel do time do FluWork (operador da plataforma SaaS) — enxerga todas as empresas.
   // Único valor do enum sem empresa_id (ver check constraint em `colaboradores`).
   "SuperAdmin",
+  // Módulo EHS & Compliance — enxerga só as telas do módulo (ver bloco dedicado em
+  // middleware.ts e lib/nav-config.ts), nunca dados financeiros/contratuais. Permissões
+  // finas (visualizar/criar/editar/excluir por recurso) vêm de ehs_papel_permissoes, não
+  // deste enum — o enum só identifica o papel, não o que ele pode fazer dentro do módulo.
+  "EHS",
 ])
 
 // Empresa cliente (tenant). Tudo que pertence a uma empresa cliente referencia esta tabela
@@ -523,6 +528,165 @@ export const contractAttachments = pgTable("contract_attachments", {
   check("contract_attachments_tipo_check", sql`${table.tipo} IN ('rascunho','assinado','anexo')`),
 ])
 
+// ---------- Módulo EHS & Compliance ----------
+// RBAC próprio do módulo (aditivo — não mexe nas checagens de papel já existentes no resto
+// do app). Novo papel entra pelo ehs_papel_permissoes, sem precisar de deploy de código.
+
+export const ehsPermissoes = pgTable("ehs_permissoes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  recurso: text("recurso").notNull(),
+  acao: text("acao").notNull(),
+  label: text("label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("ehs_permissoes_recurso_acao_idx").on(table.recurso, table.acao),
+])
+
+export const ehsPapelPermissoes = pgTable("ehs_papel_permissoes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // Valor de tipoAcessoEnum (ex. "EHS", "Adm") — texto solto, não FK pro enum, porque a
+  // intenção é permitir cadastrar permissões pra papéis futuros sem migração no enum também.
+  papel: text("papel").notNull(),
+  permissaoId: uuid("permissao_id").notNull().references(() => ehsPermissoes.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("ehs_papel_permissoes_papel_permissao_idx").on(table.papel, table.permissaoId),
+])
+
+export const ehsClientes = pgTable("ehs_clientes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  razaoSocial: text("razao_social"),
+  cnpj: text("cnpj"),
+  enderecoCep: text("endereco_cep"),
+  enderecoLogradouro: text("endereco_logradouro"),
+  enderecoNumero: text("endereco_numero"),
+  enderecoComplemento: text("endereco_complemento"),
+  enderecoBairro: text("endereco_bairro"),
+  enderecoCidade: text("endereco_cidade"),
+  enderecoUf: text("endereco_uf"),
+  observacoes: text("observacoes"),
+  status: text("status").notNull().default("ativo"),
+  criadoPor: uuid("criado_por").references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("ehs_clientes_status_check", sql`${table.status} IN ('ativo','inativo')`),
+])
+
+export const ehsClienteResponsaveis = pgTable("ehs_cliente_responsaveis", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clienteId: uuid("cliente_id").notNull().references(() => ehsClientes.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  cargo: text("cargo"),
+  telefone: text("telefone"),
+  email: text("email"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const ehsIntegracoes = pgTable("ehs_integracoes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  clienteId: uuid("cliente_id").notNull().references(() => ehsClientes.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("agendado"),
+  // Agendamento
+  dataAgendada: date("data_agendada"),
+  horario: text("horario"),
+  enderecoLocal: text("endereco_local"),
+  cidade: text("cidade"),
+  sala: text("sala"),
+  local: text("local"),
+  responsavelId: uuid("responsavel_id").references(() => colaboradores.id),
+  telefone: text("telefone"),
+  observacoes: text("observacoes"),
+  tempoEstimadoMinutos: integer("tempo_estimado_minutos"),
+  checklist: jsonb("checklist").default([]),
+  // Conclusão
+  dataRealizada: date("data_realizada"),
+  dataValidade: date("data_validade"),
+  objectPath: text("object_path"),
+  confirmadoEm: timestamp("confirmado_em", { withTimezone: true }),
+  // Dedupe de lembretes automáticos — mesmo padrão de pedidosPagamento.emailXEnviadoEm.
+  lembrete7dEnviadoEm: timestamp("lembrete_7d_enviado_em", { withTimezone: true }),
+  lembrete1dEnviadoEm: timestamp("lembrete_1d_enviado_em", { withTimezone: true }),
+  lembrete2hEnviadoEm: timestamp("lembrete_2h_enviado_em", { withTimezone: true }),
+  criadoPor: uuid("criado_por").references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check(
+    "ehs_integracoes_status_check",
+    sql`${table.status} IN ('agendado','confirmado','compareceu','nao_compareceu','reagendado','cancelado','concluido','vencido')`,
+  ),
+])
+
+// Tabela de referência (não enum Postgres) — extensível sem migração quando surgir tipo novo.
+export const ehsTiposDocumento = pgTable("ehs_tipos_documento", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nome: text("nome").notNull().unique(),
+  categoria: text("categoria").notNull().default("documento"),
+  ativo: boolean("ativo").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check(
+    "ehs_tipos_documento_categoria_check",
+    sql`${table.categoria} IN ('aso','nr','certificado','curso','treinamento','exame','epi','documento')`,
+  ),
+])
+
+// Versionado — nunca deleta linha, só insere versão nova (mesma regra de contract_attachments).
+export const ehsDocumentos = pgTable("ehs_documentos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
+  tipoDocumentoId: uuid("tipo_documento_id").notNull().references(() => ehsTiposDocumento.id),
+  versao: integer("versao").notNull().default(1),
+  objectPath: text("object_path").notNull(),
+  hashSha256: text("hash_sha256"),
+  tamanhoBytes: integer("tamanho_bytes"),
+  dataEmissao: date("data_emissao"),
+  dataValidade: date("data_validade"),
+  status: text("status").notNull().default("valido"),
+  observacoes: text("observacoes"),
+  responsavelId: uuid("responsavel_id").references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("ehs_documentos_status_check", sql`${table.status} IN ('valido','vencido','substituido','rejeitado')`),
+])
+
+// Feed narrativo por prestador (mesmo padrão de contract_signature_events) — alimenta a aba
+// "Timeline". Nunca apaga linha.
+export const ehsTimelineEventos = pgTable("ehs_timeline_eventos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
+  tipoEvento: text("tipo_evento").notNull(),
+  descricao: text("descricao").notNull(),
+  atorId: uuid("ator_id").references(() => colaboradores.id),
+  detalhes: jsonb("detalhes").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// Log técnico campo-a-campo — mais granular que audit_log (que só tem detalhes:jsonb solto).
+export const ehsAuditoria = pgTable("ehs_auditoria", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  tabela: text("tabela").notNull(),
+  registroId: uuid("registro_id").notNull(),
+  campo: text("campo"),
+  valorAntigo: text("valor_antigo"),
+  valorNovo: text("valor_novo"),
+  acao: text("acao").notNull(),
+  atorId: uuid("ator_id").references(() => colaboradores.id),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("ehs_auditoria_acao_check", sql`${table.acao} IN ('criado','atualizado','excluido')`),
+])
+
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
 export const empresasRelations = relations(empresas, ({ one, many }) => ({
@@ -665,4 +829,45 @@ export const contractSignatureEventsRelations = relations(contractSignatureEvent
 export const contractAttachmentsRelations = relations(contractAttachments, ({ one }) => ({
   contract: one(contracts, { fields: [contractAttachments.contractId], references: [contracts.id] }),
   geradoPorColaborador: one(colaboradores, { fields: [contractAttachments.geradoPor], references: [colaboradores.id] }),
+}))
+
+export const ehsPapelPermissoesRelations = relations(ehsPapelPermissoes, ({ one }) => ({
+  permissao: one(ehsPermissoes, { fields: [ehsPapelPermissoes.permissaoId], references: [ehsPermissoes.id] }),
+}))
+
+export const ehsClientesRelations = relations(ehsClientes, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [ehsClientes.empresaId], references: [empresas.id] }),
+  criadoPorColaborador: one(colaboradores, { fields: [ehsClientes.criadoPor], references: [colaboradores.id] }),
+  responsaveis: many(ehsClienteResponsaveis),
+  integracoes: many(ehsIntegracoes),
+}))
+
+export const ehsClienteResponsaveisRelations = relations(ehsClienteResponsaveis, ({ one }) => ({
+  cliente: one(ehsClientes, { fields: [ehsClienteResponsaveis.clienteId], references: [ehsClientes.id] }),
+}))
+
+export const ehsIntegracoesRelations = relations(ehsIntegracoes, ({ one }) => ({
+  empresa: one(empresas, { fields: [ehsIntegracoes.empresaId], references: [empresas.id] }),
+  cliente: one(ehsClientes, { fields: [ehsIntegracoes.clienteId], references: [ehsClientes.id] }),
+  colaborador: one(colaboradores, { fields: [ehsIntegracoes.colaboradorId], references: [colaboradores.id] }),
+  responsavel: one(colaboradores, { fields: [ehsIntegracoes.responsavelId], references: [colaboradores.id] }),
+  criadoPorColaborador: one(colaboradores, { fields: [ehsIntegracoes.criadoPor], references: [colaboradores.id] }),
+}))
+
+export const ehsDocumentosRelations = relations(ehsDocumentos, ({ one }) => ({
+  empresa: one(empresas, { fields: [ehsDocumentos.empresaId], references: [empresas.id] }),
+  colaborador: one(colaboradores, { fields: [ehsDocumentos.colaboradorId], references: [colaboradores.id] }),
+  tipoDocumento: one(ehsTiposDocumento, { fields: [ehsDocumentos.tipoDocumentoId], references: [ehsTiposDocumento.id] }),
+  responsavelColaborador: one(colaboradores, { fields: [ehsDocumentos.responsavelId], references: [colaboradores.id] }),
+}))
+
+export const ehsTimelineEventosRelations = relations(ehsTimelineEventos, ({ one }) => ({
+  empresa: one(empresas, { fields: [ehsTimelineEventos.empresaId], references: [empresas.id] }),
+  colaborador: one(colaboradores, { fields: [ehsTimelineEventos.colaboradorId], references: [colaboradores.id] }),
+  ator: one(colaboradores, { fields: [ehsTimelineEventos.atorId], references: [colaboradores.id] }),
+}))
+
+export const ehsAuditoriaRelations = relations(ehsAuditoria, ({ one }) => ({
+  empresa: one(empresas, { fields: [ehsAuditoria.empresaId], references: [empresas.id] }),
+  ator: one(colaboradores, { fields: [ehsAuditoria.atorId], references: [colaboradores.id] }),
 }))
