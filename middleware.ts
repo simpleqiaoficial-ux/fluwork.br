@@ -46,10 +46,19 @@ export async function middleware(request: NextRequest) {
 
   // Se estiver logado como Colaborador, só pode acessar meus-pagamentos, meus-contratos,
   // o link público de assinatura (que pode abrir estando logado, se clicar no próprio e-mail),
-  // e as duas páginas de autoatendimento da própria conta (perfil e redefinir senha) — ambas
-  // já linkadas na sidebar pra todo mundo, então precisam estar liberadas aqui também.
+  // as duas páginas de autoatendimento da própria conta (perfil e redefinir senha) — ambas já
+  // linkadas na sidebar pra todo mundo — e o proxy de arquivos (nota fiscal, contrato assinado
+  // etc.), que o matcher deste middleware intercepta como qualquer outra rota (não é asset
+  // estático) mas não é uma "página" navegável, é o PDF que o próprio Colaborador anexou.
   if (session?.tipoAcesso === "Colaborador") {
-    const rotasPermitidas = ["/meus-pagamentos", "/meus-contratos", "/contratos/assinar", "/perfil", "/redefinir-senha"]
+    const rotasPermitidas = [
+      "/meus-pagamentos",
+      "/meus-contratos",
+      "/contratos/assinar",
+      "/perfil",
+      "/redefinir-senha",
+      "/api/files",
+    ]
     if (!rotasPermitidas.some((rota) => request.nextUrl.pathname.startsWith(rota))) {
       return NextResponse.redirect(new URL("/meus-pagamentos", request.url))
     }
