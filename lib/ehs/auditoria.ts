@@ -2,6 +2,8 @@ import { headers } from "next/headers"
 import { desc, eq, and, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { ehsAuditoria, ehsDocumentos } from "@/lib/db/schema"
+import { getTenantScope } from "@/lib/tenant"
+import { exigirPermissaoEhs } from "@/lib/ehs/permissions"
 
 interface RegistrarAuditoriaParams {
   empresaId: string
@@ -76,6 +78,62 @@ export async function listarAuditoriaEhs(tabela: string, registroId: string) {
     valor_novo: row.valorNovo,
     ator_nome: row.ator?.nomeCompleto || null,
     created_at: row.createdAt,
+  }))
+}
+
+const TABELA_LABELS: Record<string, string> = {
+  ehs_clientes: "Cliente",
+  ehs_documentos: "Documento",
+  ehs_integracoes: "Integração",
+}
+
+/** Tela dedicada de auditoria — todo o log técnico do módulo (não escopado a um registro
+ *  específico), pra quem precisa investigar "o que mudou" sem já saber em qual cliente/
+ *  prestador procurar. Resolve o link de cada linha por tabela, inclusive o caso de
+ *  ehs_documentos (que só guarda o id do documento — precisa de um join pra achar o
+ *  prestador dono). */
+export async function listarAuditoriaGeralEhs(limite = 200) {
+  const scope = await getTenantScope()
+  await exigirPermissaoEhs(scope.usuario.tipo_acesso, "auditoria", "visualizar")
+
+  const escopo = scope.isSuperAdmin ? undefined : eq(ehsAuditoria.empresaId, scope.empresaId!)
+  const rows = await db.query.ehsAuditoria.findMany({
+    where: escopo,
+    orderBy: [desc(ehsAuditoria.createdAt)],
+    limit: limite,
+    with: { ator: true },
+  })
+
+  const idsDocumentos = rows.filter((r) => r.tabela === "ehs_documentos").map((r) => r.registroId)
+  const documentoColaborador = new Map<string, string>()
+  if (idsDocumentos.length > 0) {
+    const documentos = await db.select({ id: ehsDocumentos.id, colaboradorId: ehsDocumentos.colaboradorId }).from(ehsDocumentos).where(inArray(ehsDocumentos.id, idsDocumentos))
+    for (const documento of documentos) documentoColaborador.set(documento.id, documento.colaboradorId)
+  }
+
+  const resolverHref = (tabela: string, registroId: string): string | null => {
+    if (tabela === "ehs_clientes") return `/ehs/clientes/${registroId}`
+    if (tabela === "ehs_integracoes") return `/ehs/integracoes/${registroId}`
+    if (tabela === "ehs_documentos") {
+      const colaboradorId = documentoColaborador.get(registroId)
+      return colaboradorId ? `/ehs/prestadores/${colaboradorId}` : null
+    }
+    return null
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    tabela: row.tabela,
+    tabela_label: TABELA_LABELS[row.tabela] || row.tabela,
+    acao: row.acao,
+    campo: row.campo,
+    valor_antigo: row.valorAntigo,
+    valor_novo: row.valorNovo,
+    ator_nome: row.ator?.nomeCompleto || null,
+    ip: row.ip,
+    user_agent: row.userAgent,
+    created_at: row.createdAt,
+    href: resolverHref(row.tabela, row.registroId),
   }))
 }
 

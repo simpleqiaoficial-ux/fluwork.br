@@ -105,6 +105,7 @@ export const WORKSPACES: Workspace[] = [
 export const COLABORADOR_LINKS: NavItem[] = [
   { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt },
   { href: "/meus-contratos", label: "Meus Contratos", icon: FileSignature },
+  { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
 ]
 
 export const SUPERVISOR_LINKS: NavItem[] = [
@@ -125,6 +126,7 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/ehs/prestadores", label: "Prestadores", icon: Users, keywords: ["prestador", "colaborador", "documento", "aso", "nr", "certificado"] },
   { href: "/ehs/agenda", label: "Agenda", icon: CalendarClock, keywords: ["agenda", "integracao", "integração", "calendario", "calendário", "agendamento"] },
   { href: "/ehs/pendencias", label: "Pendências", icon: AlertCircle, keywords: ["pendencia", "pendência", "vencido", "vencimento", "alerta"] },
+  { href: "/ehs/auditoria", label: "Auditoria", icon: ScrollText, keywords: ["auditoria", "log", "historico", "histórico", "quem alterou"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces

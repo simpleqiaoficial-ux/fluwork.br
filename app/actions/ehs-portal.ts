@@ -1,0 +1,79 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { desc, eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { ehsDocumentos, ehsTiposDocumento, ehsIntegracoes } from "@/lib/db/schema"
+import { getUsuarioLogado } from "@/lib/auth-utils"
+import { calcularComplianceDocumentos } from "@/lib/ehs/compliance"
+import { toDocumentoEhsDTO, toTipoDocumentoEhsDTO, toIntegracaoEhsDTO } from "@/lib/db/mappers"
+import { registrarAuditoriaEhs } from "@/lib/ehs/auditoria"
+import { registrarTimelineEhs } from "@/lib/ehs/timeline"
+
+/** Portal do Prestador — autoatendimento sempre escopado pelo próprio usuário logado, nunca
+ *  aceita um id vindo de fora. Mesmo padrão de /meus-pagamentos e /meus-contratos: não passa
+ *  pelo RBAC granular do módulo EHS (lib/ehs/permissions.ts), porque essa camada controla
+ *  quem vê o módulo administrativo — aqui é só o prestador vendo os próprios dados, do mesmo
+ *  jeito que qualquer Colaborador já vê os próprios pagamentos/contratos. */
+export async function buscarMeuPortalEhs() {
+  const usuario = await getUsuarioLogado()
+  if (!usuario || usuario.tipo_acesso !== "Colaborador") return null
+
+  const [tipos, documentos, integracoes] = await Promise.all([
+    db.select().from(ehsTiposDocumento).where(eq(ehsTiposDocumento.ativo, true)).orderBy(ehsTiposDocumento.categoria, ehsTiposDocumento.nome),
+    db.query.ehsDocumentos.findMany({ where: eq(ehsDocumentos.colaboradorId, usuario.id), orderBy: [desc(ehsDocumentos.versao)] }),
+    db.query.ehsIntegracoes.findMany({ where: eq(ehsIntegracoes.colaboradorId, usuario.id), orderBy: [desc(ehsIntegracoes.dataAgendada)], with: { cliente: true } }),
+  ])
+
+  const documentosDTO = documentos.map(toDocumentoEhsDTO)
+  const documentosPorTipo = tipos.map((tipo) => ({
+    tipo: toTipoDocumentoEhsDTO(tipo),
+    atual: documentosDTO.find((d) => d.tipo_documento_id === tipo.id && d.status !== "substituido") || null,
+  }))
+
+  const documentosAtivos = documentosDTO.filter((d) => d.status !== "substituido")
+  const compliance = calcularComplianceDocumentos(documentosAtivos.map((d) => ({ status: d.status, dataValidade: d.data_validade })))
+
+  return {
+    nome_completo: usuario.nome_completo,
+    foto_url: usuario.foto_url,
+    compliance,
+    documentosPorTipo,
+    integracoes: integracoes.map(toIntegracaoEhsDTO),
+  }
+}
+
+export async function confirmarMinhaPresencaEhs(integracaoId: string) {
+  const usuario = await getUsuarioLogado()
+  if (!usuario || usuario.tipo_acesso !== "Colaborador") return { success: false, error: "Não autenticado" }
+
+  const integracao = await db.query.ehsIntegracoes.findFirst({ where: eq(ehsIntegracoes.id, integracaoId) })
+  if (!integracao) return { success: false, error: "Integração não encontrada" }
+  if (integracao.colaboradorId !== usuario.id) return { success: false, error: "Esta integração não é sua" }
+  if (!["agendado", "reagendado"].includes(integracao.status)) {
+    return { success: false, error: "Esta integração não pode mais ser confirmada" }
+  }
+
+  await db.update(ehsIntegracoes).set({ status: "confirmado", confirmadoEm: new Date(), updatedAt: new Date() }).where(eq(ehsIntegracoes.id, integracaoId))
+
+  await registrarAuditoriaEhs({
+    empresaId: integracao.empresaId,
+    tabela: "ehs_integracoes",
+    registroId: integracaoId,
+    acao: "atualizado",
+    atorId: usuario.id,
+    campo: "status",
+    valorAntigo: integracao.status,
+    valorNovo: "confirmado",
+  })
+  await registrarTimelineEhs({
+    empresaId: integracao.empresaId,
+    colaboradorId: usuario.id,
+    tipoEvento: "integracao_status",
+    descricao: "Presença confirmada pelo próprio prestador",
+    atorId: usuario.id,
+  })
+
+  revalidatePath("/meu-compliance")
+  return { success: true }
+}

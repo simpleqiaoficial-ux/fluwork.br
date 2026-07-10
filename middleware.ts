@@ -58,6 +58,7 @@ export async function middleware(request: NextRequest) {
       "/meus-pagamentos",
       "/meus-contratos",
       "/contratos/assinar",
+      "/meu-compliance",
       "/perfil",
       "/esqueci-senha",
       "/redefinir-senha",
