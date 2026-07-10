@@ -13,6 +13,7 @@ import {
   ScrollText,
   ShieldCheck,
   CalendarClock,
+  FileSpreadsheet,
   type LucideIcon,
 } from "lucide-react"
 
@@ -127,6 +128,7 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/ehs/agenda", label: "Agenda", icon: CalendarClock, keywords: ["agenda", "integracao", "integração", "calendario", "calendário", "agendamento"] },
   { href: "/ehs/pendencias", label: "Pendências", icon: AlertCircle, keywords: ["pendencia", "pendência", "vencido", "vencimento", "alerta"] },
   { href: "/ehs/auditoria", label: "Auditoria", icon: ScrollText, keywords: ["auditoria", "log", "historico", "histórico", "quem alterou"] },
+  { href: "/ehs/relatorios", label: "Relatórios", icon: FileSpreadsheet, keywords: ["relatorio", "relatório", "exportar", "pdf", "excel", "planilha"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
