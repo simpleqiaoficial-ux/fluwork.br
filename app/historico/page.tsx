@@ -36,7 +36,8 @@ export default async function HistoricoPage() {
       </div>
 
       <Tabs defaultValue="historico" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 h-10">
+        <div className="w-full overflow-x-auto">
+        <TabsList className="w-max sm:w-full sm:max-w-md sm:grid sm:grid-cols-2 h-10">
           <TabsTrigger value="historico" className="text-sm">Histórico</TabsTrigger>
           <TabsTrigger value="correcoes" className="relative text-sm">
             Correções Pendentes
@@ -47,6 +48,7 @@ export default async function HistoricoPage() {
             )}
           </TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="historico" className="mt-6">
           <HistoricoList pedidos={pedidos} />

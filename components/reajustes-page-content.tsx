@@ -108,16 +108,18 @@ export function ReajustesPageContent() {
       </div>
 
       <Tabs defaultValue="aplicar" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="aplicar" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Aplicar Reajuste
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="flex items-center gap-2">
-            <History className="w-4 h-4" />
-            Histórico
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto mb-6">
+          <TabsList className="w-max sm:w-full sm:max-w-md sm:grid sm:grid-cols-2">
+            <TabsTrigger value="aplicar" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Aplicar Reajuste
+            </TabsTrigger>
+            <TabsTrigger value="historico" className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Histórico
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="aplicar">
           <div className="mb-4">

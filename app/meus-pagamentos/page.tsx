@@ -91,11 +91,16 @@ export default async function MeusPagamentosPage() {
         )}
 
         <Tabs defaultValue="andamento" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3 h-10">
-            <TabsTrigger value="andamento" className="text-sm">Em Andamento ({pedidosEmAndamento?.length || 0})</TabsTrigger>
-            <TabsTrigger value="concluidos" className="text-sm">Concluídos ({pedidosConcluidos?.length || 0})</TabsTrigger>
-            <TabsTrigger value="reajustes" className="text-sm">Reajustes ({reajustes.length})</TabsTrigger>
-          </TabsList>
+          {/* Em telas estreitas os rótulos não cabem divididos em 3 colunas iguais (o texto
+              "Em Andamento (0)" invadia a aba vizinha) — aqui os botões mantêm o tamanho
+              natural e a faixa rola de lado; do sm pra cima volta pro grid de 3 colunas. */}
+          <div className="w-full overflow-x-auto">
+            <TabsList className="w-max sm:w-full sm:max-w-2xl sm:grid sm:grid-cols-3 h-10">
+              <TabsTrigger value="andamento" className="text-sm">Em Andamento ({pedidosEmAndamento?.length || 0})</TabsTrigger>
+              <TabsTrigger value="concluidos" className="text-sm">Concluídos ({pedidosConcluidos?.length || 0})</TabsTrigger>
+              <TabsTrigger value="reajustes" className="text-sm">Reajustes ({reajustes.length})</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="andamento" className="mt-6">
             <MeusPagamentosList pedidos={pedidosEmAndamento || []} colaborador={colaborador} linkEmissaoManual={linkEmissaoManual} />
           </TabsContent>

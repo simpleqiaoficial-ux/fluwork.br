@@ -159,28 +159,32 @@ export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline
   return (
     <>
       <Tabs defaultValue="resumo" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="resumo" className="gap-1.5">
-            <LayoutGrid className="h-3.5 w-3.5" />
-            Resumo
-          </TabsTrigger>
-          <TabsTrigger value="documentos" className="gap-1.5">
-            <FileText className="h-3.5 w-3.5" />
-            Documentos
-          </TabsTrigger>
-          <TabsTrigger value="integracoes" className="gap-1.5">
-            <CalendarClock className="h-3.5 w-3.5" />
-            Integrações
-          </TabsTrigger>
-          <TabsTrigger value="timeline" className="gap-1.5">
-            <History className="h-3.5 w-3.5" />
-            Timeline
-          </TabsTrigger>
-          <TabsTrigger value="auditoria" className="gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Auditoria
-          </TabsTrigger>
-        </TabsList>
+        {/* 5 abas não cabem numa linha só em tela de celular — rola de lado dentro da própria
+            faixa em vez de espremer/estourar a largura da página. */}
+        <div className="overflow-x-auto">
+          <TabsList className="w-max">
+            <TabsTrigger value="resumo" className="gap-1.5">
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Resumo
+            </TabsTrigger>
+            <TabsTrigger value="documentos" className="gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Documentos
+            </TabsTrigger>
+            <TabsTrigger value="integracoes" className="gap-1.5">
+              <CalendarClock className="h-3.5 w-3.5" />
+              Integrações
+            </TabsTrigger>
+            <TabsTrigger value="timeline" className="gap-1.5">
+              <History className="h-3.5 w-3.5" />
+              Timeline
+            </TabsTrigger>
+            <TabsTrigger value="auditoria" className="gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Auditoria
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="resumo" className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
