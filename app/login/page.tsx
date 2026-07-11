@@ -27,14 +27,20 @@ export default function LoginPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-16 bg-muted/30">
-        <div className="w-full max-w-sm">
+      <main className="relative flex-1 flex items-center justify-center px-4 py-16 bg-muted/30 overflow-hidden">
+        {/* Glow decorativo azul de marca — só reforça identidade visual, não interfere no fluxo */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-primary/15 blur-3xl"
+          aria-hidden="true"
+        />
+
+        <div className="relative w-full max-w-sm">
           <div className="mb-6 text-center">
             <h1 className="text-xl font-semibold tracking-tight">Acesse sua conta</h1>
             <p className="text-sm text-muted-foreground mt-1.5">Entre com suas credenciais para continuar</p>
           </div>
 
-          <Card>
+          <Card className="border-t-2 border-t-primary">
             <CardContent className="pt-6">
               <LoginForm />
             </CardContent>

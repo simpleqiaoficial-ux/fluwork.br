@@ -125,10 +125,14 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-foreground/15 rounded-full;
+    @apply bg-primary/20 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-foreground/25;
+    @apply bg-primary/35;
+  }
+
+  ::selection {
+    @apply bg-primary/25;
   }
 }

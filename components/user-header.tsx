@@ -50,7 +50,7 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, ti
                     {i > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem>
                       {i === crumbs.length - 1 ? (
-                        <BreadcrumbPage className="text-[13px] font-medium truncate">{seg.label}</BreadcrumbPage>
+                        <BreadcrumbPage className="text-[13px] font-medium text-primary truncate">{seg.label}</BreadcrumbPage>
                       ) : (
                         <span className="truncate text-muted-foreground">{seg.label}</span>
                       )}
