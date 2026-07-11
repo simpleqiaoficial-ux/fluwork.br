@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { contarPendencias } from "@/app/actions/contadores"
 import { getNavForRole, type NavItem, type NavGroup, type Workspace } from "@/lib/nav-config"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { useMobileNav } from "@/contexts/mobile-nav-context"
 import { CommandPalette } from "@/components/command-palette"
 
 interface SidebarNavigationProps {
@@ -28,7 +28,7 @@ function itemPath(href: string) {
 export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { mobileOpen, setMobileOpen } = useMobileNav()
   const [collapsed, setCollapsed] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [openWorkspaces, setOpenWorkspaces] = useState<Record<string, boolean>>({})
@@ -113,8 +113,6 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
       return next
     })
   }
-
-  const bottomNavItems = useMemo(() => flatItems.slice(0, 4), [flatItems])
 
   const handleLogout = async () => {
     await logout()
@@ -262,9 +260,6 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   return (
     <>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} tipoAcesso={tipoAcesso} />
-
-      {/* Navegação primária no celular — substitui o antigo botão flutuante de menu */}
-      <BottomNavigation items={bottomNavItems} onMoreClick={() => setMobileOpen(true)} />
 
       {/* Desktop sidebar */}
       <aside
