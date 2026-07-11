@@ -7,9 +7,10 @@ import { ComplianceRing } from "@/components/ehs/compliance-ring"
 import { ConfirmarPresencaButton } from "@/components/ehs/confirmar-presenca-button"
 import { CarteirinhasList } from "@/components/ehs/carteirinhas-list"
 import { buscarMeuPortalEhs } from "@/app/actions/ehs-portal"
+import { getPapelLabel } from "@/lib/papel-labels"
 import { calcularSituacaoValidade } from "@/lib/ehs/validade"
 import { situacaoExibicaoIntegracao } from "@/lib/ehs/integracoes"
-import { FileText, CalendarClock, CreditCard } from "lucide-react"
+import { FileText, CalendarClock, CreditCard, ShieldAlert } from "lucide-react"
 
 function iniciais(nome: string) {
   return nome.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -21,9 +22,26 @@ function formatarData(data?: string | null) {
 }
 
 export default async function MeuCompliancePage() {
-  const portal = await buscarMeuPortalEhs()
-  if (!portal) redirect("/meus-pagamentos")
+  const resultado = await buscarMeuPortalEhs()
 
+  if (!resultado.ok && resultado.motivo === "nao_autenticado") {
+    redirect("/login")
+  }
+
+  if (!resultado.ok) {
+    return (
+      <div className="container mx-auto py-10 px-4 max-w-lg">
+        <EmptyState
+          icon={ShieldAlert}
+          title="Este portal é exclusivo para prestadores"
+          description={`Sua conta está com o papel "${getPapelLabel(resultado.motivo === "papel_invalido" ? resultado.papelAtual : "")}". O Meu Compliance só é liberado pra contas com o papel Colaborador — se você é prestador e está vendo isso, entre em contato com quem administra sua empresa na FluWork.`}
+          className="py-16"
+        />
+      </div>
+    )
+  }
+
+  const portal = resultado.portal
   const integracoesFuturas = portal.integracoes.filter((i: any) => ["agendado", "confirmado", "reagendado"].includes(i.status))
   const integracoesPassadas = portal.integracoes.filter((i: any) => !["agendado", "confirmado", "reagendado"].includes(i.status))
   const documentosAusentes = portal.documentosPorTipo.filter((d: any) => !d.atual).length
