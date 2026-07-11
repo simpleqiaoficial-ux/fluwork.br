@@ -14,6 +14,9 @@ import { CommandPalette } from "@/components/command-palette"
 
 interface SidebarNavigationProps {
   tipoAcesso?: string
+  /** SuperAdmin em modo "visualizar como empresa" — nesse modo ele vê os workspaces da
+   *  empresa (todas as páginas, sem filtro de papel) em vez do painel restrito de admin. */
+  impersonando?: boolean
 }
 
 const COLLAPSE_STORAGE_KEY = "fluwork_sidebar_collapsed"
@@ -24,7 +27,7 @@ function itemPath(href: string) {
   return href.split("?")[0]
 }
 
-export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
+export function SidebarNavigation({ tipoAcesso, impersonando }: SidebarNavigationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [collapsed, setCollapsed] = useState(false)
@@ -33,8 +36,8 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
   const [pendencias, setPendencias] = useState({ aprovacoes: 0, painelFinanceiro: 0, correcoes: 0, acompanhamento: 0 })
 
-  const { workspaces, flat: flatItems } = useMemo(() => getNavForRole(tipoAcesso), [tipoAcesso])
-  const isSimpleMenu = tipoAcesso === "Colaborador" || tipoAcesso === "Supervisor" || tipoAcesso === "SuperAdmin"
+  const { workspaces, flat: flatItems } = useMemo(() => getNavForRole(tipoAcesso, impersonando), [tipoAcesso, impersonando])
+  const isSimpleMenu = (tipoAcesso === "Colaborador" || tipoAcesso === "Supervisor" || tipoAcesso === "SuperAdmin") && !impersonando
 
   useEffect(() => {
     const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY)
@@ -306,7 +309,7 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
 
   return (
     <>
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} tipoAcesso={tipoAcesso} />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} tipoAcesso={tipoAcesso} impersonando={impersonando} />
 
       {/* Desktop sidebar */}
       <aside

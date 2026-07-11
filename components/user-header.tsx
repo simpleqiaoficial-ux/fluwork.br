@@ -19,6 +19,7 @@ interface UserHeaderProps {
   empresaNome?: string
   tipoAcesso?: string
   fotoUrl?: string
+  impersonando?: boolean
 }
 
 function iniciais(nome: string) {
@@ -26,10 +27,10 @@ function iniciais(nome: string) {
   return (partes[0]?.[0] || "").concat(partes.length > 1 ? partes[partes.length - 1][0] : "").toUpperCase()
 }
 
-export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, tipoAcesso, fotoUrl }: UserHeaderProps) {
+export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, tipoAcesso, fotoUrl, impersonando }: UserHeaderProps) {
   const { valoresVisiveis, toggleValoresVisiveis, mascararValor } = useValoresVisibility()
   const pathname = usePathname()
-  const crumbs = useMemo(() => getBreadcrumbForPath(pathname, tipoAcesso), [pathname, tipoAcesso])
+  const crumbs = useMemo(() => getBreadcrumbForPath(pathname, tipoAcesso, impersonando), [pathname, tipoAcesso, impersonando])
 
   return (
     <header className="sticky top-0 z-30 border-b bg-card">

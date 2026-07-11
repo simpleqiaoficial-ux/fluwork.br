@@ -16,13 +16,14 @@ interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tipoAcesso?: string
+  impersonando?: boolean
 }
 
 /** Busca global (Cmd+K) — indexa a mesma configuração de navegação usada na sidebar, agrupada
  *  por workspace. Reutiliza o filtro fuzzy nativo do cmdk (value + keywords). */
-export function CommandPalette({ open, onOpenChange, tipoAcesso }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, tipoAcesso, impersonando }: CommandPaletteProps) {
   const router = useRouter()
-  const { workspaces } = useMemo(() => getNavForRole(tipoAcesso), [tipoAcesso])
+  const { workspaces } = useMemo(() => getNavForRole(tipoAcesso, impersonando), [tipoAcesso, impersonando])
 
   const goTo = (href: string) => {
     onOpenChange(false)

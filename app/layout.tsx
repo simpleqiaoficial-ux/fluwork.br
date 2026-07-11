@@ -87,7 +87,7 @@ export default async function RootLayout({
             <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
           ) : (
             <>
-              {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
+              {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} impersonando={impersonando} />}
 
               <div
                 className={cn("min-h-screen transition-[padding] duration-150", !isChromeless && "lg:pl-[var(--sidebar-w,16rem)]")}
@@ -102,6 +102,7 @@ export default async function RootLayout({
                     empresaNome={empresaNome}
                     tipoAcesso={session.tipoAcesso}
                     fotoUrl={session.fotoUrl}
+                    impersonando={impersonando}
                   />
                 )}
                 <main

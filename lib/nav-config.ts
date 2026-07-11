@@ -13,6 +13,7 @@ import {
   ScrollText,
   ShieldCheck,
   CalendarClock,
+  Database,
   type LucideIcon,
 } from "lucide-react"
 
@@ -134,10 +135,11 @@ export const EHS_LINKS: NavItem[] = [
 export const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
-  { href: "/admin/dados/colaboradores", label: "Prestadores (todas)", icon: Users },
-  { href: "/admin/dados/contratos", label: "Contratos (todas)", icon: FileSignature },
-  { href: "/admin/dados/pedidos", label: "Ordens de Pagamento (todas)", icon: DollarSign },
-  { href: "/admin/dados/notas-fiscais", label: "Notas fiscais (todas)", icon: FileText },
+  { href: "/admin/dados", label: "Espelho de Dados", icon: Database, keywords: ["banco", "tabelas", "producao", "produção", "dados"] },
+  { href: "/admin/dados/colaboradores", label: "Prestadores", icon: Users },
+  { href: "/admin/dados/contratos", label: "Contratos", icon: FileSignature },
+  { href: "/admin/dados/pedidos", label: "Ordens de Pagamento", icon: DollarSign },
+  { href: "/admin/dados/notas-fiscais", label: "Notas fiscais", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
 ]
 
@@ -151,8 +153,8 @@ export interface BreadcrumbSegment {
 
 /** Localiza o item ativo na árvore de navegação e devolve o caminho até ele
  *  (workspace > grupo > página) pra alimentar a barra de contexto do header. */
-export function getBreadcrumbForPath(pathname: string, tipoAcesso?: string): BreadcrumbSegment[] {
-  const { workspaces } = getNavForRole(tipoAcesso)
+export function getBreadcrumbForPath(pathname: string, tipoAcesso?: string, impersonando?: boolean): BreadcrumbSegment[] {
+  const { workspaces } = getNavForRole(tipoAcesso, impersonando)
   for (const ws of workspaces) {
     for (const group of ws.groups) {
       for (const item of group.items) {
@@ -170,15 +172,23 @@ export function getBreadcrumbForPath(pathname: string, tipoAcesso?: string): Bre
 }
 
 /** Todos os itens de navegação visíveis pro papel logado, já filtrados por permissão —
- *  usado tanto pra montar a sidebar quanto pra indexar o command palette. */
-export function getNavForRole(tipoAcesso?: string): { workspaces: Workspace[]; flat: NavItem[] } {
+ *  usado tanto pra montar a sidebar quanto pra indexar o command palette.
+ *
+ *  `impersonando`: SuperAdmin em modo "visualizar como empresa". Nesse modo ele já consegue
+ *  abrir qualquer página da empresa (lib/tenant.ts:podeVisualizarPagina libera geral pra
+ *  SuperAdmin+viewAsEmpresaId, e os dados já vêm escopados pela empresa via
+ *  getEffectiveEmpresaId) — só faltava a sidebar mostrar o link. Aqui ele enxerga TODOS os
+ *  workspaces da empresa sem filtro de papel (não só o que um "Adm" veria) mais o módulo EHS,
+ *  pra cobrir de verdade qualquer página que a empresa tenha, independente de quem
+ *  normalmente usaria cada uma. */
+export function getNavForRole(tipoAcesso?: string, impersonando?: boolean): { workspaces: Workspace[]; flat: NavItem[] } {
   if (tipoAcesso === "Colaborador") {
     return { workspaces: [{ id: "colaborador", label: "", icon: LayoutDashboard, groups: [{ label: "", items: COLABORADOR_LINKS }] }], flat: COLABORADOR_LINKS }
   }
   if (tipoAcesso === "Supervisor") {
     return { workspaces: [{ id: "supervisor", label: "", icon: LayoutDashboard, groups: [{ label: "", items: SUPERVISOR_LINKS }] }], flat: SUPERVISOR_LINKS }
   }
-  if (tipoAcesso === "SuperAdmin") {
+  if (tipoAcesso === "SuperAdmin" && !impersonando) {
     return { workspaces: [{ id: "superadmin", label: "", icon: LayoutDashboard, groups: [{ label: "", items: SUPERADMIN_LINKS }] }], flat: SUPERADMIN_LINKS }
   }
   if (tipoAcesso === "EHS") {
@@ -188,9 +198,13 @@ export function getNavForRole(tipoAcesso?: string): { workspaces: Workspace[]; f
   const workspaces = WORKSPACES.map((ws) => ({
     ...ws,
     groups: ws.groups
-      .map((group) => ({ ...group, items: group.items.filter((item) => itemMatchesRole(item, tipoAcesso)) }))
+      .map((group) => ({ ...group, items: impersonando ? group.items : group.items.filter((item) => itemMatchesRole(item, tipoAcesso)) }))
       .filter((group) => group.items.length > 0),
   })).filter((ws) => ws.groups.length > 0)
+
+  if (impersonando) {
+    workspaces.push({ id: "ehs", label: "EHS & Compliance", icon: ShieldCheck, groups: [{ label: "", items: EHS_LINKS }] })
+  }
 
   const flat = workspaces.flatMap((ws) => ws.groups.flatMap((g) => g.items))
   return { workspaces, flat }
