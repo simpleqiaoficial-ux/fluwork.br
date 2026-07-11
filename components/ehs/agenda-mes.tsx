@@ -43,43 +43,47 @@ export function AgendaMes({ ano, mes, integracoes }: { ano: number; mes: number;
   while (celulas.length % 7 !== 0) celulas.push(null)
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <div className="grid grid-cols-7 border-b bg-muted/40">
-        {DIAS_SEMANA.map((dia) => (
-          <div key={dia} className="p-2 text-center text-xs font-medium text-muted-foreground">
-            {dia}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7">
-        {celulas.map((dia, index) => {
-          const dataStr = dia ? `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}` : null
-          const eventos = dia ? porDia.get(dia) || [] : []
-          return (
-            <div key={index} className={cn("min-h-[96px] border-b border-r p-1.5 last:border-r-0", !dia && "bg-muted/20")}>
-              {dia && (
-                <>
-                  <span className={cn("inline-flex h-5 w-5 items-center justify-center rounded-full text-xs", dataStr === hojeStr ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground")}>
-                    {dia}
-                  </span>
-                  <div className="mt-1 space-y-1">
-                    {eventos.slice(0, 3).map((evento) => (
-                      <Link
-                        key={evento.id}
-                        href={`/ehs/integracoes/${evento.id}`}
-                        className="flex items-center gap-1 rounded px-1 py-0.5 text-[11px] hover:bg-muted truncate"
-                      >
-                        <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", COR_DOT[situacaoExibicaoIntegracao(evento)] || "bg-muted-foreground")} />
-                        <span className="truncate">{evento.colaborador?.nome_completo || evento.cliente?.nome || "Integração"}</span>
-                      </Link>
-                    ))}
-                    {eventos.length > 3 && <p className="px-1 text-[10px] text-muted-foreground">+{eventos.length - 3} mais</p>}
-                  </div>
-                </>
-              )}
+    // Calendário rola só dentro da própria caixa em telas estreitas — nunca a página inteira,
+    // pra não precisar dar zoom/pinch pra enxergar os dias da semana.
+    <div className="rounded-lg border overflow-x-auto">
+      <div className="min-w-[560px]">
+        <div className="grid grid-cols-7 border-b bg-muted/40">
+          {DIAS_SEMANA.map((dia) => (
+            <div key={dia} className="p-2 text-center text-xs font-medium text-muted-foreground">
+              {dia}
             </div>
-          )
-        })}
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {celulas.map((dia, index) => {
+            const dataStr = dia ? `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}` : null
+            const eventos = dia ? porDia.get(dia) || [] : []
+            return (
+              <div key={index} className={cn("min-h-[96px] border-b border-r p-1.5 last:border-r-0", !dia && "bg-muted/20")}>
+                {dia && (
+                  <>
+                    <span className={cn("inline-flex h-5 w-5 items-center justify-center rounded-full text-xs", dataStr === hojeStr ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground")}>
+                      {dia}
+                    </span>
+                    <div className="mt-1 space-y-1">
+                      {eventos.slice(0, 3).map((evento) => (
+                        <Link
+                          key={evento.id}
+                          href={`/ehs/integracoes/${evento.id}`}
+                          className="flex items-center gap-1 rounded px-1 py-0.5 text-[11px] hover:bg-muted truncate"
+                        >
+                          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", COR_DOT[situacaoExibicaoIntegracao(evento)] || "bg-muted-foreground")} />
+                          <span className="truncate">{evento.colaborador?.nome_completo || evento.cliente?.nome || "Integração"}</span>
+                        </Link>
+                      ))}
+                      {eventos.length > 3 && <p className="px-1 text-[10px] text-muted-foreground">+{eventos.length - 3} mais</p>}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

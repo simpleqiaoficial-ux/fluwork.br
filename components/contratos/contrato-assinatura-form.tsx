@@ -21,7 +21,11 @@ interface ContratoAssinaturaFormProps {
 export function ContratoAssinaturaForm({ token, emailSignatario, precisaDefinirSenha }: ContratoAssinaturaFormProps) {
   const router = useRouter()
   const [aceite, setAceite] = useState(false)
-  const [emailConfirmacao, setEmailConfirmacao] = useState("")
+  // Pré-preenchido com o e-mail do próprio destinatário — antes ficava vazio com só um
+  // placeholder parecido com valor preenchido, e quem assinava não percebia que precisava
+  // digitar de novo. O botão "Assinar" ficava sempre desabilitado (opaco) por causa disso.
+  // Continua editável porque o servidor confere esse valor contra o e-mail do link.
+  const [emailConfirmacao, setEmailConfirmacao] = useState(emailSignatario)
   const [senha, setSenha] = useState("")
   const [confirmarSenha, setConfirmarSenha] = useState("")
   const [loading, setLoading] = useState(false)

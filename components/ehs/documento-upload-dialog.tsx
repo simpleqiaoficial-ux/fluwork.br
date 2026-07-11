@@ -110,7 +110,7 @@ export function DocumentoUploadDialog({ open, onOpenChange, colaboradorId, tipos
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="documento-emissao">Data de emissão</Label>
               <Input id="documento-emissao" type="date" value={dataEmissao} onChange={(e) => setDataEmissao(e.target.value)} />

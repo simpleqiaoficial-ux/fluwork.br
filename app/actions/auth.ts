@@ -108,13 +108,16 @@ export async function login(email: string, password: string) {
 
   revalidatePath("/", "layout")
 
+  // Não chama redirect() aqui — o client component que chama login() precisa distinguir
+  // sucesso de erro num try/catch, e um redirect() lançado dentro desse try acaba sendo
+  // capturado como se fosse uma falha de login (o "erro ao fazer login" que aparecia mesmo
+  // com a senha certa). Devolve o destino e deixa o client navegar com router.push().
   if (colaborador.tipoAcesso === "Colaborador") {
-    redirect("/meus-pagamentos")
+    return { redirectTo: "/meus-pagamentos" }
   } else if (colaborador.tipoAcesso === "SuperAdmin") {
-    redirect("/admin")
-  } else {
-    redirect("/")
+    return { redirectTo: "/admin" }
   }
+  return { redirectTo: "/" }
 }
 
 export async function logout() {

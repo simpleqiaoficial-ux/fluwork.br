@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +14,7 @@ import { AlertCircle, Loader2, Eye, EyeOff } from "lucide-react"
 /** Formulário de login usado em /login — o botão "Fazer Login" da landing page leva direto
  *  pra essa página (não abre mais como modal flutuando sobre o conteúdo de marketing). */
 export function LoginForm() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -24,10 +26,19 @@ export function LoginForm() {
     setError("")
     try {
       const result = await login(formData.email, formData.password)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+        setLoading(false)
+        return
+      }
+      if (result?.redirectTo) {
+        router.push(result.redirectTo)
+        router.refresh()
+        return
+      }
+      setLoading(false)
     } catch {
       setError("Erro ao fazer login")
-    } finally {
       setLoading(false)
     }
   }
