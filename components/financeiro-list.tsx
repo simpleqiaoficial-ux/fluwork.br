@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -131,9 +131,8 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
                 const notaFiscal = pedido.notas_fiscais?.[0]
 
                 return (
-                  <>
+                  <Fragment key={pedido.id}>
                     <TableRow
-                      key={pedido.id}
                       className="cursor-pointer"
                       onClick={() => setExpandedRow(isExpanded ? null : pedido.id)}
                     >
@@ -279,7 +278,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 )
               })}
             </TableBody>

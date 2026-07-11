@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { EmptyState } from "@/components/ui/empty-state"
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import { responderSolicitacaoProrrogacao } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
 import {
@@ -132,9 +132,8 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
               const isLoading = loading === solicitacao.id
 
               return (
-                <>
+                <Fragment key={solicitacao.id}>
                   <TableRow
-                    key={solicitacao.id}
                     className="cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : solicitacao.id)}
                   >
@@ -204,7 +203,7 @@ export function SolicitacoesProrrogacaoList({ solicitacoes }: SolicitacoesProrro
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               )
             })}
           </TableBody>

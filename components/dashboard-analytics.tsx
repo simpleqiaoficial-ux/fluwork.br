@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, Fragment } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -746,9 +746,8 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                       const tipo = p.tipo_pedido === "reembolso_km" ? "Reembolso KM" : "Completo"
 
                       return (
-                        <>
+                        <Fragment key={p.id}>
                           <TableRow
-                            key={p.id}
                             className="cursor-pointer hover:bg-muted/30"
                             onClick={() => setExpandedRow(isExpanded ? null : p.id)}
                           >
@@ -865,7 +864,7 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
                               </TableCell>
                             </TableRow>
                           )}
-                        </>
+                        </Fragment>
                       )
                     })
                   )}

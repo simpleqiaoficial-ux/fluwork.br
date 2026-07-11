@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
@@ -90,9 +90,8 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
               const isExpanded = expandedId === pedido.id
 
               return (
-                <>
+                <Fragment key={pedido.id}>
                   <TableRow
-                    key={pedido.id}
                     className="cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
                   >
@@ -205,7 +204,7 @@ export function NotasPeriodoList({ pedidos }: NotasPeriodoListProps) {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               )
             })}
           </TableBody>

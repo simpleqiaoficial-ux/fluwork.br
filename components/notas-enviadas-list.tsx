@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Fragment } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -291,9 +291,8 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                 const isPaid = pedido.status === "pago" || pedido.status === "nota_recebida"
 
                 return (
-                  <>
+                  <Fragment key={pedido.id}>
                     <TableRow
-                      key={pedido.id}
                       className="cursor-pointer"
                       onClick={() => setExpandedId(isExpanded ? null : pedido.id)}
                     >
@@ -539,7 +538,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 )
               })}
             </TableBody>

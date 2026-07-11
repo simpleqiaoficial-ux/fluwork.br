@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import type { Equipe } from "@/types/equipe"
 import { StatusBadge } from "@/components/ui/status-badge"
@@ -245,9 +245,8 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
                     : pedido.notas_fiscais || null
 
                   return (
-                    <>
+                    <Fragment key={pedido.id}>
                       <TableRow
-                        key={pedido.id}
                         className="cursor-pointer"
                         onClick={() => togglePedido(pedido.id)}
                       >
@@ -370,7 +369,7 @@ export function HistoricoCompletoList({ pedidos: pedidosIniciais, equipes }: His
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   )
                 })}
               </TableBody>

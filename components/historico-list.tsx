@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import type { PedidoPagamento } from "@/types/pedido"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/ui/status-badge"
@@ -41,9 +41,8 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
             const isExpanded = expandedRow === pedido.id
 
             return (
-              <>
+              <Fragment key={pedido.id}>
                 <TableRow
-                  key={pedido.id}
                   className="cursor-pointer"
                   onClick={() => setExpandedRow(isExpanded ? null : pedido.id)}
                 >
@@ -130,7 +129,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </TableBody>

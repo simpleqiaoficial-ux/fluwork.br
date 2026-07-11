@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils"
 import { Save, ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import { corrigirPedido } from "@/app/actions/pedidos"
 import { useRouter } from "next/navigation"
 
@@ -139,9 +139,8 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
             const criadoPor = pedido.criado_por?.nome_completo || "N/A"
 
             return (
-              <>
+              <Fragment key={pedido.id}>
                 <TableRow
-                  key={pedido.id}
                   className="cursor-pointer"
                   onClick={() => setExpandedRow(isExpanded ? null : pedido.id)}
                 >
@@ -496,7 +495,7 @@ export function CorrecaoList({ pedidos }: CorrecaoListProps) {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </TableBody>

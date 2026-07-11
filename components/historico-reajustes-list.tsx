@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import type { HistoricoReajuste } from "@/types/reajuste"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react"
@@ -41,9 +41,8 @@ export function HistoricoReajustesList({ reajustes }: HistoricoReajustesListProp
             const isExpanded = expandedRow === reajuste.id
 
             return (
-              <>
+              <Fragment key={reajuste.id}>
                 <TableRow
-                  key={reajuste.id}
                   className="cursor-pointer"
                   onClick={() => setExpandedRow(isExpanded ? null : reajuste.id)}
                 >
@@ -87,7 +86,7 @@ export function HistoricoReajustesList({ reajustes }: HistoricoReajustesListProp
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </TableBody>
