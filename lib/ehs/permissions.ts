@@ -28,10 +28,12 @@ export const EHS_PERMISSOES: PermissaoDef[] = [
   { recurso: "documento", acao: "rejeitar", label: "Rejeitar Documento" },
   { recurso: "documento", acao: "excluir", label: "Excluir Documento" },
   { recurso: "dashboard", acao: "visualizar", label: "Visualizar Dashboard" },
-  { recurso: "relatorio", acao: "exportar", label: "Exportar Relatório" },
   { recurso: "email", acao: "enviar", label: "Enviar E-mail" },
   { recurso: "timeline", acao: "visualizar", label: "Visualizar Timeline" },
   { recurso: "auditoria", acao: "visualizar", label: "Visualizar Auditoria" },
+  { recurso: "carteirinha", acao: "visualizar", label: "Visualizar Carteirinha" },
+  { recurso: "carteirinha", acao: "criar", label: "Criar Carteirinha" },
+  { recurso: "carteirinha", acao: "desativar", label: "Desativar Carteirinha" },
 ]
 
 // Papéis com acesso total ao módulo hoje — "acesso total" aqui não é um bypass no código, é

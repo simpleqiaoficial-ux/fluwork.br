@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Users, Building2, Pencil, ShieldAlert, UserCircle2, History, Plus } from "lucide-react"
+import { ArrowLeft, Users, Building2, Pencil, ShieldAlert, UserCircle2, History, Plus, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/ui/status-badge"
@@ -9,8 +9,11 @@ import { KpiCard } from "@/components/ui/kpi-card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { buscarClienteEhsPorId } from "@/app/actions/ehs-clientes"
 import { listarIntegracoesEhs } from "@/app/actions/ehs-integracoes"
+import { listarCarteirinhasClienteEhs } from "@/app/actions/ehs-carteirinhas"
 import { listarAuditoriaEhs } from "@/lib/ehs/auditoria"
 import { ClienteStatusToggle } from "@/components/ehs/cliente-status-toggle"
+import { CarteirinhasList } from "@/components/ehs/carteirinhas-list"
+import { NovaCarteirinhaButton } from "@/components/ehs/nova-carteirinha-button"
 
 function iniciais(nome: string) {
   return nome.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -31,9 +34,10 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
   const cliente = await buscarClienteEhsPorId(id)
   if (!cliente) notFound()
 
-  const [auditoria, integracoes] = await Promise.all([
+  const [auditoria, integracoes, carteirinhas] = await Promise.all([
     listarAuditoriaEhs("ehs_clientes", id),
     listarIntegracoesEhs({ clienteId: id }),
+    listarCarteirinhasClienteEhs(id),
   ])
 
   const hoje = new Date().toISOString().slice(0, 10)
@@ -116,6 +120,19 @@ export default async function ClienteEhsDetailPage({ params }: ClienteEhsDetailP
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                Carteirinhas Digitais
+              </CardTitle>
+              <NovaCarteirinhaButton clienteId={cliente.id} prestadores={cliente.prestadores.map((p: any) => ({ id: p.id, nome_completo: p.nome_completo }))} />
+            </CardHeader>
+            <CardContent>
+              <CarteirinhasList carteirinhas={carteirinhas} mostrarPrestador podeAlternarStatus />
             </CardContent>
           </Card>
 

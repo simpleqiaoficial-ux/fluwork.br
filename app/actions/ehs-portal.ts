@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache"
 import { desc, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { ehsDocumentos, ehsTiposDocumento, ehsIntegracoes } from "@/lib/db/schema"
+import { ehsDocumentos, ehsTiposDocumento, ehsIntegracoes, ehsCarteirinhas } from "@/lib/db/schema"
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { calcularComplianceDocumentos } from "@/lib/ehs/compliance"
-import { toDocumentoEhsDTO, toTipoDocumentoEhsDTO, toIntegracaoEhsDTO } from "@/lib/db/mappers"
+import { toDocumentoEhsDTO, toTipoDocumentoEhsDTO, toIntegracaoEhsDTO, toCarteirinhaEhsDTO } from "@/lib/db/mappers"
 import { registrarAuditoriaEhs } from "@/lib/ehs/auditoria"
 import { registrarTimelineEhs } from "@/lib/ehs/timeline"
 
@@ -19,10 +19,11 @@ export async function buscarMeuPortalEhs() {
   const usuario = await getUsuarioLogado()
   if (!usuario || usuario.tipo_acesso !== "Colaborador") return null
 
-  const [tipos, documentos, integracoes] = await Promise.all([
+  const [tipos, documentos, integracoes, carteirinhas] = await Promise.all([
     db.select().from(ehsTiposDocumento).where(eq(ehsTiposDocumento.ativo, true)).orderBy(ehsTiposDocumento.categoria, ehsTiposDocumento.nome),
     db.query.ehsDocumentos.findMany({ where: eq(ehsDocumentos.colaboradorId, usuario.id), orderBy: [desc(ehsDocumentos.versao)] }),
     db.query.ehsIntegracoes.findMany({ where: eq(ehsIntegracoes.colaboradorId, usuario.id), orderBy: [desc(ehsIntegracoes.dataAgendada)], with: { cliente: true } }),
+    db.query.ehsCarteirinhas.findMany({ where: eq(ehsCarteirinhas.colaboradorId, usuario.id), orderBy: [desc(ehsCarteirinhas.createdAt)], with: { cliente: true } }),
   ])
 
   const documentosDTO = documentos.map(toDocumentoEhsDTO)
@@ -40,6 +41,7 @@ export async function buscarMeuPortalEhs() {
     compliance,
     documentosPorTipo,
     integracoes: integracoes.map(toIntegracaoEhsDTO),
+    carteirinhas: carteirinhas.filter((c) => c.status === "ativa").map(toCarteirinhaEhsDTO),
   }
 }
 

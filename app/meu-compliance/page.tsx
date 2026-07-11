@@ -5,10 +5,11 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ComplianceRing } from "@/components/ehs/compliance-ring"
 import { ConfirmarPresencaButton } from "@/components/ehs/confirmar-presenca-button"
+import { CarteirinhasList } from "@/components/ehs/carteirinhas-list"
 import { buscarMeuPortalEhs } from "@/app/actions/ehs-portal"
 import { calcularSituacaoValidade } from "@/lib/ehs/validade"
 import { situacaoExibicaoIntegracao } from "@/lib/ehs/integracoes"
-import { FileText, CalendarClock } from "lucide-react"
+import { FileText, CalendarClock, CreditCard } from "lucide-react"
 
 function iniciais(nome: string) {
   return nome.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -67,6 +68,20 @@ export default async function MeuCompliancePage() {
         </Card>
 
         <div className="lg:col-span-2 space-y-6">
+          {portal.carteirinhas.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  Minhas carteirinhas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CarteirinhasList carteirinhas={portal.carteirinhas} mostrarCliente />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">

@@ -687,6 +687,23 @@ export const ehsAuditoria = pgTable("ehs_auditoria", {
   check("ehs_auditoria_acao_check", sql`${table.acao} IN ('criado','atualizado','excluido')`),
 ])
 
+// Carteirinha digital de acesso — um PDF (crachá/liberação) emitido para um prestador
+// especificamente num cliente. Um prestador pode ter várias (uma por cliente, ou renovações),
+// abertas dentro do próprio sistema (Portal do Prestador) pra mostrar na entrada.
+export const ehsCarteirinhas = pgTable("ehs_carteirinhas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  clienteId: uuid("cliente_id").notNull().references(() => ehsClientes.id, { onDelete: "cascade" }),
+  colaboradorId: uuid("colaborador_id").notNull().references(() => colaboradores.id, { onDelete: "cascade" }),
+  titulo: text("titulo"),
+  objectPath: text("object_path").notNull(),
+  status: text("status").notNull().default("ativa"),
+  criadoPor: uuid("criado_por").references(() => colaboradores.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("ehs_carteirinhas_status_check", sql`${table.status} IN ('ativa','inativa')`),
+])
+
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
 export const empresasRelations = relations(empresas, ({ one, many }) => ({
@@ -870,4 +887,11 @@ export const ehsTimelineEventosRelations = relations(ehsTimelineEventos, ({ one 
 export const ehsAuditoriaRelations = relations(ehsAuditoria, ({ one }) => ({
   empresa: one(empresas, { fields: [ehsAuditoria.empresaId], references: [empresas.id] }),
   ator: one(colaboradores, { fields: [ehsAuditoria.atorId], references: [colaboradores.id] }),
+}))
+
+export const ehsCarteirinhasRelations = relations(ehsCarteirinhas, ({ one }) => ({
+  empresa: one(empresas, { fields: [ehsCarteirinhas.empresaId], references: [empresas.id] }),
+  cliente: one(ehsClientes, { fields: [ehsCarteirinhas.clienteId], references: [ehsClientes.id] }),
+  colaborador: one(colaboradores, { fields: [ehsCarteirinhas.colaboradorId], references: [colaboradores.id] }),
+  criadoPorColaborador: one(colaboradores, { fields: [ehsCarteirinhas.criadoPor], references: [colaboradores.id] }),
 }))

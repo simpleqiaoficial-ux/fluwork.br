@@ -242,6 +242,34 @@ export async function sendContratoAssinadoEmpresaEmail(params: {
   })
 }
 
+export async function sendIntegracaoAgendadaEmail(params: {
+  to: string
+  prestadorNome: string
+  clienteNome: string
+  dataFormatada: string
+  horario?: string | null
+  enderecoLocal?: string | null
+  cidade?: string | null
+  telefone?: string | null
+  portalUrl: string
+  empresa: EmpresaEmail
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Integração agendada — ${params.clienteNome}`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.prestadorNome)}.</p>
+      <p>Você foi agendado para uma integração em <strong>${escapeHtml(params.clienteNome)}</strong>, no dia ${params.dataFormatada}${params.horario ? ` às ${params.horario}` : ""}.</p>
+      ${params.enderecoLocal ? `<p style="color:#64748B; font-size:13px;">Local: ${escapeHtml(params.enderecoLocal)}${params.cidade ? ` · ${escapeHtml(params.cidade)}` : ""}</p>` : ""}
+      ${params.telefone ? `<p style="color:#64748B; font-size:13px;">Contato: ${escapeHtml(params.telefone)}</p>` : ""}
+      ${emailButton(params.portalUrl, "Ver detalhes e confirmar presença")}
+      ${empresaRodape(params.empresa)}
+    `),
+  })
+}
+
 export async function sendRecuperarSenhaEmail(params: {
   to: string
   nomeCompleto: string

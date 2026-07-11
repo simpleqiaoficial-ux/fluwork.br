@@ -557,6 +557,24 @@ export function toClienteResponsavelEhsDTO(row: AnyRow) {
   }
 }
 
+export function toCarteirinhaEhsDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    empresa_id: row.empresaId,
+    cliente_id: row.clienteId,
+    colaborador_id: row.colaboradorId,
+    titulo: row.titulo,
+    object_path: row.objectPath,
+    url: `/api/files/${row.objectPath}`,
+    status: row.status,
+    criado_por: row.criadoPor,
+    created_at: row.createdAt,
+    ...(row.cliente !== undefined && { cliente: row.cliente ? { id: row.cliente.id, nome: row.cliente.nome } : row.cliente }),
+    ...(row.colaborador !== undefined && { colaborador: row.colaborador ? { id: row.colaborador.id, nome_completo: row.colaborador.nomeCompleto } : row.colaborador }),
+  }
+}
+
 export function toIntegracaoEhsDTO(row: AnyRow) {
   if (!row) return row
   return {

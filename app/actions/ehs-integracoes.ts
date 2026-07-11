@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache"
 import { and, asc, eq, gte, lte } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { ehsIntegracoes, ehsClientes, colaboradores } from "@/lib/db/schema"
+import { ehsIntegracoes, ehsClientes, colaboradores, empresas } from "@/lib/db/schema"
 import { getTenantScope, assertNaoImpersonando } from "@/lib/tenant"
 import { exigirPermissaoEhs } from "@/lib/ehs/permissions"
 import { registrarAuditoriaEhs } from "@/lib/ehs/auditoria"
 import { registrarTimelineEhs } from "@/lib/ehs/timeline"
 import { TRANSICOES_STATUS_INTEGRACAO } from "@/lib/ehs/integracoes"
 import { toIntegracaoEhsDTO } from "@/lib/db/mappers"
+import { sendIntegracaoAgendadaEmail } from "@/lib/email"
 
 export interface IntegracaoEhsInput {
   cliente_id: string
@@ -75,10 +76,13 @@ export async function criarIntegracaoEhs(data: IntegracaoEhsInput) {
   if (!data.data_agendada) return { success: false, error: "Informe a data do agendamento" }
   if (!scope.empresaId) return { success: false, error: "Empresa não identificada" }
 
-  const [cliente] = await db.select({ id: ehsClientes.id, empresaId: ehsClientes.empresaId }).from(ehsClientes).where(eq(ehsClientes.id, data.cliente_id))
+  const [cliente] = await db.select({ id: ehsClientes.id, nome: ehsClientes.nome, empresaId: ehsClientes.empresaId }).from(ehsClientes).where(eq(ehsClientes.id, data.cliente_id))
   if (!cliente || (!scope.isSuperAdmin && cliente.empresaId !== scope.empresaId)) return { success: false, error: "Cliente inválido" }
 
-  const [colaborador] = await db.select({ id: colaboradores.id, empresaId: colaboradores.empresaId }).from(colaboradores).where(eq(colaboradores.id, data.colaborador_id))
+  const [colaborador] = await db
+    .select({ id: colaboradores.id, empresaId: colaboradores.empresaId, nomeCompleto: colaboradores.nomeCompleto, email: colaboradores.email })
+    .from(colaboradores)
+    .where(eq(colaboradores.id, data.colaborador_id))
   if (!colaborador || (!scope.isSuperAdmin && colaborador.empresaId !== scope.empresaId)) return { success: false, error: "Prestador inválido" }
 
   const empresaId = scope.isSuperAdmin ? cliente.empresaId! : scope.empresaId
@@ -112,6 +116,28 @@ export async function criarIntegracaoEhs(data: IntegracaoEhsInput) {
     descricao: `Integração agendada para ${new Date(data.data_agendada).toLocaleDateString("pt-BR")}`,
     atorId: scope.usuario.id,
   })
+
+  // E-mail único no momento do agendamento (sem job/cron) — o responsável de EHS marca no
+  // sistema e o prestador já recebe o aviso na hora. Best-effort: nunca derruba o agendamento.
+  if (colaborador.email) {
+    try {
+      const [empresa] = await db.select({ nomeFantasia: empresas.nomeFantasia, razaoSocial: empresas.razaoSocial, cnpj: empresas.cnpj }).from(empresas).where(eq(empresas.id, empresaId))
+      await sendIntegracaoAgendadaEmail({
+        to: colaborador.email,
+        prestadorNome: colaborador.nomeCompleto,
+        clienteNome: cliente.nome,
+        dataFormatada: new Intl.DateTimeFormat("pt-BR").format(new Date(data.data_agendada)),
+        horario: data.horario,
+        enderecoLocal: data.endereco_local,
+        cidade: data.cidade,
+        telefone: data.telefone,
+        portalUrl: `${process.env.APP_BASE_URL || ""}/meu-compliance`,
+        empresa: { nome: empresa?.nomeFantasia || empresa?.razaoSocial || "FluWork", razaoSocial: empresa?.razaoSocial || "", cnpj: empresa?.cnpj || "" },
+      })
+    } catch (error) {
+      console.error("[ehs] Erro ao enviar e-mail de integração agendada:", error)
+    }
+  }
 
   revalidatePath("/ehs/agenda")
   revalidatePath("/ehs/integracoes")

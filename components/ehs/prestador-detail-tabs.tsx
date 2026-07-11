@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { FileText, History, ShieldCheck, LayoutGrid, Loader2, ExternalLink, Upload, XCircle, ChevronDown, ChevronUp, CalendarClock, Plus } from "lucide-react"
+import { FileText, History, ShieldCheck, LayoutGrid, Loader2, ExternalLink, Upload, XCircle, ChevronDown, ChevronUp, CalendarClock, Plus, CreditCard } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { ComplianceRing } from "@/components/ehs/compliance-ring"
 import { DocumentoUploadDialog } from "@/components/ehs/documento-upload-dialog"
+import { CarteirinhasList } from "@/components/ehs/carteirinhas-list"
 import { calcularSituacaoValidade } from "@/lib/ehs/validade"
 import { CATEGORIA_LABELS } from "@/lib/ehs/documento-categorias"
 import { situacaoExibicaoIntegracao } from "@/lib/ehs/integracoes"
@@ -72,12 +73,22 @@ interface IntegracaoResumoDTO {
   cliente?: { id: string; nome: string } | null
 }
 
+interface CarteirinhaDTO {
+  id: string
+  titulo: string | null
+  url: string
+  status: string
+  created_at: string | Date
+  cliente?: { id: string; nome: string } | null
+}
+
 interface PrestadorDetailTabsProps {
   colaboradorId: string
   documentosPorTipo: DocumentoAgrupado[]
   timeline: TimelineEventoDTO[]
   auditoria: AuditoriaEventoDTO[]
   integracoes: IntegracaoResumoDTO[]
+  carteirinhas: CarteirinhaDTO[]
   compliance: ComplianceResultado
 }
 
@@ -107,7 +118,7 @@ const AUDITORIA_LABELS: Record<string, string> = {
   excluido: "Documento removido",
 }
 
-export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline, auditoria, integracoes, compliance }: PrestadorDetailTabsProps) {
+export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline, auditoria, integracoes, carteirinhas, compliance }: PrestadorDetailTabsProps) {
   const router = useRouter()
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("todos")
   const [uploadAberto, setUploadAberto] = useState(false)
@@ -217,6 +228,18 @@ export function PrestadorDetailTabs({ colaboradorId, documentosPorTipo, timeline
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                Carteirinhas Digitais
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CarteirinhasList carteirinhas={carteirinhas} mostrarCliente />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="documentos" className="space-y-4">
