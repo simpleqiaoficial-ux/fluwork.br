@@ -3,9 +3,8 @@
 import { Fragment, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Eye, EyeOff, Menu } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { useValoresVisibility } from "@/contexts/valores-visibility-context"
-import { useMobileNav } from "@/contexts/mobile-nav-context"
 import { Button } from "@/components/ui/button"
 import { getBreadcrumbForPath } from "@/lib/nav-config"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
@@ -29,7 +28,6 @@ function iniciais(nome: string) {
 
 export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, tipoAcesso, fotoUrl }: UserHeaderProps) {
   const { valoresVisiveis, toggleValoresVisiveis, mascararValor } = useValoresVisibility()
-  const { setMobileOpen } = useMobileNav()
   const pathname = usePathname()
   const crumbs = useMemo(() => getBreadcrumbForPath(pathname, tipoAcesso), [pathname, tipoAcesso])
 
@@ -43,16 +41,6 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, ti
         </div>
       )}
       <div className="flex items-center gap-4 px-4 py-3 lg:px-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileOpen(true)}
-          className="h-9 w-9 -ml-1.5 shrink-0 lg:hidden"
-          aria-label="Abrir menu de navegação"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-
         <div className="flex-1 overflow-hidden">
           {crumbs.length > 0 ? (
             <Breadcrumb>

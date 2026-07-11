@@ -12,7 +12,6 @@ import { empresas } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { AutoLogoutProvider } from "@/components/auto-logout-provider"
 import { ValoresVisibilityProvider } from "@/contexts/valores-visibility-context"
-import { MobileNavProvider } from "@/contexts/mobile-nav-context"
 import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
 import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
@@ -87,7 +86,7 @@ export default async function RootLayout({
           {empresaBloqueadaMotivo !== undefined ? (
             <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
           ) : (
-            <MobileNavProvider>
+            <>
               {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} />}
 
               <div
@@ -105,7 +104,12 @@ export default async function RootLayout({
                     fotoUrl={session.fotoUrl}
                   />
                 )}
-                <main className={cn("transition-all duration-300", !isChromeless && session && "pt-14 lg:pt-0")}>
+                <main
+                  className={cn(
+                    "transition-all duration-300",
+                    !isChromeless && session && "pt-14 lg:pt-0 pb-24 lg:pb-0",
+                  )}
+                >
                   {!isChromeless && session ? (
                     <SystemStatusProvider tipoAcesso={session.tipoAcesso}>
                       <AutoLogoutProvider>
@@ -121,7 +125,7 @@ export default async function RootLayout({
                   ) : children}
                 </main>
               </div>
-            </MobileNavProvider>
+            </>
           )}
         </ValoresVisibilityProvider>
         <Toaster richColors closeButton position="top-right" />

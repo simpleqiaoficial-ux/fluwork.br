@@ -10,9 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { contarPendencias } from "@/app/actions/contadores"
 import { getNavForRole, type NavItem, type NavGroup, type Workspace } from "@/lib/nav-config"
-import { useMobileNav } from "@/contexts/mobile-nav-context"
 import { CommandPalette } from "@/components/command-palette"
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 
 interface SidebarNavigationProps {
   tipoAcesso?: string
@@ -29,7 +27,6 @@ function itemPath(href: string) {
 export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { mobileOpen, setMobileOpen } = useMobileNav()
   const [collapsed, setCollapsed] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [openWorkspaces, setOpenWorkspaces] = useState<Record<string, boolean>>({})
@@ -124,19 +121,16 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     onClick,
     level = 0,
     iconOnly,
-    mobile,
   }: {
     item: NavItem
     onClick?: () => void
     level?: 0 | 1 | 2
     iconOnly?: boolean
-    mobile?: boolean
   }) => {
     const Icon = item.icon
     const isActive = isItemActive(item.href)
     const badge = item.badgeKey ? (pendencias?.[item.badgeKey] ?? 0) : 0
     const levelPadding = level === 2 ? "pl-9 pr-3" : level === 1 ? "pl-6 pr-3" : "px-3"
-    const mobileLevelPadding = level === 2 ? "pl-10 pr-3.5" : level === 1 ? "pl-7 pr-3.5" : "px-3.5"
 
     return (
       <Link
@@ -144,28 +138,20 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         onClick={onClick}
         title={iconOnly ? item.label : undefined}
         className={cn(
-          "group relative flex items-center rounded-md transition-colors duration-100",
-          mobile
-            ? "gap-3 py-3 text-[15px] font-medium rounded-xl"
-            : "gap-2.5 py-1.5 text-[13px] font-medium",
-          iconOnly ? "justify-center px-0" : mobile ? mobileLevelPadding : levelPadding,
+          "group relative flex items-center gap-2.5 py-1.5 text-[13px] font-medium rounded-md transition-colors duration-100",
+          iconOnly ? "justify-center px-0" : levelPadding,
           isActive
             ? "bg-sidebar-active text-sidebar-active-foreground before:absolute before:inset-y-0.5 before:left-0 before:w-0.5 before:rounded-full before:bg-sidebar-icon"
             : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover",
         )}
       >
         <Icon
-          className={cn(mobile ? "h-5 w-5" : "h-[15px] w-[15px]", "shrink-0", isActive && "text-sidebar-icon")}
+          className={cn("h-[15px] w-[15px] shrink-0", isActive && "text-sidebar-icon")}
           strokeWidth={1.75}
         />
         {!iconOnly && <span className="flex-1 truncate">{item.label}</span>}
         {badge > 0 && !iconOnly && (
-          <span
-            className={cn(
-              "ml-auto flex items-center justify-center rounded-full bg-primary font-semibold tabular-nums text-primary-foreground",
-              mobile ? "h-5 min-w-5 px-1.5 text-[11px]" : "h-[18px] min-w-[18px] px-1 text-[10px]",
-            )}
-          >
+          <span className="ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground">
             {badge}
           </span>
         )}
@@ -182,20 +168,12 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     </nav>
   )
 
-  const GroupBlock = ({
-    group,
-    onLinkClick,
-    mobile,
-  }: {
-    group: NavGroup
-    onLinkClick?: () => void
-    mobile?: boolean
-  }) => {
+  const GroupBlock = ({ group, onLinkClick }: { group: NavGroup; onLinkClick?: () => void }) => {
     if (!group.label || group.items.length === 1) {
       return (
         <>
           {group.items.map((item) => (
-            <NavLink key={item.href} item={item} onClick={onLinkClick} level={1} mobile={mobile} />
+            <NavLink key={item.href} item={item} onClick={onLinkClick} level={1} />
           ))}
         </>
       )
@@ -210,20 +188,17 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
           type="button"
           onClick={() => setOpenGroups((prev) => ({ ...prev, [group.label]: !prev[group.label] }))}
           className={cn(
-            "w-full flex items-center rounded-md transition-colors duration-100",
-            mobile ? "gap-2.5 pl-7 pr-3.5 py-2.5 text-sm font-medium" : "gap-2 pl-6 pr-3 py-1.5 text-[13px] font-medium",
+            "w-full flex items-center gap-2 pl-6 pr-3 py-1.5 text-[13px] font-medium rounded-md transition-colors duration-100",
             groupHasActiveItem && !isOpen ? "text-sidebar-icon" : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover",
           )}
         >
           <span className="flex-1 truncate text-left">{group.label}</span>
-          <ChevronDown
-            className={cn(mobile ? "h-3.5 w-3.5" : "h-3 w-3", "shrink-0 transition-transform duration-100", isOpen && "rotate-180")}
-          />
+          <ChevronDown className={cn("h-3 w-3 shrink-0 transition-transform duration-100", isOpen && "rotate-180")} />
         </button>
         {isOpen && (
           <div className="mt-0.5 space-y-0.5">
             {group.items.map((item) => (
-              <NavLink key={item.href} item={item} onClick={onLinkClick} level={2} mobile={mobile} />
+              <NavLink key={item.href} item={item} onClick={onLinkClick} level={2} />
             ))}
           </div>
         )}
@@ -234,38 +209,25 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
   // Cada workspace vira sua própria seção — cabeçalho fixo (não recolhível) pra deixar clara
   // a estrutura em "áreas de trabalho" mesmo com o sistema crescendo pra dezenas de módulos,
   // e um corpo colapsável por baixo pra quem quer reduzir ruído visual.
-  const WorkspaceBlock = ({
-    workspace,
-    onLinkClick,
-    mobile,
-  }: {
-    workspace: Workspace
-    onLinkClick?: () => void
-    mobile?: boolean
-  }) => {
+  const WorkspaceBlock = ({ workspace, onLinkClick }: { workspace: Workspace; onLinkClick?: () => void }) => {
     const isOpen = openWorkspaces[workspace.id] ?? true
     const WsIcon = workspace.icon
 
     return (
-      <div className={mobile ? "mb-5 last:mb-0" : "mb-4 last:mb-0"}>
+      <div className="mb-4 last:mb-0">
         <button
           type="button"
           onClick={() => toggleWorkspace(workspace.id)}
-          className={cn(
-            "w-full flex items-center font-semibold uppercase tracking-wider text-sidebar-muted/70 hover:text-sidebar-muted transition-colors",
-            mobile ? "gap-2.5 px-3.5 py-1.5 mb-1 text-xs" : "gap-2 px-3 py-1 mb-1 text-[11px]",
-          )}
+          className="w-full flex items-center gap-2 px-3 py-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted/70 hover:text-sidebar-muted transition-colors"
         >
-          <WsIcon className={cn(mobile ? "h-3.5 w-3.5" : "h-3 w-3", "shrink-0")} strokeWidth={1.75} />
+          <WsIcon className="h-3 w-3 shrink-0" strokeWidth={1.75} />
           <span className="flex-1 truncate text-left">{workspace.label}</span>
-          <ChevronDown
-            className={cn(mobile ? "h-3.5 w-3.5" : "h-3 w-3", "shrink-0 transition-transform duration-100", !isOpen && "-rotate-90")}
-          />
+          <ChevronDown className={cn("h-3 w-3 shrink-0 transition-transform duration-100", !isOpen && "-rotate-90")} />
         </button>
         {isOpen && (
           <div className="space-y-0.5">
             {workspace.groups.map((group, i) => (
-              <GroupBlock key={group.label || i} group={group} onLinkClick={onLinkClick} mobile={mobile} />
+              <GroupBlock key={group.label || i} group={group} onLinkClick={onLinkClick} />
             ))}
           </div>
         )}
@@ -273,23 +235,72 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
     )
   }
 
-  const NavBody = ({ onLinkClick, mobile }: { onLinkClick?: () => void; mobile?: boolean }) => {
+  const NavBody = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     if (isSimpleMenu) {
       return (
-        <nav className={cn("flex-1", mobile ? "space-y-1" : "overflow-y-auto py-3 px-2.5 space-y-0.5")}>
+        <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5">
           {flatItems.map((item) => (
-            <NavLink key={item.href} item={item} onClick={onLinkClick} mobile={mobile} />
+            <NavLink key={item.href} item={item} onClick={onLinkClick} />
           ))}
         </nav>
       )
     }
 
     return (
-      <nav className={cn("flex-1", mobile ? "" : "overflow-y-auto py-3 px-2.5")}>
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5">
         {workspaces.map((ws) => (
-          <WorkspaceBlock key={ws.id} workspace={ws} onLinkClick={onLinkClick} mobile={mobile} />
+          <WorkspaceBlock key={ws.id} workspace={ws} onLinkClick={onLinkClick} />
         ))}
       </nav>
+    )
+  }
+
+  // Item da barra inferior mobile: ícone em cima, rótulo embaixo, largura fixa pra virar uma
+  // fileira que rola horizontalmente (o usuário arrasta com o dedo pra ver o resto).
+  const TabBarItem = ({
+    icon: Icon,
+    label,
+    href,
+    active,
+    badge,
+    onClick,
+  }: {
+    icon: NavItem["icon"]
+    label: string
+    href?: string
+    active?: boolean
+    badge?: number
+    onClick?: () => void
+  }) => {
+    const itemClassName = cn(
+      "flex shrink-0 snap-start flex-col items-center justify-center gap-1 rounded-xl px-3.5 py-2 min-w-[68px] transition-colors",
+      active ? "bg-white/15 text-white" : "text-primary-foreground/75 active:bg-white/10 active:text-white",
+    )
+    const content = (
+      <>
+        <span className="relative flex items-center justify-center">
+          <Icon className="h-5 w-5" strokeWidth={1.75} />
+          {!!badge && badge > 0 && (
+            <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-semibold tabular-nums text-destructive-foreground">
+              {badge}
+            </span>
+          )}
+        </span>
+        <span className="whitespace-nowrap text-[10.5px] font-medium leading-none">{label}</span>
+      </>
+    )
+
+    if (href) {
+      return (
+        <Link href={href} onClick={onClick} className={itemClassName}>
+          {content}
+        </Link>
+      )
+    }
+    return (
+      <button type="button" onClick={onClick} className={itemClassName}>
+        {content}
+      </button>
     )
   }
 
@@ -371,60 +382,30 @@ export function SidebarNavigation({ tipoAcesso }: SidebarNavigationProps) {
         </div>
       </aside>
 
-      {/* Navegação mobile — bottom sheet único e rolável (menu + perfil + sair juntos no mesmo
-          scroll), pra parecer um app nativo em vez de uma gaveta lateral de desktop encolhida. */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent
-          side="bottom"
-          className="lg:hidden flex flex-col h-[88dvh] max-h-[88dvh] rounded-t-2xl border-sidebar-border bg-sidebar p-0 gap-0 [&>button]:hidden"
-        >
-          <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
-          <SheetDescription className="sr-only">Acesse as áreas e sua conta</SheetDescription>
-
-          <div className="flex justify-center pt-2.5 pb-1.5 shrink-0">
-            <div className="h-1.5 w-10 rounded-full bg-sidebar-border" />
-          </div>
-
-          <div className="flex items-center justify-center h-12 px-4 shrink-0">
-            <Link href="/" className="flex items-center" onClick={() => setMobileOpen(false)}>
-              <Logo dark />
-            </Link>
-          </div>
-
-          <div className="flex-1 overflow-y-auto overscroll-contain px-3">
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false)
-                setPaletteOpen(true)
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-hover/60 px-3.5 h-12 text-[15px] text-sidebar-muted mb-3"
-            >
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="flex-1 text-left">Buscar...</span>
-            </button>
-
-            <NavBody onLinkClick={() => setMobileOpen(false)} mobile />
-
-            <div className="border-t border-sidebar-border mt-3 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-1">
-              <p className="px-3.5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted/70">
-                Configurações
-              </p>
-              <NavLink item={perfilLink} onClick={() => setMobileOpen(false)} mobile />
-              {tipoAcesso && (
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="w-full justify-start gap-3 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover h-12 text-[15px] font-medium px-3.5 rounded-xl"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Sair</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Navegação mobile — barra fixa embaixo, sempre visível (não é um menu que abre/fecha).
+          Todos os itens ficam numa única fileira horizontal rolável: o usuário arrasta com o
+          dedo pra ver o resto, igual um app nativo. Busca, Perfil e Sair entram na mesma fileira. */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 lg:hidden bg-primary shadow-[0_-2px_12px_rgba(0,0,0,0.15)]"
+        aria-label="Navegação"
+      >
+        <div className="flex items-stretch gap-1 overflow-x-auto px-2 pt-1.5 snap-x snap-mandatory [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {flatItems.map((item) => (
+            <TabBarItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              active={isItemActive(item.href)}
+              badge={item.badgeKey ? (pendencias?.[item.badgeKey] ?? 0) : 0}
+            />
+          ))}
+          <TabBarItem icon={Search} label="Buscar" onClick={() => setPaletteOpen(true)} />
+          <TabBarItem icon={UserCircle} label="Perfil" href="/perfil" active={isItemActive("/perfil")} />
+          {tipoAcesso && <TabBarItem icon={LogOut} label="Sair" onClick={handleLogout} />}
+        </div>
+        <div className="pb-[env(safe-area-inset-bottom)]" />
+      </nav>
     </>
   )
 }
