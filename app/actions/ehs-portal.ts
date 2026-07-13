@@ -15,20 +15,22 @@ export type MeuPortalEhsResultado =
   | { ok: false; motivo: "nao_autenticado" }
   | { ok: false; motivo: "papel_invalido"; papelAtual: string }
 
-/** Portal do Prestador — autoatendimento sempre escopado pelo próprio usuário logado, nunca
- *  aceita um id vindo de fora. Mesmo padrão de /meus-pagamentos e /meus-contratos: não passa
- *  pelo RBAC granular do módulo EHS (lib/ehs/permissions.ts), porque essa camada controla
- *  quem vê o módulo administrativo — aqui é só o prestador vendo os próprios dados, do mesmo
- *  jeito que qualquer Colaborador já vê os próprios pagamentos/contratos.
+/** Portal pessoal de compliance — autoatendimento sempre escopado pelo próprio usuário logado,
+ *  nunca aceita um id vindo de fora. Mesmo padrão de /meus-pagamentos e /meus-contratos: não
+ *  passa pelo RBAC granular do módulo EHS (lib/ehs/permissions.ts), porque essa camada controla
+ *  quem vê o módulo administrativo — aqui é só o usuário vendo os próprios dados.
+ *
+ *  Todo papel tem acesso, menos Adm — Adm já gerencia compliance de todo mundo pelo módulo
+ *  EHS administrativo, não precisa de uma versão pessoal disso.
  *
  *  Devolve um motivo explícito em vez de só `null` — a página usava um redirect silencioso
  *  pra "/meus-pagamentos" que, sem nenhuma mensagem, parecia simplesmente não funcionar (o
  *  relato foi "fica voltando pra dashboard"). Agora dá pra distinguir sessão ausente (manda
- *  pro login) de sessão válida mas com papel diferente de Colaborador (mostra o motivo). */
+ *  pro login) de sessão válida mas sem acesso a esta tela (mostra o motivo). */
 export async function buscarMeuPortalEhs(): Promise<MeuPortalEhsResultado> {
   const usuario = await getUsuarioLogado()
   if (!usuario) return { ok: false, motivo: "nao_autenticado" }
-  if (usuario.tipo_acesso !== "Colaborador") return { ok: false, motivo: "papel_invalido", papelAtual: usuario.tipo_acesso }
+  if (usuario.tipo_acesso === "Adm") return { ok: false, motivo: "papel_invalido", papelAtual: usuario.tipo_acesso }
 
   return { ok: true, portal: await montarPortalEhs(usuario) }
 }
@@ -62,7 +64,7 @@ async function montarPortalEhs(usuario: { id: string; nome_completo: string; fot
 
 export async function confirmarMinhaPresencaEhs(integracaoId: string) {
   const usuario = await getUsuarioLogado()
-  if (!usuario || usuario.tipo_acesso !== "Colaborador") return { success: false, error: "Não autenticado" }
+  if (!usuario || usuario.tipo_acesso === "Adm") return { success: false, error: "Não autenticado" }
 
   const integracao = await db.query.ehsIntegracoes.findFirst({ where: eq(ehsIntegracoes.id, integracaoId) })
   if (!integracao) return { success: false, error: "Integração não encontrada" }

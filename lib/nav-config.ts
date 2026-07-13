@@ -79,6 +79,7 @@ export const WORKSPACES: Workspace[] = [
         items: [
           { href: "/financeiro", label: "Painel de Aprovação Final", icon: DollarSign, roles: ["Adm", "Financeiro"], badgeKey: "painelFinanceiro", keywords: ["pagar", "notas recebidas"] },
           { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt, roles: ["Gerente", "Financeiro"] },
+          { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck, roles: ["Gerente", "Financeiro"] },
         ],
       },
       { label: "", items: [{ href: "/gestao/notas", label: "Notas Fiscais", icon: FileText, roles: ["Adm", "Financeiro"] }] },
@@ -114,6 +115,7 @@ export const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/pedidos", label: "Solicitações", icon: Receipt },
   { href: "/historico", label: "Minhas Solicitações", icon: FileText },
   { href: "/meus-pagamentos", label: "Minhas Ordens", icon: DollarSign },
+  { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
   { href: "/supervisor/notas-equipe", label: "Notas da Equipe Operacional", icon: Users },
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
 ]
@@ -128,6 +130,7 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/ehs/agenda", label: "Agenda", icon: CalendarClock, keywords: ["agenda", "integracao", "integração", "calendario", "calendário", "agendamento"] },
   { href: "/ehs/pendencias", label: "Pendências", icon: AlertCircle, keywords: ["pendencia", "pendência", "vencido", "vencimento", "alerta"] },
   { href: "/ehs/auditoria", label: "Auditoria", icon: ScrollText, keywords: ["auditoria", "log", "historico", "histórico", "quem alterou"] },
+  { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck, keywords: ["meus documentos", "minhas integrações", "pessoal"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
@@ -141,6 +144,7 @@ export const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin/dados/pedidos", label: "Ordens de Pagamento", icon: DollarSign },
   { href: "/admin/dados/notas-fiscais", label: "Notas fiscais", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
+  { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
 ]
 
 function itemMatchesRole(item: NavItem, tipoAcesso?: string) {

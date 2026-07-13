@@ -33,8 +33,8 @@ export default async function MeuCompliancePage() {
       <div className="container mx-auto py-10 px-4 max-w-lg">
         <EmptyState
           icon={ShieldAlert}
-          title="Este portal é exclusivo para prestadores"
-          description={`Sua conta está com o papel "${getPapelLabel(resultado.motivo === "papel_invalido" ? resultado.papelAtual : "")}". O Meu Compliance só é liberado pra contas com o papel Colaborador — se você é prestador e está vendo isso, entre em contato com quem administra sua empresa na FluWork.`}
+          title="Este portal não está disponível pro seu papel"
+          description={`Sua conta está com o papel "${getPapelLabel(resultado.motivo === "papel_invalido" ? resultado.papelAtual : "")}". O Meu Compliance é liberado pra todos os papéis, exceto Administrador — quem administra já acompanha o compliance de todo mundo pelo módulo EHS.`}
           className="py-16"
         />
       </div>
