@@ -22,9 +22,16 @@ export default async function NotFound() {
         O link que você acessou não existe ou foi movido. Confira o endereço ou volte para um lugar conhecido.
       </p>
 
-      <Button asChild className="mt-8">
-        <Link href={destino}>{label}</Link>
-      </Button>
+      <div className="mt-8 flex items-center gap-3">
+        <Button asChild>
+          <Link href={destino}>{label}</Link>
+        </Button>
+        {session && (
+          <Button asChild variant="outline">
+            <Link href="/suporte/novo?message=Página não encontrada (404)">Reportar problema</Link>
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

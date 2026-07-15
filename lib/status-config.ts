@@ -1,4 +1,4 @@
-import { FileEdit, Send, Eye, CheckCircle2, XCircle, Clock, Ban, Archive, AlertTriangle, FileCheck, PauseCircle, type LucideIcon } from "lucide-react"
+import { FileEdit, Send, Eye, CheckCircle2, XCircle, Clock, Ban, Archive, AlertTriangle, FileCheck, PauseCircle, Hourglass, RotateCcw, type LucideIcon } from "lucide-react"
 import type { BadgeProps } from "@/components/ui/badge"
 
 export type StatusVariant = NonNullable<BadgeProps["variant"]>
@@ -69,7 +69,28 @@ export const EHS_INTEGRACAO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
   vencido: { label: "Vencido", variant: "destructive", icon: AlertTriangle },
 }
 
-export type StatusEntity = "contrato" | "pedido" | "empresa" | "nota_fiscal" | "ehs_cliente" | "ehs_documento" | "ehs_integracao"
+export const CHAMADO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
+  novo: { label: "Novo", variant: "neutral", icon: Clock },
+  em_triagem: { label: "Em triagem", variant: "info", icon: Eye },
+  em_atendimento: { label: "Em atendimento", variant: "info", icon: Hourglass },
+  aguardando_usuario: { label: "Aguardando você", variant: "warning", icon: Clock },
+  aguardando_empresa: { label: "Aguardando empresa", variant: "warning", icon: Clock },
+  aguardando_fluwork: { label: "Aguardando FluWork", variant: "warning", icon: Clock },
+  resolvido: { label: "Resolvido", variant: "success", icon: CheckCircle2 },
+  fechado: { label: "Fechado", variant: "neutral", icon: Archive },
+  reaberto: { label: "Reaberto", variant: "warning", icon: RotateCcw },
+  arquivado: { label: "Arquivado", variant: "neutral", icon: Archive },
+}
+
+export type StatusEntity =
+  | "contrato"
+  | "pedido"
+  | "empresa"
+  | "nota_fiscal"
+  | "ehs_cliente"
+  | "ehs_documento"
+  | "ehs_integracao"
+  | "chamado"
 
 const CONFIG_BY_ENTITY: Record<StatusEntity, Record<string, StatusConfigEntry>> = {
   contrato: CONTRATO_STATUS_CONFIG,
@@ -79,6 +100,7 @@ const CONFIG_BY_ENTITY: Record<StatusEntity, Record<string, StatusConfigEntry>> 
   ehs_cliente: EHS_CLIENTE_STATUS_CONFIG,
   ehs_documento: EHS_DOCUMENTO_STATUS_CONFIG,
   ehs_integracao: EHS_INTEGRACAO_STATUS_CONFIG,
+  chamado: CHAMADO_STATUS_CONFIG,
 }
 
 export function getStatusConfig(entity: StatusEntity, status: string): StatusConfigEntry {

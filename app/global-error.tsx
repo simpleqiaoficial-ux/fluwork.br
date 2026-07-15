@@ -8,6 +8,11 @@ export default function GlobalError({
   error: Error & { digest?: string }
 }) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+  const linkSuporte = `/suporte/novo?${new URLSearchParams({
+    message: error.message || 'Erro desconhecido',
+    ...(error.digest ? { digest: error.digest } : {}),
+    ...(pathname ? { pathname } : {}),
+  }).toString()}`
 
   console.error(error)
 
@@ -129,6 +134,17 @@ export default function GlobalError({
             font-size: 11px;
             line-height: 1.5;
           }
+          .error-report-link {
+            display: inline-block;
+            margin: 1rem 0 0 2rem;
+            padding: 0.4rem 0.8rem;
+            background: #1E4FD8;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+          }
         `}</style>
       </head>
       <body>
@@ -145,6 +161,9 @@ export default function GlobalError({
           <div className="error-summary">
             {error.message || 'Unknown error'}
           </div>
+          <a className="error-report-link" href={linkSuporte}>
+            Reportar erro
+          </a>
           {error.stack && (
             <div className="error-details-wrapper">
               <details className="error-details">

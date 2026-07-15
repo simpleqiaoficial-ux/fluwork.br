@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
       "/meus-contratos",
       "/contratos/assinar",
       "/meu-compliance",
+      "/suporte",
       "/perfil",
       "/esqueci-senha",
       "/redefinir-senha",
@@ -74,7 +75,7 @@ export async function middleware(request: NextRequest) {
   // nem lista os itens financeiros pra esse papel, e lib/ehs/permissions.ts, pro controle fino
   // de ação dentro do próprio módulo) — bloqueia no edge, antes de qualquer página carregar.
   if (session?.tipoAcesso === "EHS") {
-    const rotasPermitidasEhs = ["/ehs", "/meu-compliance", "/perfil", "/esqueci-senha", "/redefinir-senha", "/api/files"]
+    const rotasPermitidasEhs = ["/ehs", "/meu-compliance", "/suporte", "/perfil", "/esqueci-senha", "/redefinir-senha", "/api/files"]
     if (!rotasPermitidasEhs.some((rota) => request.nextUrl.pathname.startsWith(rota))) {
       return NextResponse.redirect(new URL("/ehs", request.url))
     }

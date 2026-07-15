@@ -137,6 +137,95 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
   })
 }
 
+// ---------- Central de Suporte ----------
+// Um único botão "Ver chamado na FluWork" em todo template — nunca telefone/WhatsApp, mesma
+// decisão que tirou esses contatos das telas de bloqueio/suspensão.
+
+export async function sendTicketCriadoEmail(params: { to: string; nomeSolicitante: string; numero: string; titulo: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Chamado ${params.numero} aberto — ${params.titulo}`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
+      <p>Seu chamado <strong>${params.numero}</strong> foi aberto: "${escapeHtml(params.titulo)}".</p>
+      <p>Já direcionamos pro time certo — você recebe um aviso assim que houver uma resposta.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
+export async function sendTicketAtendimentoIniciadoEmail(params: { to: string; nomeSolicitante: string; numero: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Chamado ${params.numero} em atendimento`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
+      <p>Seu chamado <strong>${params.numero}</strong> entrou em atendimento.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
+export async function sendTicketNovaRespostaEmail(params: { to: string; nomeDestinatario: string; numero: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Nova resposta no chamado ${params.numero}`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeDestinatario)}.</p>
+      <p>Há uma nova resposta no chamado <strong>${params.numero}</strong>.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
+export async function sendTicketAguardandoUsuarioEmail(params: { to: string; nomeSolicitante: string; numero: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Aguardando sua resposta — chamado ${params.numero}`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
+      <p>Estamos aguardando um retorno seu no chamado <strong>${params.numero}</strong> pra continuar o atendimento.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
+export async function sendTicketResolvidoEmail(params: { to: string; nomeSolicitante: string; numero: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Chamado ${params.numero} resolvido`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
+      <p>Seu chamado <strong>${params.numero}</strong> foi marcado como resolvido. Se ainda precisar de ajuda, você pode reabri-lo em até 7 dias.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
+export async function sendTicketFechadoEmail(params: { to: string; nomeSolicitante: string; numero: string; ticketUrl: string }) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: params.to,
+    subject: `Chamado ${params.numero} fechado`,
+    html: emailShell(`
+      <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
+      <p>Seu chamado <strong>${params.numero}</strong> foi fechado.</p>
+      ${emailButton(params.ticketUrl, "Ver chamado na FluWork")}
+    `),
+  })
+}
+
 export async function sendOrdemLancadaEmail(params: {
   to: string
   prestadorNome: string

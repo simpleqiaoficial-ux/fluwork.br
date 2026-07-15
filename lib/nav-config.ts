@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   CalendarClock,
   Database,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react"
 
@@ -80,6 +81,8 @@ export const WORKSPACES: Workspace[] = [
           { href: "/financeiro", label: "Painel de Aprovação Final", icon: DollarSign, roles: ["Adm", "Financeiro"], badgeKey: "painelFinanceiro", keywords: ["pagar", "notas recebidas"] },
           { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt, roles: ["Gerente", "Financeiro"] },
           { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck, roles: ["Gerente", "Financeiro"] },
+          { href: "/suporte", label: "Ajuda e Suporte", icon: LifeBuoy, roles: ["Gerente", "Financeiro", "Adm"], keywords: ["chamado", "ajuda", "problema", "erro"] },
+          { href: "/suporte/empresa", label: "Chamados da Empresa", icon: LifeBuoy, roles: ["Adm"], keywords: ["fila", "atendimento", "chamado"] },
         ],
       },
       { label: "", items: [{ href: "/gestao/notas", label: "Notas Fiscais", icon: FileText, roles: ["Adm", "Financeiro"] }] },
@@ -108,6 +111,7 @@ export const COLABORADOR_LINKS: NavItem[] = [
   { href: "/meus-pagamentos", label: "Minhas Ordens", icon: Receipt },
   { href: "/meus-contratos", label: "Meus Contratos", icon: FileSignature },
   { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
+  { href: "/suporte", label: "Ajuda e Suporte", icon: LifeBuoy },
 ]
 
 export const SUPERVISOR_LINKS: NavItem[] = [
@@ -118,6 +122,7 @@ export const SUPERVISOR_LINKS: NavItem[] = [
   { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
   { href: "/supervisor/notas-equipe", label: "Notas da Equipe Operacional", icon: Users },
   { href: "/acompanhamento", label: "Acompanhamento", icon: AlertCircle },
+  { href: "/suporte", label: "Ajuda e Suporte", icon: LifeBuoy },
 ]
 
 // Módulo EHS & Compliance — papel próprio, nunca vê os workspaces financeiros/contratuais
@@ -131,6 +136,7 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/ehs/pendencias", label: "Pendências", icon: AlertCircle, keywords: ["pendencia", "pendência", "vencido", "vencimento", "alerta"] },
   { href: "/ehs/auditoria", label: "Auditoria", icon: ScrollText, keywords: ["auditoria", "log", "historico", "histórico", "quem alterou"] },
   { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck, keywords: ["meus documentos", "minhas integrações", "pessoal"] },
+  { href: "/suporte", label: "Ajuda e Suporte", icon: LifeBuoy, keywords: ["chamado", "ajuda", "problema", "erro"] },
 ]
 
 // SuperAdmin (time FluWork) não pertence a nenhuma empresa — menu próprio, sem os workspaces
@@ -145,6 +151,7 @@ export const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin/dados/notas-fiscais", label: "Notas fiscais", icon: FileText },
   { href: "/admin/logs", label: "Log de auditoria", icon: ScrollText },
   { href: "/meu-compliance", label: "Meu Compliance", icon: ShieldCheck },
+  { href: "/admin/suporte", label: "Chamados de Suporte", icon: LifeBuoy, keywords: ["fila", "atendimento", "nivel 2", "nível 2"] },
 ]
 
 function itemMatchesRole(item: NavItem, tipoAcesso?: string) {

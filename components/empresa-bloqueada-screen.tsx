@@ -1,5 +1,7 @@
-import { Ban, Mail, Phone } from "lucide-react"
+import Link from "next/link"
+import { Ban, LifeBuoy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { LogoutButton } from "@/components/logout-button"
 
 interface EmpresaBloqueadaScreenProps {
@@ -30,25 +32,13 @@ export function EmpresaBloqueadaScreen({ motivo }: EmpresaBloqueadaScreenProps) 
         )}
 
         <div className="pt-4 border-t space-y-3">
-          <p className="text-sm text-muted-foreground">Em caso de dúvidas, entre em contato:</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-            <a
-              href="mailto:simpleqia.oficial@gmail.com"
-              className="flex items-center gap-2 text-primary hover:underline"
-            >
-              <Mail className="h-4 w-4" />
-              simpleqia.oficial@gmail.com
-            </a>
-            <a
-              href="https://wa.me/5511914860806"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-primary hover:underline"
-            >
-              <Phone className="h-4 w-4" />
-              (11) 91486-0806
-            </a>
-          </div>
+          <p className="text-sm text-muted-foreground">Precisa de ajuda? Acesse a Central de Suporte.</p>
+          <Button asChild className="gap-1.5">
+            <Link href="/suporte">
+              <LifeBuoy className="h-4 w-4" />
+              Acessar suporte
+            </Link>
+          </Button>
         </div>
 
         <LogoutButton />

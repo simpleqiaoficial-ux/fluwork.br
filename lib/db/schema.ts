@@ -704,6 +704,140 @@ export const ehsCarteirinhas = pgTable("ehs_carteirinhas", {
   check("ehs_carteirinhas_status_check", sql`${table.status} IN ('ativa','inativa')`),
 ])
 
+// Módulo Central de Suporte — dois níveis de atendimento (nivel_1 = Adm da própria empresa,
+// nivel_2 = SuperAdmin FluWork), roteados automaticamente pela categoria em tempo de criação
+// (lib/support/routing.ts) — nunca uma escolha do usuário nem confiado do cliente.
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // Número sequencial exibido como "SUP-000001" — gerado pelo Postgres (IDENTITY), nunca
+  // calculado em código, pra nunca colidir mesmo com escrita concorrente.
+  numeroSequencial: integer("numero_sequencial").notNull().generatedAlwaysAsIdentity(),
+  // Nulo só pelo mesmo motivo de colaboradores.empresa_id ser nulo pro SuperAdmin — na prática
+  // todo chamado criado hoje tem empresa (SuperAdmin não abre chamado pessoal, só atende).
+  empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
+  criadoPorId: uuid("criado_por_id").notNull().references(() => colaboradores.id),
+  assumidoPorId: uuid("assumido_por_id").references(() => colaboradores.id),
+  titulo: text("titulo").notNull(),
+  categoria: text("categoria").notNull(),
+  subcategoria: text("subcategoria"),
+  descricao: text("descricao").notNull(),
+  nivelSuporte: text("nivel_suporte").notNull(),
+  equipeResponsavel: text("equipe_responsavel").notNull(),
+  status: text("status").notNull().default("novo"),
+  prioridade: text("prioridade").notNull().default("media"),
+  // Sem FK de verdade — related_entity_id pode apontar pra pedidos_pagamento, notas_fiscais,
+  // contracts ou colaboradores; Postgres não tem FK polimórfica (mesmo padrão já usado em
+  // ehs_auditoria.registro_id).
+  relatedEntityType: text("related_entity_type").notNull().default("NONE"),
+  relatedEntityId: uuid("related_entity_id"),
+  origem: text("origem").notNull().default("manual"),
+  contextoErro: jsonb("contexto_erro"),
+  firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  reopenedCount: integer("reopened_count").notNull().default(0),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  satisfactionScore: integer("satisfaction_score"),
+  escalationReason: text("escalation_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check(
+    "support_tickets_categoria_check",
+    sql`${table.categoria} IN ('pedido_aprovacao','pagamento','nota_fiscal','contrato','cadastro_acesso','duvida_processo','erro_sistema','lentidao_indisponibilidade','seguranca_acesso_indevido','outro_assunto')`,
+  ),
+  check("support_tickets_nivel_suporte_check", sql`${table.nivelSuporte} IN ('nivel_1','nivel_2')`),
+  check("support_tickets_equipe_responsavel_check", sql`${table.equipeResponsavel} IN ('empresa','fluwork')`),
+  check(
+    "support_tickets_status_check",
+    sql`${table.status} IN ('novo','em_triagem','em_atendimento','aguardando_usuario','aguardando_empresa','aguardando_fluwork','resolvido','fechado','reaberto','arquivado')`,
+  ),
+  check("support_tickets_prioridade_check", sql`${table.prioridade} IN ('baixa','media','alta','critica')`),
+  check(
+    "support_tickets_related_entity_type_check",
+    sql`${table.relatedEntityType} IN ('PEDIDO','NOTA_FISCAL','CONTRATO','COLABORADOR','NONE')`,
+  ),
+  check("support_tickets_origem_check", sql`${table.origem} IN ('manual','erro_automatico')`),
+  uniqueIndex("support_tickets_numero_sequencial_key").on(table.numeroSequencial),
+  index("support_tickets_empresa_status_idx").on(table.empresaId, table.status),
+  index("support_tickets_nivel_status_idx").on(table.nivelSuporte, table.status),
+  index("support_tickets_criado_por_status_idx").on(table.criadoPorId, table.status),
+  index("support_tickets_assumido_por_idx").on(table.assumidoPorId),
+  index("support_tickets_related_entity_idx").on(table.relatedEntityType, table.relatedEntityId),
+])
+
+// Mensagens da thread — "nota_interna" nunca é devolvida pro solicitante (filtrado no servidor
+// em app/actions/support-messages.ts, nunca no cliente). "evento_sistema" registra mudanças de
+// status/atribuição narrativamente na própria thread, sem duplicar o que já está em
+// support_audit_log (que é o log técnico campo-a-campo, não a narrativa legível).
+export const supportMessages = pgTable("support_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: "cascade" }),
+  autorId: uuid("autor_id").references(() => colaboradores.id),
+  tipo: text("tipo").notNull().default("mensagem"),
+  corpo: text("corpo").notNull(),
+  anonimizadoEm: timestamp("anonimizado_em", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check("support_messages_tipo_check", sql`${table.tipo} IN ('mensagem','nota_interna','evento_sistema')`),
+  index("support_messages_ticket_created_idx").on(table.ticketId, table.createdAt),
+])
+
+// Anexos privados no GCS (nunca no Postgres) — servidos só via /api/files, nunca a URL do
+// bucket direto. Retenção nunca apaga a linha, só marca excluido_em (o próprio objeto no GCS é
+// removido pela rotina de retenção, mas o registro de "existiu um anexo aqui" permanece).
+export const supportAttachments = pgTable("support_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: "cascade" }),
+  messageId: uuid("message_id").references(() => supportMessages.id, { onDelete: "cascade" }),
+  enviadoPorId: uuid("enviado_por_id").references(() => colaboradores.id),
+  objectPath: text("object_path").notNull(),
+  nomeOriginal: text("nome_original").notNull(),
+  nomeSanitizado: text("nome_sanitizado").notNull(),
+  contentType: text("content_type").notNull(),
+  tamanhoBytes: integer("tamanho_bytes").notNull(),
+  excluidoEm: timestamp("excluido_em", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("support_attachments_ticket_idx").on(table.ticketId),
+])
+
+// Log técnico campo-a-campo do módulo de suporte — mesmo espírito de ehs_auditoria, mas com
+// taxonomia de ação própria e ip_hash (sha256 do IP) em vez de IP cru, por decisão explícita
+// pra este módulo especificamente.
+export const supportAuditLog = pgTable("support_audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: "cascade" }),
+  acao: text("acao").notNull(),
+  atorId: uuid("ator_id").references(() => colaboradores.id),
+  campo: text("campo"),
+  valorAntigo: text("valor_antigo"),
+  valorNovo: text("valor_novo"),
+  ipHash: text("ip_hash"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check(
+    "support_audit_log_acao_check",
+    sql`${table.acao} IN ('TICKET_CREATED','TICKET_VIEWED','TICKET_ASSIGNED','STATUS_CHANGED','PRIORITY_CHANGED','MESSAGE_SENT','INTERNAL_NOTE_CREATED','ATTACHMENT_UPLOADED','TICKET_ESCALATED','TICKET_RETURNED','TICKET_RESOLVED','TICKET_CLOSED','TICKET_REOPENED','TICKET_ARCHIVED','DATA_ANONYMIZED','DATA_REMOVED')`,
+  ),
+  index("support_audit_log_ticket_created_idx").on(table.ticketId, table.createdAt),
+])
+
+// Override de retenção por empresa — linha ausente = usa o default da plataforma (constantes em
+// lib/support/retention.ts). Limites mín/máx aplicados em código, não em CHECK, porque são
+// regra de negócio que pode mudar sem precisar de migração.
+export const supportRetentionConfig = pgTable("support_retention_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
+  diasParaArquivar: integer("dias_para_arquivar"),
+  diasParaExcluirAnexos: integer("dias_para_excluir_anexos"),
+  diasParaAnonimizarMensagens: integer("dias_para_anonimizar_mensagens"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("support_retention_config_empresa_id_key").on(table.empresaId),
+])
+
 // ---------- Relations (equivalente aos embedded selects do Supabase, ex: .select("*, colaborador:colaboradores(...)")) ----------
 
 export const empresasRelations = relations(empresas, ({ one, many }) => ({
@@ -894,4 +1028,33 @@ export const ehsCarteirinhasRelations = relations(ehsCarteirinhas, ({ one }) => 
   cliente: one(ehsClientes, { fields: [ehsCarteirinhas.clienteId], references: [ehsClientes.id] }),
   colaborador: one(colaboradores, { fields: [ehsCarteirinhas.colaboradorId], references: [colaboradores.id] }),
   criadoPorColaborador: one(colaboradores, { fields: [ehsCarteirinhas.criadoPor], references: [colaboradores.id] }),
+}))
+
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
+  empresa: one(empresas, { fields: [supportTickets.empresaId], references: [empresas.id] }),
+  criadoPorColaborador: one(colaboradores, { fields: [supportTickets.criadoPorId], references: [colaboradores.id] }),
+  assumidoPorColaborador: one(colaboradores, { fields: [supportTickets.assumidoPorId], references: [colaboradores.id] }),
+  mensagens: many(supportMessages),
+  anexos: many(supportAttachments),
+  auditoria: many(supportAuditLog),
+}))
+
+export const supportMessagesRelations = relations(supportMessages, ({ one }) => ({
+  ticket: one(supportTickets, { fields: [supportMessages.ticketId], references: [supportTickets.id] }),
+  autor: one(colaboradores, { fields: [supportMessages.autorId], references: [colaboradores.id] }),
+}))
+
+export const supportAttachmentsRelations = relations(supportAttachments, ({ one }) => ({
+  ticket: one(supportTickets, { fields: [supportAttachments.ticketId], references: [supportTickets.id] }),
+  mensagem: one(supportMessages, { fields: [supportAttachments.messageId], references: [supportMessages.id] }),
+  enviadoPorColaborador: one(colaboradores, { fields: [supportAttachments.enviadoPorId], references: [colaboradores.id] }),
+}))
+
+export const supportAuditLogRelations = relations(supportAuditLog, ({ one }) => ({
+  ticket: one(supportTickets, { fields: [supportAuditLog.ticketId], references: [supportTickets.id] }),
+  ator: one(colaboradores, { fields: [supportAuditLog.atorId], references: [colaboradores.id] }),
+}))
+
+export const supportRetentionConfigRelations = relations(supportRetentionConfig, ({ one }) => ({
+  empresa: one(empresas, { fields: [supportRetentionConfig.empresaId], references: [empresas.id] }),
 }))

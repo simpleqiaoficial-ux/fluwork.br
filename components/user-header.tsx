@@ -3,7 +3,7 @@
 import { Fragment, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, LifeBuoy } from "lucide-react"
 import { useValoresVisibility } from "@/contexts/valores-visibility-context"
 import { Button } from "@/components/ui/button"
 import { getBreadcrumbForPath } from "@/lib/nav-config"
@@ -88,6 +88,14 @@ export function UserHeader({ nomeCompleto, email, cnpj, salario, empresaNome, ti
               <EyeOff className="h-4 w-4 text-foreground" />
             )}
           </Button>
+
+          {tipoAcesso !== "SuperAdmin" && (
+            <Button variant="ghost" size="icon" asChild className="h-8 w-8" title="Abrir chamado de suporte">
+              <Link href={`/suporte/novo?pathname=${encodeURIComponent(pathname)}`}>
+                <LifeBuoy className="h-4 w-4 text-muted-foreground" />
+              </Link>
+            </Button>
+          )}
 
           <NotificationBell />
           <ThemeToggle />

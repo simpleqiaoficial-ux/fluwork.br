@@ -78,12 +78,17 @@ export default async function RootLayout({
 
   const impersonando = session?.tipoAcesso === "SuperAdmin" && !!session.viewAsEmpresaId
 
+  // Central de Suporte precisa continuar acessível mesmo com a empresa bloqueada — é
+  // exatamente quando mais se precisa de suporte. Sem esta exceção, o gate abaixo nunca deixa
+  // /suporte* renderizar (bloqueia a árvore inteira, não por rota).
+  const rotaSuportePermitida = pathname.startsWith("/suporte")
+
   return (
     <html lang="pt-BR" className={poppins.variable} suppressHydrationWarning>
       <body className="antialiased bg-background">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
         <ValoresVisibilityProvider>
-          {empresaBloqueadaMotivo !== undefined ? (
+          {empresaBloqueadaMotivo !== undefined && !rotaSuportePermitida ? (
             <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
           ) : (
             <>

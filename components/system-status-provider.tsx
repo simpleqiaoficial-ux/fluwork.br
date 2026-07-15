@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, ReactNode, createContext, useContext } from "react"
+import { usePathname } from "next/navigation"
 import { getSystemStatus } from "@/app/actions/system-status"
 import { SystemSuspendedScreen } from "./system-suspended-screen"
 
@@ -30,11 +31,15 @@ export function SystemStatusProvider({ children, tipoAcesso }: SystemStatusProvi
   const [suspensionReason, setSuspensionReason] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const pathname = usePathname()
   const tipoAcessoLower = tipoAcesso?.toLowerCase() || ""
   const isAdm = tipoAcessoLower === "adm"
+  // Central de Suporte precisa continuar acessível com o sistema suspenso — é exatamente
+  // quando mais se precisa de suporte — pra qualquer papel, não só Adm.
+  const emRotaSuporte = pathname.startsWith("/suporte")
 
-  // Apenas o Adm pode acessar com o sistema suspenso
-  const canBypassSuspension = isAdm
+  // Apenas o Adm (ou quem está na Central de Suporte) pode acessar com o sistema suspenso
+  const canBypassSuspension = isAdm || emRotaSuporte
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -59,13 +64,14 @@ export function SystemStatusProvider({ children, tipoAcesso }: SystemStatusProvi
     return <>{children}</>
   }
 
-  // Adm sempre pode acessar normalmente, independente do status do sistema
-  if (isAdm) {
+  // Adm (ou quem está na Central de Suporte) sempre pode acessar normalmente, independente
+  // do status do sistema.
+  if (canBypassSuspension) {
     return (
-      <SystemStatusContext.Provider value={{ 
-        isSystemSuspended: !isActive, 
-        suspensionReason, 
-        canBypassSuspension: true 
+      <SystemStatusContext.Provider value={{
+        isSystemSuspended: !isActive,
+        suspensionReason,
+        canBypassSuspension: true
       }}>
         {children}
       </SystemStatusContext.Provider>

@@ -642,3 +642,109 @@ export function toDocumentoEhsDTO(row: AnyRow) {
     }),
   }
 }
+
+// ---------- Módulo Central de Suporte ----------
+
+/** "SUP-000001" — só formatação de exibição; o valor real é numero_sequencial (IDENTITY). */
+export function formatarNumeroTicketSuporte(numeroSequencial: number): string {
+  return `SUP-${String(numeroSequencial).padStart(6, "0")}`
+}
+
+export function toTicketSuporteDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    numero_sequencial: row.numeroSequencial,
+    numero: formatarNumeroTicketSuporte(row.numeroSequencial),
+    empresa_id: row.empresaId,
+    criado_por_id: row.criadoPorId,
+    assumido_por_id: row.assumidoPorId,
+    titulo: row.titulo,
+    categoria: row.categoria,
+    subcategoria: row.subcategoria,
+    descricao: row.descricao,
+    nivel_suporte: row.nivelSuporte,
+    equipe_responsavel: row.equipeResponsavel,
+    status: row.status,
+    prioridade: row.prioridade,
+    related_entity_type: row.relatedEntityType,
+    related_entity_id: row.relatedEntityId,
+    origem: row.origem,
+    contexto_erro: row.contextoErro,
+    first_response_at: row.firstResponseAt,
+    resolved_at: row.resolvedAt,
+    closed_at: row.closedAt,
+    reopened_count: row.reopenedCount,
+    archived_at: row.archivedAt,
+    satisfaction_score: row.satisfactionScore,
+    escalation_reason: row.escalationReason,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+    ...(row.empresa !== undefined && {
+      empresa: row.empresa ? { id: row.empresa.id, nome: row.empresa.nomeFantasia || row.empresa.razaoSocial } : row.empresa,
+    }),
+    ...(row.criadoPorColaborador !== undefined && {
+      criado_por: row.criadoPorColaborador
+        ? { id: row.criadoPorColaborador.id, nome_completo: row.criadoPorColaborador.nomeCompleto, tipo_acesso: row.criadoPorColaborador.tipoAcesso }
+        : row.criadoPorColaborador,
+    }),
+    ...(row.assumidoPorColaborador !== undefined && {
+      assumido_por: row.assumidoPorColaborador
+        ? { id: row.assumidoPorColaborador.id, nome_completo: row.assumidoPorColaborador.nomeCompleto }
+        : row.assumidoPorColaborador,
+    }),
+  }
+}
+
+export function toMensagemSuporteDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    ticket_id: row.ticketId,
+    autor_id: row.autorId,
+    tipo: row.tipo,
+    corpo: row.corpo,
+    anonimizado_em: row.anonimizadoEm,
+    created_at: row.createdAt,
+    ...(row.autor !== undefined && {
+      autor: row.autor ? { id: row.autor.id, nome_completo: row.autor.nomeCompleto, tipo_acesso: row.autor.tipoAcesso } : row.autor,
+    }),
+  }
+}
+
+export function toAnexoSuporteDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    ticket_id: row.ticketId,
+    message_id: row.messageId,
+    enviado_por_id: row.enviadoPorId,
+    object_path: row.objectPath,
+    url: `/api/files/${row.objectPath}`,
+    nome_original: row.nomeOriginal,
+    nome_sanitizado: row.nomeSanitizado,
+    content_type: row.contentType,
+    tamanho_bytes: row.tamanhoBytes,
+    excluido_em: row.excluidoEm,
+    created_at: row.createdAt,
+  }
+}
+
+export function toAuditoriaSuporteDTO(row: AnyRow) {
+  if (!row) return row
+  return {
+    id: row.id,
+    ticket_id: row.ticketId,
+    acao: row.acao,
+    ator_id: row.atorId,
+    campo: row.campo,
+    valor_antigo: row.valorAntigo,
+    valor_novo: row.valorNovo,
+    ip_hash: row.ipHash,
+    user_agent: row.userAgent,
+    created_at: row.createdAt,
+    ...(row.ator !== undefined && {
+      ator: row.ator ? { id: row.ator.id, nome_completo: row.ator.nomeCompleto } : row.ator,
+    }),
+  }
+}
