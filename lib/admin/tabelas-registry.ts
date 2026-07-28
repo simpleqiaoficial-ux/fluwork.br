@@ -17,6 +17,7 @@ export const TABELAS_REGISTRADAS: TabelaRegistrada[] = [
   { table: schema.equipes, label: "Equipes", grupo: "Empresas & Acesso" },
   { table: schema.centrosCusto, label: "Centros de Custo", grupo: "Empresas & Acesso" },
   { table: schema.gerentesEquipes, label: "Gerentes de Equipe", grupo: "Empresas & Acesso" },
+  { table: schema.empresaModulos, label: "Módulos Bloqueados", grupo: "Empresas & Acesso" },
 
   { table: schema.pedidosPagamento, label: "Ordens de Pagamento", grupo: "Financeiro" },
   { table: schema.historicoReajustes, label: "Histórico de Reajustes", grupo: "Financeiro" },

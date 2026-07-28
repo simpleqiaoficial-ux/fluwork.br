@@ -15,6 +15,7 @@ import {
   CalendarClock,
   Database,
   LifeBuoy,
+  LockKeyhole,
   type LucideIcon,
 } from "lucide-react"
 
@@ -144,6 +145,7 @@ export const EHS_LINKS: NavItem[] = [
 export const SUPERADMIN_LINKS: NavItem[] = [
   { href: "/admin", label: "Painel FluWork", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
+  { href: "/admin/modulos", label: "Módulos", icon: LockKeyhole, keywords: ["bloquear", "liberar", "financeiro", "contratos", "ehs"] },
   { href: "/admin/dados", label: "Espelho de Dados", icon: Database, keywords: ["banco", "tabelas", "producao", "produção", "dados"] },
   { href: "/admin/dados/colaboradores", label: "Prestadores", icon: Users },
   { href: "/admin/dados/contratos", label: "Contratos", icon: FileSignature },

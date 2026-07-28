@@ -16,6 +16,9 @@ import { TermsAcceptanceProvider } from "@/components/terms-acceptance-provider"
 import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
+import { ModuloBloqueadoCard } from "@/components/modulo-bloqueado-card"
+import { moduloDaRota, MODULO_LABELS } from "@/lib/modulos"
+import { getModulosBloqueadosDaEmpresa } from "@/lib/modulos-server"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import cn from "classnames"
@@ -57,6 +60,8 @@ export default async function RootLayout({
 
   let empresaNome: string | undefined
   let empresaBloqueadaMotivo: string | null | undefined
+  let empresaBloqueadaOrigem: "contratos" | "geral" = "geral"
+  let moduloRotaBloqueio: { modulo: "financeiro" | "ehs"; motivo: string } | null = null
   if (!isChromeless && session) {
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
@@ -72,6 +77,21 @@ export default async function RootLayout({
       // só SuperAdmin (que não pertence a empresa nenhuma) escapa desta checagem.
       if (empresa?.status === "blocked") {
         empresaBloqueadaMotivo = empresa.bloqueadoMotivo
+      }
+
+      const modulosBloqueados = await getModulosBloqueadosDaEmpresa(session.empresaId)
+      // Contratos bloqueado equivale a bloquear a empresa inteira — mesma tela de bloqueio,
+      // só muda a origem (pra diferenciar suspensão de conta de módulo não contratado).
+      if (empresaBloqueadaMotivo === undefined && modulosBloqueados.contratos) {
+        empresaBloqueadaMotivo = modulosBloqueados.contratos.motivo
+        empresaBloqueadaOrigem = "contratos"
+      }
+
+      if (empresaBloqueadaMotivo === undefined) {
+        const modulo = moduloDaRota(pathname)
+        if (modulo && modulosBloqueados[modulo]) {
+          moduloRotaBloqueio = { modulo, motivo: modulosBloqueados[modulo]!.motivo }
+        }
       }
     }
   }
@@ -89,7 +109,13 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
         <ValoresVisibilityProvider>
           {empresaBloqueadaMotivo !== undefined && !rotaSuportePermitida ? (
-            <EmpresaBloqueadaScreen motivo={empresaBloqueadaMotivo} />
+            <EmpresaBloqueadaScreen
+              motivo={empresaBloqueadaMotivo}
+              origem={empresaBloqueadaOrigem}
+              nome={session?.nomeCompleto}
+              empresa={empresaNome}
+              email={session?.email}
+            />
           ) : (
             <>
               {!isChromeless && <SidebarNavigation tipoAcesso={session?.tipoAcesso} impersonando={impersonando} />}
@@ -124,7 +150,18 @@ export default async function RootLayout({
                           userName={session.nomeCompleto}
                           userId={session.colaboradorId}
                         >
-                          {children}
+                          {moduloRotaBloqueio ? (
+                            <ModuloBloqueadoCard
+                              modulo={moduloRotaBloqueio.modulo}
+                              moduloLabel={MODULO_LABELS[moduloRotaBloqueio.modulo]}
+                              motivo={moduloRotaBloqueio.motivo}
+                              nome={session.nomeCompleto}
+                              empresa={empresaNome || "Empresa"}
+                              email={session.email}
+                            />
+                          ) : (
+                            children
+                          )}
                         </TermsAcceptanceProvider>
                       </AutoLogoutProvider>
                     </SystemStatusProvider>

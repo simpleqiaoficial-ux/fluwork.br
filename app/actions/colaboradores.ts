@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache"
 import { getSession } from "@/lib/session"
 import { registrarAuditoria } from "@/lib/audit"
 import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
+import { requireModuloLiberado } from "@/lib/modulos-server"
 import bcrypt from "bcryptjs"
 
 async function checkPermission(requiredRoles: string[]) {
@@ -58,6 +59,10 @@ export async function criarColaborador(data: NovoColaborador) {
   // ou de módulo — só quem já é Adm (ou SuperAdmin) pode criar outro Adm ou um usuário EHS.
   if (["Adm", "EHS"].includes(data.tipo_acesso) && !["Adm", "SuperAdmin"].includes(session.tipoAcesso)) {
     throw new Error("Você não tem permissão para criar um usuário com este perfil de acesso")
+  }
+
+  if (data.tipo_acesso === "EHS") {
+    await requireModuloLiberado(session.empresaId!, "ehs")
   }
 
   const sanitizedEmail = data.email?.trim().toLowerCase()
@@ -360,6 +365,10 @@ export async function atualizarColaborador(id: string, data: Partial<NovoColabor
     if (!alvoAtual || alvoAtual.empresaId !== session.empresaId) {
       throw new Error("Prestador não encontrado")
     }
+  }
+
+  if (data.tipo_acesso === "EHS" && alvoAtual?.empresaId) {
+    await requireModuloLiberado(alvoAtual.empresaId, "ehs")
   }
 
   if (data.email) {

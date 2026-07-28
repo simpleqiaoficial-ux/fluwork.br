@@ -313,6 +313,30 @@ export async function sendContatoComercialEmail(params: {
   })
 }
 
+export async function sendSolicitacaoModuloEmail(params: {
+  nomeSolicitante: string
+  empresaNome: string
+  empresaCnpj: string
+  emailSolicitante: string
+  moduloLabel: string
+  mensagem?: string
+}) {
+  const client = getClient()
+  await client.emails.send({
+    from: getFromAddress(),
+    to: "simpleqia.oficial@gmail.com",
+    replyTo: params.emailSolicitante,
+    subject: `Solicitação de liberação de módulo — ${params.moduloLabel} · ${params.empresaNome}`,
+    html: emailShell(`
+      <p><strong>Módulo solicitado:</strong> ${escapeHtml(params.moduloLabel)}</p>
+      <p><strong>Empresa:</strong> ${escapeHtml(params.empresaNome)} · CNPJ ${escapeHtml(params.empresaCnpj)}</p>
+      <p><strong>Solicitante:</strong> ${escapeHtml(params.nomeSolicitante)}</p>
+      <p><strong>E-mail:</strong> ${escapeHtml(params.emailSolicitante)}</p>
+      ${params.mensagem ? `<p><strong>Mensagem:</strong><br/>${escapeHtml(params.mensagem).replace(/\n/g, "<br/>")}</p>` : ""}
+    `),
+  })
+}
+
 export async function sendContratoAssinadoEmpresaEmail(params: {
   to: string
   prestadorNome: string

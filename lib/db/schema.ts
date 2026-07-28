@@ -63,6 +63,22 @@ export const empresas = pgTable("empresas", {
   check("empresas_status_check", sql`${table.status} IN ('active', 'inactive', 'blocked')`),
 ])
 
+// Bloqueio granular por módulo comercial (financeiro/contratos/ehs), independente do
+// `empresas.status` acima (que é o controle geral de conta — inadimplência/suspensão). A
+// presença de uma linha aqui já significa "bloqueado"; liberar o módulo remove a linha —
+// evita ter que semear 3 linhas "liberado" pra cada empresa existente.
+export const empresaModulos = pgTable("empresa_modulos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
+  modulo: text("modulo").notNull(),
+  motivo: text("motivo").notNull(),
+  bloqueadoEm: timestamp("bloqueado_em", { withTimezone: true }).defaultNow(),
+  bloqueadoPor: uuid("bloqueado_por").references((): AnyPgColumn => colaboradores.id),
+}, (table) => [
+  uniqueIndex("empresa_modulos_empresa_modulo_key").on(table.empresaId, table.modulo),
+  check("empresa_modulos_modulo_check", sql`${table.modulo} IN ('financeiro', 'contratos', 'ehs')`),
+])
+
 export const centrosCusto = pgTable("centros_custo", {
   id: uuid("id").primaryKey().defaultRandom(),
   empresaId: uuid("empresa_id").notNull().references(() => empresas.id, { onDelete: "cascade" }),
@@ -852,6 +868,12 @@ export const empresasRelations = relations(empresas, ({ one, many }) => ({
   contractTemplates: many(contractTemplates),
   contracts: many(contracts),
   bloqueadoPorColaborador: one(colaboradores, { fields: [empresas.bloqueadoPor], references: [colaboradores.id] }),
+  modulosBloqueados: many(empresaModulos),
+}))
+
+export const empresaModulosRelations = relations(empresaModulos, ({ one }) => ({
+  empresa: one(empresas, { fields: [empresaModulos.empresaId], references: [empresas.id] }),
+  bloqueadoPorColaborador: one(colaboradores, { fields: [empresaModulos.bloqueadoPor], references: [colaboradores.id] }),
 }))
 
 export const colaboradoresRelations = relations(colaboradores, ({ one, many }) => ({

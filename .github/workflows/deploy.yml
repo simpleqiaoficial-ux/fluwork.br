@@ -34,6 +34,30 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker southamerica-east1-docker.pkg.dev --quiet
 
+      - name: Build migration image
+        run: docker build --target migrate -t $IMAGE:migrate-${{ github.sha }} .
+
+      - name: Push migration image
+        run: docker push $IMAGE:migrate-${{ github.sha }}
+
+      - name: Run database migration
+        run: |
+          gcloud run jobs deploy fluworkbr-migrate \
+            --project=$PROJECT_ID \
+            --region=$REGION \
+            --image=$IMAGE:migrate-${{ github.sha }} \
+            --service-account=fluworkbr-run-sa@fluworkbr.iam.gserviceaccount.com \
+            --network=fluworkbr-vpc \
+            --subnet=fluworkbr-run-subnet \
+            --vpc-egress=private-ranges-only \
+            --set-secrets=DATABASE_URL=database-url:latest \
+            --max-retries=0 \
+            --quiet
+          gcloud run jobs execute fluworkbr-migrate \
+            --project=$PROJECT_ID \
+            --region=$REGION \
+            --wait
+
       - name: Build image
         run: docker build --target runner -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
 

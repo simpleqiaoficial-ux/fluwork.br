@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { StatusBadge } from "@/components/ui/status-badge"
+import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
@@ -19,10 +20,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { getPapelLabel } from "@/lib/papel-labels"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye, Ban, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Building2, Users, FileSignature, CheckCircle2, Wallet, KeyRound, Eye, Ban, AlertTriangle, LockKeyhole, LockOpen } from "lucide-react"
 import { toast } from "sonner"
 import { atualizarEmpresa, atualizarStatusEmpresa, atualizarCredenciaisUsuario } from "@/app/actions/empresas"
+import { bloquearModulo, liberarModulo } from "@/app/actions/modulos"
 import { iniciarVisualizacaoComoEmpresa } from "@/app/actions/impersonation"
+import { MODULOS, MODULO_LABELS, type Modulo, type ModulosBloqueados } from "@/lib/modulos"
 
 interface UsuarioRow {
   id: string
@@ -40,9 +43,10 @@ interface EmpresaDetailProps {
     total_pedidos: number
   }
   usuarios: UsuarioRow[]
+  modulosBloqueados: ModulosBloqueados
 }
 
-export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) {
+export function EmpresaDetail({ empresa, stats, usuarios, modulosBloqueados }: EmpresaDetailProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
@@ -60,6 +64,9 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
   const [entrando, setEntrando] = useState(false)
   const [bloqueioDialogAberto, setBloqueioDialogAberto] = useState(false)
   const [motivoBloqueio, setMotivoBloqueio] = useState("")
+  const [moduloEmEdicao, setModuloEmEdicao] = useState<Modulo | null>(null)
+  const [motivoModulo, setMotivoModulo] = useState("")
+  const [loadingModulo, setLoadingModulo] = useState<Modulo | null>(null)
 
   // Em caso de sucesso, iniciarVisualizacaoComoEmpresa chama redirect() (que lança um erro
   // especial do Next.js e nunca retorna) — só tratamos explicitamente o caminho de erro.
@@ -154,6 +161,47 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
     }
   }
 
+  const abrirBloqueioModulo = (modulo: Modulo) => {
+    setModuloEmEdicao(modulo)
+    setMotivoModulo("")
+  }
+
+  const handleConfirmarBloqueioModulo = async () => {
+    if (!moduloEmEdicao) return
+    if (!motivoModulo.trim()) {
+      toast.error("Informe o motivo do bloqueio")
+      return
+    }
+    setLoadingModulo(moduloEmEdicao)
+    try {
+      const result = await bloquearModulo(empresa.id, moduloEmEdicao, motivoModulo.trim())
+      if (result.success) {
+        toast.success(`Módulo ${MODULO_LABELS[moduloEmEdicao]} bloqueado`)
+        setModuloEmEdicao(null)
+        router.refresh()
+      } else {
+        toast.error(result.error || "Erro ao bloquear módulo")
+      }
+    } finally {
+      setLoadingModulo(null)
+    }
+  }
+
+  const handleLiberarModulo = async (modulo: Modulo) => {
+    setLoadingModulo(modulo)
+    try {
+      const result = await liberarModulo(empresa.id, modulo)
+      if (result.success) {
+        toast.success(`Módulo ${MODULO_LABELS[modulo]} liberado`)
+        router.refresh()
+      } else {
+        toast.error(result.error || "Erro ao liberar módulo")
+      }
+    } finally {
+      setLoadingModulo(null)
+    }
+  }
+
   const cards = [
     { label: "Prestadores/usuários", valor: stats.total_colaboradores, icon: Users },
     { label: "Contratos enviados", valor: stats.total_contratos, icon: FileSignature },
@@ -222,6 +270,54 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
       </div>
 
       <div className="rounded-md border p-5 space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Módulos</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Controle por módulo — bloquear Contratos equivale a bloquear a empresa inteira; bloquear Financeiro
+            trava todo o fluxo de pagamento; bloquear EHS impede criar novos usuários EHS e tira o acesso de quem já tem esse papel.
+          </p>
+        </div>
+        <div className="divide-y rounded-md border">
+          {MODULOS.map((modulo) => {
+            const bloqueio = modulosBloqueados[modulo]
+            return (
+              <div key={modulo} className="flex items-center justify-between gap-3 p-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    {bloqueio ? <LockKeyhole className="h-3.5 w-3.5 text-destructive" /> : <LockOpen className="h-3.5 w-3.5 text-success" />}
+                    <span className="text-sm font-medium">{MODULO_LABELS[modulo]}</span>
+                    <Badge variant={bloqueio ? "destructive" : "success"} className="text-[10px]">
+                      {bloqueio ? "Bloqueado" : "Liberado"}
+                    </Badge>
+                  </div>
+                  {bloqueio && <p className="text-xs text-muted-foreground mt-1 truncate">Motivo: {bloqueio.motivo}</p>}
+                </div>
+                {bloqueio ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleLiberarModulo(modulo)}
+                    disabled={loadingModulo === modulo}
+                  >
+                    {loadingModulo === modulo ? "Liberando..." : "Liberar"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => abrirBloqueioModulo(modulo)}
+                    disabled={loadingModulo === modulo}
+                  >
+                    Bloquear
+                  </Button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-md border p-5 space-y-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dados cadastrais</p>
         <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
           <div className="space-y-1">
@@ -287,6 +383,44 @@ export function EmpresaDetail({ empresa, stats, usuarios }: EmpresaDetailProps) 
           </Table>
         )}
       </div>
+
+      <Dialog open={!!moduloEmEdicao} onOpenChange={(open) => !open && setModuloEmEdicao(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              Bloquear módulo {moduloEmEdicao ? MODULO_LABELS[moduloEmEdicao] : ""}?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              {moduloEmEdicao === "contratos"
+                ? "Bloquear Contratos equivale a bloquear a empresa inteira — ninguém dela vai conseguir navegar no sistema, exceto pela Central de Suporte."
+                : moduloEmEdicao === "financeiro"
+                  ? "Ninguém vai conseguir criar, aprovar ou pagar pedidos, nem anexar notas fiscais, enquanto o módulo estiver bloqueado."
+                  : "Ninguém vai conseguir criar novo usuário EHS, e quem já tem esse papel perde acesso ao módulo enquanto estiver bloqueado."}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="motivo-modulo">Motivo do bloqueio *</Label>
+              <Textarea
+                id="motivo-modulo"
+                placeholder="Ex: módulo não contratado, negociação em andamento, etc."
+                value={motivoModulo}
+                onChange={(e) => setMotivoModulo(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModuloEmEdicao(null)} disabled={!!loadingModulo}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmarBloqueioModulo} disabled={!!loadingModulo || !motivoModulo.trim()}>
+              {loadingModulo ? "Bloqueando..." : "Bloquear módulo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={bloqueioDialogAberto} onOpenChange={(open) => !open && setBloqueioDialogAberto(false)}>
         <DialogContent>

@@ -1,14 +1,28 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Ban, LifeBuoy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { LogoutButton } from "@/components/logout-button"
+import { ModuloContatoDialog } from "@/components/modulo-contato-dialog"
 
 interface EmpresaBloqueadaScreenProps {
   motivo?: string | null
+  /** "contratos" quando o bloqueio veio do módulo Contratos (negociável com o comercial);
+   *  "geral" quando é o bloqueio de conta por status (inadimplência/suspensão administrativa). */
+  origem?: "contratos" | "geral"
+  nome?: string
+  empresa?: string
+  email?: string
 }
 
-export function EmpresaBloqueadaScreen({ motivo }: EmpresaBloqueadaScreenProps) {
+export function EmpresaBloqueadaScreen({ motivo, origem = "geral", nome, empresa, email }: EmpresaBloqueadaScreenProps) {
+  const [contatoAberto, setContatoAberto] = useState(false)
+  const titulo = origem === "contratos" ? "O módulo de Contratos está bloqueado" : "O acesso da sua empresa está bloqueado"
+  const podeContatarComercial = !!nome && !!empresa && !!email
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
@@ -18,7 +32,7 @@ export function EmpresaBloqueadaScreen({ motivo }: EmpresaBloqueadaScreenProps) 
         </div>
 
         <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold">O acesso da sua empresa está bloqueado</h1>
+          <h1 className="text-xl font-semibold">{titulo}</h1>
           <p className="text-sm text-muted-foreground">
             Nenhuma ação pode ser realizada na plataforma no momento. Entre em contato com o suporte pra regularizar.
           </p>
@@ -33,16 +47,35 @@ export function EmpresaBloqueadaScreen({ motivo }: EmpresaBloqueadaScreenProps) 
 
         <div className="pt-4 border-t space-y-3">
           <p className="text-sm text-muted-foreground">Precisa de ajuda? Acesse a Central de Suporte.</p>
-          <Button asChild className="gap-1.5">
-            <Link href="/suporte">
-              <LifeBuoy className="h-4 w-4" />
-              Acessar suporte
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Button asChild className="gap-1.5">
+              <Link href="/suporte">
+                <LifeBuoy className="h-4 w-4" />
+                Acessar suporte
+              </Link>
+            </Button>
+            {podeContatarComercial && (
+              <Button variant="outline" onClick={() => setContatoAberto(true)}>
+                Contatar comercial
+              </Button>
+            )}
+          </div>
         </div>
 
         <LogoutButton />
       </div>
+
+      {podeContatarComercial && (
+        <ModuloContatoDialog
+          open={contatoAberto}
+          onOpenChange={setContatoAberto}
+          modulo={origem}
+          moduloLabel="Contratos"
+          nome={nome!}
+          empresa={empresa!}
+          email={email!}
+        />
+      )}
     </div>
   )
 }

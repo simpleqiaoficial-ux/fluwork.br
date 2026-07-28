@@ -1,6 +1,7 @@
 import { getUsuarioLogado } from "@/lib/auth-utils"
 import { redirect, notFound } from "next/navigation"
 import { getEmpresaById, getEmpresaStats, listarUsuariosDaEmpresa } from "@/app/actions/empresas"
+import { listarModulosBloqueados } from "@/app/actions/modulos"
 import { EmpresaDetail } from "@/components/admin/empresa-detail"
 
 export default async function EmpresaDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,10 +16,11 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
 
   const stats = await getEmpresaStats(id)
   const usuarios = await listarUsuariosDaEmpresa(id)
+  const modulosBloqueados = await listarModulosBloqueados(id)
 
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-4xl">
-      <EmpresaDetail empresa={empresa} stats={stats} usuarios={usuarios as any} />
+      <EmpresaDetail empresa={empresa} stats={stats} usuarios={usuarios as any} modulosBloqueados={modulosBloqueados} />
     </div>
   )
 }

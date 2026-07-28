@@ -10,6 +10,7 @@ import { getSession } from "@/lib/session"
 import { uploadFile } from "@/lib/gcs"
 import { registrarAuditoria } from "@/lib/audit"
 import { assertNaoImpersonando, getEffectiveEmpresaIdFromSession } from "@/lib/tenant"
+import { requireModuloLiberado } from "@/lib/modulos-server"
 import { sendLembreteNotaFiscalEmail, sendOrdemLancadaEmail, sendOrdemAprovadaEmail } from "@/lib/email"
 import { formatCurrency } from "@/lib/utils"
 
@@ -44,6 +45,7 @@ export async function criarPedido(data: NovoPedido) {
   if (!session || !["Supervisor", "Adm", "Gerente", "Financeiro"].includes(session.tipoAcesso)) {
     throw new Error("Você não tem permissão para criar pedidos")
   }
+  await requireModuloLiberado(session.empresaId!, "financeiro")
 
   if (data.tipo_pedido !== "reembolso_km" && data.conducao > 0) {
     const hoje = new Date()
@@ -197,6 +199,7 @@ export async function acaoGerente(data: AcaoPedido) {
   if (!session || (session.tipoAcesso !== "Gerente" && session.tipoAcesso !== "Adm")) {
     throw new Error("Apenas gerentes podem realizar esta ação")
   }
+  await requireModuloLiberado(session.empresaId!, "financeiro")
 
   const updates: any = {
     observacaoGerente: data.observacao,
@@ -236,6 +239,7 @@ export async function acaoFinanceiro(data: AcaoPedido) {
   if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
     throw new Error("Apenas financeiro pode realizar esta ação")
   }
+  await requireModuloLiberado(session.empresaId!, "financeiro")
 
   const updates: any = {
     observacaoFinanceiro: data.observacao,
@@ -1493,6 +1497,7 @@ export async function marcarComoPago(pedidoId: string) {
   if (!["Financeiro", "Adm"].includes(session.tipoAcesso)) {
     throw new Error("Apenas financeiro pode marcar um pagamento como pago")
   }
+  await requireModuloLiberado(session.empresaId!, "financeiro")
 
   const [pedido] = await db
     .select({ status: pedidosPagamento.status })
