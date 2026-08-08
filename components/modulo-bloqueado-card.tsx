@@ -5,9 +5,10 @@ import { Ban } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ModuloContatoDialog } from "@/components/modulo-contato-dialog"
+import type { Modulo } from "@/lib/modulos"
 
 interface ModuloBloqueadoCardProps {
-  modulo: "financeiro" | "ehs"
+  modulo: Modulo
   moduloLabel: string
   motivo: string
   nome: string

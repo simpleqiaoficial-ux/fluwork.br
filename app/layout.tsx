@@ -17,7 +17,7 @@ import { SystemStatusProvider } from "@/components/system-status-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { EmpresaBloqueadaScreen } from "@/components/empresa-bloqueada-screen"
 import { ModuloBloqueadoCard } from "@/components/modulo-bloqueado-card"
-import { moduloDaRota, MODULO_LABELS } from "@/lib/modulos"
+import { moduloDaRota, MODULO_LABELS, type Modulo } from "@/lib/modulos"
 import { getModulosBloqueadosDaEmpresa } from "@/lib/modulos-server"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -60,8 +60,7 @@ export default async function RootLayout({
 
   let empresaNome: string | undefined
   let empresaBloqueadaMotivo: string | null | undefined
-  let empresaBloqueadaOrigem: "contratos" | "geral" = "geral"
-  let moduloRotaBloqueio: { modulo: "financeiro" | "ehs"; motivo: string } | null = null
+  let moduloRotaBloqueio: { modulo: Modulo; motivo: string } | null = null
   if (!isChromeless && session) {
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
@@ -80,13 +79,9 @@ export default async function RootLayout({
       }
 
       const modulosBloqueados = await getModulosBloqueadosDaEmpresa(session.empresaId)
-      // Contratos bloqueado equivale a bloquear a empresa inteira — mesma tela de bloqueio,
-      // só muda a origem (pra diferenciar suspensão de conta de módulo não contratado).
-      if (empresaBloqueadaMotivo === undefined && modulosBloqueados.contratos) {
-        empresaBloqueadaMotivo = modulosBloqueados.contratos.motivo
-        empresaBloqueadaOrigem = "contratos"
-      }
-
+      // Cada módulo bloqueia só a área dele (ver moduloDaRota) — bloquear Contratos não
+      // bloqueia mais a empresa inteira, só as rotas de contrato continuam acessíveis o
+      // resto da plataforma normalmente.
       if (empresaBloqueadaMotivo === undefined) {
         const modulo = moduloDaRota(pathname)
         if (modulo && modulosBloqueados[modulo]) {
@@ -111,7 +106,6 @@ export default async function RootLayout({
           {empresaBloqueadaMotivo !== undefined && !rotaSuportePermitida ? (
             <EmpresaBloqueadaScreen
               motivo={empresaBloqueadaMotivo}
-              origem={empresaBloqueadaOrigem}
               nome={session?.nomeCompleto}
               empresa={empresaNome}
               email={session?.email}

@@ -273,8 +273,9 @@ export function EmpresaDetail({ empresa, stats, usuarios, modulosBloqueados }: E
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Módulos</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Controle por módulo — bloquear Contratos equivale a bloquear a empresa inteira; bloquear Financeiro
-            trava todo o fluxo de pagamento; bloquear EHS impede criar novos usuários EHS e tira o acesso de quem já tem esse papel.
+            Controle por módulo — cada bloqueio afeta só a área correspondente, o resto da plataforma continua
+            acessível: bloquear Contratos tira o acesso a contratos; bloquear Financeiro trava todo o fluxo de
+            pagamento; bloquear EHS impede criar novos usuários EHS e tira o acesso de quem já tem esse papel.
           </p>
         </div>
         <div className="divide-y rounded-md border">
@@ -395,7 +396,7 @@ export function EmpresaDetail({ empresa, stats, usuarios, modulosBloqueados }: E
           <div className="space-y-4 py-2">
             <p className="text-sm text-muted-foreground">
               {moduloEmEdicao === "contratos"
-                ? "Bloquear Contratos equivale a bloquear a empresa inteira — ninguém dela vai conseguir navegar no sistema, exceto pela Central de Suporte."
+                ? "Ninguém vai conseguir ver, criar ou assinar contratos enquanto o módulo estiver bloqueado — o resto da plataforma continua acessível normalmente."
                 : moduloEmEdicao === "financeiro"
                   ? "Ninguém vai conseguir criar, aprovar ou pagar pedidos, nem anexar notas fiscais, enquanto o módulo estiver bloqueado."
                   : "Ninguém vai conseguir criar novo usuário EHS, e quem já tem esse papel perde acesso ao módulo enquanto estiver bloqueado."}

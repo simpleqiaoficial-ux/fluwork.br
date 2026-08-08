@@ -15,12 +15,7 @@ export const MODULO_LABELS: Record<Modulo, string> = {
   ehs: "EHS & Compliance",
 }
 
-// Só financeiro e ehs precisam de lista de rotas pra gate por página — contratos bloqueado
-// é tratado como bloqueio da empresa inteira (mesmo mecanismo de empresas.status, ver
-// app/layout.tsx), não faz sentido listar rota por rota.
-export type ModuloComRotas = Exclude<Modulo, "contratos">
-
-const MODULO_ROTAS: Record<ModuloComRotas, string[]> = {
+const MODULO_ROTAS: Record<Modulo, string[]> = {
   financeiro: [
     "/pedidos",
     "/historico",
@@ -32,6 +27,10 @@ const MODULO_ROTAS: Record<ModuloComRotas, string[]> = {
     "/gestao/notas",
     "/fiscal",
   ],
+  // "/contratos/assinar" fica de fora (ver moduloDaRota) — é o link público de assinatura,
+  // que pode ser aberto por um prestador sem sessão nenhuma e não deve depender do módulo
+  // Contratos estar liberado pra essa empresa continuar sendo válido.
+  contratos: ["/contratos", "/meus-contratos"],
   ehs: ["/ehs"],
 }
 
@@ -44,10 +43,13 @@ export type ModulosBloqueados = Record<Modulo, BloqueioModulo | null>
 
 export const NENHUM_BLOQUEIO: ModulosBloqueados = { financeiro: null, contratos: null, ehs: null }
 
-/** A qual módulo (financeiro/ehs) uma rota pertence, se houver — usado pelo gate em
- *  app/layout.tsx pra decidir se troca o conteúdo da página por um aviso de bloqueio. */
-export function moduloDaRota(pathname: string): ModuloComRotas | null {
-  for (const modulo of Object.keys(MODULO_ROTAS) as ModuloComRotas[]) {
+/** A qual módulo uma rota pertence, se houver — usado pelo gate em app/layout.tsx pra decidir
+ *  se troca o conteúdo da página por um aviso de bloqueio (mantendo sidebar/header, nunca
+ *  bloqueando a empresa inteira — cada módulo bloqueia só a área dele). */
+export function moduloDaRota(pathname: string): Modulo | null {
+  if (pathname.startsWith("/contratos/assinar")) return null
+
+  for (const modulo of Object.keys(MODULO_ROTAS) as Modulo[]) {
     if (MODULO_ROTAS[modulo].some((rota) => pathname === rota || pathname.startsWith(`${rota}/`))) {
       return modulo
     }

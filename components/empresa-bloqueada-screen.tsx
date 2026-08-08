@@ -10,17 +10,16 @@ import { ModuloContatoDialog } from "@/components/modulo-contato-dialog"
 
 interface EmpresaBloqueadaScreenProps {
   motivo?: string | null
-  /** "contratos" quando o bloqueio veio do módulo Contratos (negociável com o comercial);
-   *  "geral" quando é o bloqueio de conta por status (inadimplência/suspensão administrativa). */
-  origem?: "contratos" | "geral"
   nome?: string
   empresa?: string
   email?: string
 }
 
-export function EmpresaBloqueadaScreen({ motivo, origem = "geral", nome, empresa, email }: EmpresaBloqueadaScreenProps) {
+/** Tela de bloqueio de conta inteira — por status (inadimplência/suspensão administrativa).
+ *  Bloqueio de módulo específico usa ModuloBloqueadoCard, que mantém o resto da plataforma
+ *  acessível. */
+export function EmpresaBloqueadaScreen({ motivo, nome, empresa, email }: EmpresaBloqueadaScreenProps) {
   const [contatoAberto, setContatoAberto] = useState(false)
-  const titulo = origem === "contratos" ? "O módulo de Contratos está bloqueado" : "O acesso da sua empresa está bloqueado"
   const podeContatarComercial = !!nome && !!empresa && !!email
 
   return (
@@ -32,7 +31,7 @@ export function EmpresaBloqueadaScreen({ motivo, origem = "geral", nome, empresa
         </div>
 
         <div className="space-y-1.5">
-          <h1 className="text-xl font-semibold">{titulo}</h1>
+          <h1 className="text-xl font-semibold">O acesso da sua empresa está bloqueado</h1>
           <p className="text-sm text-muted-foreground">
             Nenhuma ação pode ser realizada na plataforma no momento. Entre em contato com o suporte pra regularizar.
           </p>
@@ -69,8 +68,8 @@ export function EmpresaBloqueadaScreen({ motivo, origem = "geral", nome, empresa
         <ModuloContatoDialog
           open={contatoAberto}
           onOpenChange={setContatoAberto}
-          modulo={origem}
-          moduloLabel="Contratos"
+          modulo="geral"
+          moduloLabel="acesso à plataforma"
           nome={nome!}
           empresa={empresa!}
           email={email!}
