@@ -92,7 +92,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
     const hasOnlyKm =
       !isReembolsoKm &&
       pedido.valor_km > 0 &&
-      (pedido.colaborador?.salario || 0) === 0 &&
+      (pedido.salario_base ?? pedido.colaborador?.salario ?? 0) === 0 &&
       pedido.horas_extras === 0 &&
       (pedido.conducao || 0) === 0 &&
       pedido.valor_plantao === 0
@@ -267,7 +267,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                 // Valor da NF = Salário + HE + Plantão + Comissão - Desconto (sem condução e KM)
                 const valorEsperadoNF = isReembolsoKm
                   ? pedido.valor_km
-                  : (pedido.colaborador?.salario || 0) +
+                  : (pedido.salario_base ?? pedido.colaborador?.salario ?? 0) +
                     (pedido.horas_extras || 0) +
                     (pedido.valor_plantao || 0) +
                     (pedido.comissao || 0) -
@@ -281,7 +281,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
 
                 const hasOnlyKm =
                   pedido.valor_km > 0 &&
-                  (pedido.colaborador?.salario || 0) === 0 &&
+                  (pedido.salario_base ?? pedido.colaborador?.salario ?? 0) === 0 &&
                   (pedido.horas_extras || 0) === 0 &&
                   (pedido.conducao || 0) === 0 &&
                   (pedido.valor_plantao || 0) === 0
@@ -341,7 +341,7 @@ export function NotasEnviadasList({ pedidos, canApprove = true }: NotasEnviadasL
                                 <div>
                                   <p className="text-xs text-muted-foreground mb-1">Valor Contratual</p>
                                   <p className="font-medium tabular-nums">
-                                    {formatReais(pedido.colaborador?.salario || 0)}
+                                    {formatReais(pedido.salario_base ?? pedido.colaborador?.salario ?? 0)}
                                   </p>
                                 </div>
                                 <div>

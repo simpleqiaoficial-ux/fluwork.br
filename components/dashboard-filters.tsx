@@ -160,7 +160,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
       pedido.criado_por?.nome_completo || "Não informado",
       pedido.colaborador?.nome_completo || "Não informado",
       pedido.tipo_pedido === "completo" ? "Pedido Completo" : "Reembolso KM",
-      pedido.tipo_pedido === "completo" ? formatCurrency(pedido.colaborador?.salario || 0) : "-",
+      pedido.tipo_pedido === "completo" ? formatCurrency(pedido.salario_base ?? pedido.colaborador?.salario ?? 0) : "-",
       pedido.tipo_pedido === "completo" ? `${pedido.horas_extras_50}h` : "-",
       pedido.tipo_pedido === "completo" ? `${pedido.horas_extras_100}h` : "-",
       pedido.tipo_pedido === "completo" ? formatCurrency(pedido.horas_extras) : "-",

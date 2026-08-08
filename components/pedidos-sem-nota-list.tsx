@@ -157,7 +157,7 @@ export function PedidosSemNotaList({ pedidos }: PedidosSemNotaListProps) {
             </TableHeader>
             <TableBody>
               {pedidos.map((pedido) => {
-                const salarioBase = pedido.colaborador?.salario || 0
+                const salarioBase = pedido.salario_base ?? pedido.colaborador?.salario ?? 0
                 const valorNF =
                   salarioBase +
                   (pedido.horas_extras || 0) +

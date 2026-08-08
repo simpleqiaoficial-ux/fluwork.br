@@ -62,6 +62,7 @@ interface Pedido {
   observacao_financeiro?: string
   criado_por?: { nome_completo: string; tipo_acesso: string }
   correcao_solicitada_por?: string
+  salario_base?: number
 }
 
 interface MeusPagamentosListProps {
@@ -163,7 +164,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
     : { mes: 1, ano: 2025 }
 
   const valorEsperado = pedidoSelecionado
-    ? (colaborador?.salario || 0) +
+    ? (pedidoSelecionado.salario_base ?? colaborador?.salario ?? 0) +
       pedidoSelecionado.horas_extras +
       (pedidoSelecionado.conducao || 0) +
       (pedidoSelecionado.valor_plantao || 0) -
@@ -200,7 +201,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
         {pedidos.map((pedido) => {
           // Valor da NF = Salário + HE + Plantão - Desconto (sem condução e KM)
           const valorParaEmitir =
-            (colaborador?.salario || 0) +
+            (pedido.salario_base ?? colaborador?.salario ?? 0) +
             pedido.horas_extras +
             (pedido.valor_plantao || 0) -
             (pedido.valor_desconto || 0)
@@ -319,7 +320,7 @@ export function MeusPagamentosList({ pedidos, colaborador, linkEmissaoManual, is
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-4 text-sm">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Valor Contratual Base</p>
-                        <p className="font-medium tabular-nums">{formatValue(colaborador?.salario || 0)}</p>
+                        <p className="font-medium tabular-nums">{formatValue(pedido.salario_base ?? colaborador?.salario ?? 0)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Horas Extras</p>

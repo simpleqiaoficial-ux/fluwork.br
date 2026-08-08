@@ -77,6 +77,7 @@ export async function criarPedido(data: NovoPedido) {
 
   let valorTotal = 0
   let valorTotalHorasExtras = 0
+  let salarioColaborador = 0
 
   if (data.tipo_pedido === "reembolso_km") {
     valorTotal = data.valor_km
@@ -98,7 +99,7 @@ export async function criarPedido(data: NovoPedido) {
       throw new Error("Prestador não encontrado")
     }
 
-    const salarioColaborador = Number(colaborador.salario)
+    salarioColaborador = Number(colaborador.salario)
     const valorHoraNormal = salarioColaborador / 220
     const valorHora50 = valorHoraNormal * 1.5
     const valorHora100 = valorHoraNormal * 2
@@ -145,6 +146,7 @@ export async function criarPedido(data: NovoPedido) {
           empresaId: session.empresaId!,
           colaboradorId: data.colaborador_id,
           tipoPedido: data.tipo_pedido,
+          salarioBase: salarioColaborador.toString(),
           horasExtras: valorTotalHorasExtras.toString(),
           horasExtras50: data.horas_extras_50.toString(),
           horasExtras100: data.horas_extras_100.toString(),
@@ -749,6 +751,7 @@ export async function corrigirPedido(
     await db
       .update(pedidosPagamento)
       .set({
+        salarioBase: salarioColaborador.toString(),
         horasExtras50: data.horas_extras_50.toString(),
         horasExtras100: data.horas_extras_100.toString(),
         horasExtras: valorTotalHorasExtras.toString(),

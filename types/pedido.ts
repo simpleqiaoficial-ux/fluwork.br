@@ -15,6 +15,10 @@ export interface PedidoPagamento {
   valor_total: number
   valor_desconto: number
   motivo_desconto?: string
+  /** Salário do colaborador congelado no momento em que o pedido foi criado/corrigido — usar
+   *  este campo (nunca colaborador.salario) para exibir o valor contratual de um pedido já
+   *  existente, senão um reajuste de salário reescreve visualmente o histórico passado. */
+  salario_base?: number
   created_at: string
   status: StatusPedido
   aprovado_gerente: boolean

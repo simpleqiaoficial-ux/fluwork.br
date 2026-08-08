@@ -226,14 +226,12 @@ export function DashboardAnalytics({ pedidos, equipes, prorrogacoesPendentes = 0
       .filter((p) => p.tipo_pedido !== "reembolso_km")
       .reduce((s, p) => {
         const colab = p.colaborador || p.colaboradores
-        return s + (colab?.salario || 0)
+        return s + (p.salario_base ?? colab?.salario ?? 0)
       }, 0)
-    const horasExtras = filteredPedidos.reduce((s, p) => {
-      const val50 = (p.horas_extras_50 || 0) * ((p.colaborador?.salario || p.colaboradores?.salario || 0) / 220) * 1.5
-      const val100 =
-        (p.horas_extras_100 || 0) * ((p.colaborador?.salario || p.colaboradores?.salario || 0) / 220) * 2.0
-      return s + val50 + val100
-    }, 0)
+    // Usa o valor de horas extras já congelado no pedido (p.horas_extras) em vez de
+    // recalcular a partir do salário atual do colaborador — senão um reajuste de salário
+    // muda retroativamente o total de horas extras de pedidos antigos já aprovados/pagos.
+    const horasExtras = filteredPedidos.reduce((s, p) => s + (p.horas_extras || 0), 0)
     const reembolsoKm = filteredPedidos.reduce((s, p) => s + (p.valor_km || 0), 0)
     const plantao = filteredPedidos.reduce((s, p) => s + (p.valor_plantao || 0), 0)
     const conducao = filteredPedidos.reduce((s, p) => s + (p.conducao || 0), 0)

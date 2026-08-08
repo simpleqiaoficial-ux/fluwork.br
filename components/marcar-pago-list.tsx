@@ -247,7 +247,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
             const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
             const valorEsperadoNF = isReembolsoKm
               ? pedido.valor_km
-              : (pedido.colaborador?.salario || 0) +
+              : (pedido.salario_base ?? pedido.colaborador?.salario ?? 0) +
                 (pedido.horas_extras || 0) +
                 (pedido.valor_plantao || 0) +
                 (pedido.comissao || 0) -
@@ -303,7 +303,7 @@ export function MarcarPagoList({ pedidos }: MarcarPagoListProps) {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Valor contratual</p>
-                          <p className="font-medium tabular-nums">{formatValue(pedido.colaborador?.salario || 0)}</p>
+                          <p className="font-medium tabular-nums">{formatValue(pedido.salario_base ?? pedido.colaborador?.salario ?? 0)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Horas extras</p>

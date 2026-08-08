@@ -22,7 +22,7 @@ export function PedidoItem({ pedido }: PedidoItemProps) {
   }
 
   const colaboradorNome = pedido.colaborador?.nome_completo || pedido.colaboradores?.nome_completo || "N/A"
-  const colaboradorSalario = pedido.colaborador?.salario || pedido.colaboradores?.salario || 0
+  const colaboradorSalario = pedido.salario_base ?? pedido.colaborador?.salario ?? pedido.colaboradores?.salario ?? 0
 
   const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
 

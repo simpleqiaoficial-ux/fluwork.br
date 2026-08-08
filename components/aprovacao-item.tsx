@@ -63,7 +63,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
   }
 
   const colaboradorNome = pedido.colaborador?.nome_completo || "N/A"
-  const colaboradorSalario = pedido.colaborador?.salario || 0
+  const colaboradorSalario = pedido.salario_base ?? pedido.colaborador?.salario ?? 0
 
   const isReembolsoKM = pedido.tipo_pedido === "reembolso_km"
 
@@ -89,8 +89,10 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
 
   const temHorasExtras = !!(pedido.horas_extras && pedido.horas_extras > 0 && pedido.motivo_horas_extras)
   const temPlantao = !!(pedido.valor_plantao && pedido.valor_plantao > 0)
+  const temComissao = !!(pedido.comissao && pedido.comissao > 0)
   const temDesconto = !!(pedido.valor_desconto && pedido.valor_desconto > 0)
-  const temDetalhes = temHorasExtras || temPlantao || temDesconto || !!pedido.observacao_gerente || !!pedido.observacao_financeiro
+  const temDetalhes =
+    temHorasExtras || temPlantao || temComissao || temDesconto || !!pedido.observacao_gerente || !!pedido.observacao_financeiro
 
   return (
     <>
@@ -141,7 +143,7 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5">Valor Contratual Base</p>
               <p className="font-medium tabular-nums">{fmtCurrency(colaboradorSalario)}</p>
@@ -149,6 +151,10 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
             <div>
               <p className="text-xs text-muted-foreground mb-0.5">Horas Extras</p>
               <p className="font-medium tabular-nums">{fmtCurrency(pedido.horas_extras)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Condução</p>
+              <p className="font-medium tabular-nums">{fmtCurrency(pedido.conducao || 0)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-0.5">Quilometragem</p>
@@ -176,6 +182,15 @@ export function AprovacaoItem({ pedido, tipoAcesso }: AprovacaoItemProps) {
                   {pedido.motivo_plantao && <p>{pedido.motivo_plantao}</p>}
                 </div>
                 <span className="font-medium tabular-nums shrink-0">{fmtCurrency(pedido.valor_plantao)}</span>
+              </div>
+            )}
+            {temComissao && (
+              <div className="py-2.5 flex justify-between gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Comissão</p>
+                  {pedido.motivo_comissao && <p>{pedido.motivo_comissao}</p>}
+                </div>
+                <span className="font-medium tabular-nums shrink-0">{fmtCurrency(pedido.comissao || 0)}</span>
               </div>
             )}
             {temDesconto && (

@@ -36,7 +36,7 @@ export function HistoricoList({ pedidos }: HistoricoListProps) {
         <TableBody>
           {pedidos.map((pedido) => {
             const colaboradorNome = pedido.colaborador?.nome_completo || "N/A"
-            const colaboradorSalario = pedido.colaborador?.salario || 0
+            const colaboradorSalario = pedido.salario_base ?? pedido.colaborador?.salario ?? 0
             const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
             const isExpanded = expandedRow === pedido.id
 

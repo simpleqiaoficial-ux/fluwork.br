@@ -126,7 +126,7 @@ export function FinanceiroList({ pedidos }: FinanceiroListProps) {
             <TableBody>
               {pedidos.map((pedido) => {
                 const isReembolsoKm = pedido.tipo_pedido === "reembolso_km"
-                const salarioBase = isReembolsoKm ? 0 : pedido.colaborador?.salario || 0
+                const salarioBase = isReembolsoKm ? 0 : (pedido.salario_base ?? pedido.colaborador?.salario ?? 0)
                 const isExpanded = expandedRow === pedido.id
                 const notaFiscal = pedido.notas_fiscais?.[0]
 
