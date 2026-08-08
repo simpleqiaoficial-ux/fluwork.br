@@ -13,7 +13,7 @@ export interface ContratoParaMontagem {
   versao_atual: number
 }
 
-// A empresa CLIENTE (contratante real) — nunca o FluxTeme, que é só o operador da plataforma.
+// A empresa CLIENTE (contratante real) — nunca o Fluxteme, que é só o operador da plataforma.
 export interface EmpresaParaMontagem {
   razao_social: string
   nome_fantasia?: string | null

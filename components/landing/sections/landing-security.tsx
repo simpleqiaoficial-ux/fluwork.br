@@ -21,7 +21,7 @@ export function LandingSecurity() {
             Construído com padrões de segurança de plataforma corporativa
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-background/70 sm:text-lg">
-            Sua operação envolve dados sensíveis. O FluxTeme foi projetado para proteger cada camada dessa informação.
+            Sua operação envolve dados sensíveis. O Fluxteme foi projetado para proteger cada camada dessa informação.
           </p>
         </FadeIn>
 

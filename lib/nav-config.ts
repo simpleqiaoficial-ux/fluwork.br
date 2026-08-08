@@ -140,10 +140,10 @@ export const EHS_LINKS: NavItem[] = [
   { href: "/suporte", label: "Ajuda e Suporte", icon: LifeBuoy, keywords: ["chamado", "ajuda", "problema", "erro"] },
 ]
 
-// SuperAdmin (time FluxTeme) não pertence a nenhuma empresa — menu próprio, sem os workspaces
+// SuperAdmin (time Fluxteme) não pertence a nenhuma empresa — menu próprio, sem os workspaces
 // operacionais de uma empresa cliente.
 export const SUPERADMIN_LINKS: NavItem[] = [
-  { href: "/admin", label: "Painel FluxTeme", icon: LayoutDashboard },
+  { href: "/admin", label: "Painel Fluxteme", icon: LayoutDashboard },
   { href: "/admin/empresas", label: "Empresas", icon: Building2 },
   { href: "/admin/modulos", label: "Módulos", icon: LockKeyhole, keywords: ["bloquear", "liberar", "financeiro", "contratos", "ehs"] },
   { href: "/admin/dados", label: "Espelho de Dados", icon: Database, keywords: ["banco", "tabelas", "producao", "produção", "dados"] },

@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Poppins } from "next/font/google"
+import { Jost, Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css" // Import globals.css here
 import "./main.css"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
@@ -23,15 +23,32 @@ import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import cn from "classnames"
 
-const poppins = Poppins({
+// Jost: fonte de identidade (títulos, headings, números de destaque, assinaturas) — Manual de
+// Marca v2.0. Inter: fonte de interface (texto corrido, menus, tabelas, formulários, botões).
+// JetBrains Mono: fonte técnica (IDs, hashes, dados auditáveis, informação de rastreabilidade).
+const jost = Jost({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  weight: ["300", "500"],
+  variable: "--font-jost",
+  display: "swap",
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 })
 
 export const metadata: Metadata = {
-  title: "FluxTeme - Gestão de Prestadores",
+  title: "Fluxteme - Gestão de Prestadores",
   description: "Gerencie contratos, notas fiscais e valores contratuais de prestadores com facilidade",
 }
 
@@ -65,7 +82,7 @@ export default async function RootLayout({
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
     } else if (session.tipoAcesso === "SuperAdmin") {
-      empresaNome = "Painel FluxTeme"
+      empresaNome = "Painel Fluxteme"
     } else if (session.empresaId) {
       const [empresa] = await db
         .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia, status: empresas.status, bloqueadoMotivo: empresas.bloqueadoMotivo })
@@ -99,7 +116,7 @@ export default async function RootLayout({
   const rotaSuportePermitida = pathname.startsWith("/suporte")
 
   return (
-    <html lang="pt-BR" className={poppins.variable} suppressHydrationWarning>
+    <html lang="pt-BR" className={cn(jost.variable, inter.variable, jetbrainsMono.variable)} suppressHydrationWarning>
       <body className="antialiased bg-background">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
         <ValoresVisibilityProvider>

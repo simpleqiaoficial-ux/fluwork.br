@@ -303,7 +303,7 @@ export async function devolverTicket(id: string, justificativa: string) {
   const scope = await getTenantScope()
   await assertNaoImpersonando()
 
-  if (!scope.isSuperAdmin) return { success: false, error: "Só o time FluxTeme pode devolver um chamado" }
+  if (!scope.isSuperAdmin) return { success: false, error: "Só o time Fluxteme pode devolver um chamado" }
   if (!justificativa?.trim()) return { success: false, error: "Informe uma justificativa" }
 
   const ticket = await db.query.supportTickets.findFirst({ where: eq(supportTickets.id, id) })

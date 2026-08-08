@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 
-// Dados da empresa CLIENTE (contratante), nunca a FluxTeme — vêm sempre de quem chama.
+// Dados da empresa CLIENTE (contratante), nunca a Fluxteme — vêm sempre de quem chama.
 interface EmpresaEmail {
   nome: string
   razaoSocial: string
@@ -26,25 +26,25 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;")
 }
 
-// Mesmo azul de marca usado em todo o app (--primary: 195 75% 38%, ancorado em #52C1E6) —
-// clientes de e-mail não leem CSS custom properties, então o hex precisa ficar hardcoded aqui.
-const BRAND_BLUE = "#1885AA"
+// Fluxteme Teal (--primary no app, Manual de Marca v2.0) — clientes de e-mail não leem CSS
+// custom properties, então o hex precisa ficar hardcoded aqui.
+const BRAND_BLUE = "#00668A"
 
 // Casco visual único reaproveitado em todo e-mail transacional — cabeçalho com a marca, corpo
 // com o conteúdo específico de cada tipo de e-mail, rodapé com aviso padrão. Sem isso, cada
-// e-mail era um parágrafo solto sem identidade nenhuma da FluxTeme.
+// e-mail era um parágrafo solto sem identidade nenhuma da Fluxteme.
 function emailShell(innerHtml: string) {
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background:#F3F5F8; padding:32px 16px; margin:0;">
       <div style="max-width:480px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #E2E8F0;">
         <div style="padding:22px 32px; border-bottom:1px solid #E2E8F0;">
-          <span style="font-size:18px; font-weight:700; color:${BRAND_BLUE}; letter-spacing:-0.01em;">FluxTeme</span>
+          <span style="font-size:18px; font-weight:700; color:${BRAND_BLUE}; letter-spacing:-0.01em;">Fluxteme</span>
         </div>
         <div style="padding:32px; color:#0F172A; font-size:14px; line-height:1.65;">
           ${innerHtml}
         </div>
         <div style="padding:18px 32px; background:#F8FAFC; border-top:1px solid #E2E8F0; font-size:12px; color:#64748B; line-height:1.5;">
-          Este é um e-mail automático da FluxTeme — não é necessário responder.
+          Este é um e-mail automático da Fluxteme — não é necessário responder.
         </div>
       </div>
     </div>
@@ -138,7 +138,7 @@ export async function sendContratoAssinadoPrestadorEmail(params: {
 }
 
 // ---------- Central de Suporte ----------
-// Um único botão "Ver chamado na FluxTeme" em todo template — nunca telefone/WhatsApp, mesma
+// Um único botão "Ver chamado na Fluxteme" em todo template — nunca telefone/WhatsApp, mesma
 // decisão que tirou esses contatos das telas de bloqueio/suspensão.
 
 export async function sendTicketCriadoEmail(params: { to: string; nomeSolicitante: string; numero: string; titulo: string; ticketUrl: string }) {
@@ -151,7 +151,7 @@ export async function sendTicketCriadoEmail(params: { to: string; nomeSolicitant
       <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
       <p>Seu chamado <strong>${params.numero}</strong> foi aberto: "${escapeHtml(params.titulo)}".</p>
       <p>Já direcionamos pro time certo — você recebe um aviso assim que houver uma resposta.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -165,7 +165,7 @@ export async function sendTicketAtendimentoIniciadoEmail(params: { to: string; n
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
       <p>Seu chamado <strong>${params.numero}</strong> entrou em atendimento.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -179,7 +179,7 @@ export async function sendTicketNovaRespostaEmail(params: { to: string; nomeDest
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeDestinatario)}.</p>
       <p>Há uma nova resposta no chamado <strong>${params.numero}</strong>.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -193,7 +193,7 @@ export async function sendTicketAguardandoUsuarioEmail(params: { to: string; nom
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
       <p>Estamos aguardando um retorno seu no chamado <strong>${params.numero}</strong> pra continuar o atendimento.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -207,7 +207,7 @@ export async function sendTicketResolvidoEmail(params: { to: string; nomeSolicit
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
       <p>Seu chamado <strong>${params.numero}</strong> foi marcado como resolvido. Se ainda precisar de ajuda, você pode reabri-lo em até 7 dias.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -221,7 +221,7 @@ export async function sendTicketFechadoEmail(params: { to: string; nomeSolicitan
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeSolicitante)}.</p>
       <p>Seu chamado <strong>${params.numero}</strong> foi fechado.</p>
-      ${emailButton(params.ticketUrl, "Ver chamado na FluxTeme")}
+      ${emailButton(params.ticketUrl, "Ver chamado na Fluxteme")}
     `),
   })
 }
@@ -393,10 +393,10 @@ export async function sendRecuperarSenhaEmail(params: {
   await client.emails.send({
     from: getFromAddress(),
     to: params.to,
-    subject: "Redefinir sua senha — FluxTeme",
+    subject: "Redefinir sua senha — Fluxteme",
     html: emailShell(`
       <p>Olá, ${escapeHtml(params.nomeCompleto)}.</p>
-      <p>Recebemos uma solicitação para redefinir a senha da sua conta na FluxTeme.</p>
+      <p>Recebemos uma solicitação para redefinir a senha da sua conta na Fluxteme.</p>
       ${emailButton(params.resetUrl, "Redefinir minha senha")}
       <p style="color:#64748B; font-size:13px;">Este link é pessoal, só pode ser usado uma vez e expira em ${params.expiraEmFormatado}.</p>
       <p style="color:#64748B; font-size:13px;">Se você não pediu essa alteração, ignore este e-mail — sua senha continua a mesma.</p>

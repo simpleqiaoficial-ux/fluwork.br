@@ -14,7 +14,7 @@ const faqCategories = [
     icon: Key,
     questions: [
       {
-        question: "Como recebo meu acesso ao FluxTeme?",
+        question: "Como recebo meu acesso ao Fluxteme?",
         answer: "O acesso é provisionado pelo administrador da empresa contratante. Após o cadastro, você recebe um e-mail com credenciais temporárias e deve alterar a senha no primeiro login. Caso não receba, verifique o spam ou contate contato@fluxteme.com.br."
       },
       {
@@ -26,8 +26,8 @@ const faqCategories = [
         answer: "Por segurança, a conta é bloqueada após 5 tentativas incorretas consecutivas. O desbloqueio automático ocorre após 15 minutos. Para desbloqueio imediato, contate o suporte informando seu e-mail e empresa."
       },
       {
-        question: "Posso usar o FluxTeme no celular?",
-        answer: "Sim. O FluxTeme é responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi públicas sem VPN."
+        question: "Posso usar o Fluxteme no celular?",
+        answer: "Sim. O Fluxteme é responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi públicas sem VPN."
       }
     ]
   },
@@ -37,16 +37,16 @@ const faqCategories = [
     icon: CreditCard,
     questions: [
       {
-        question: "O que o FluxTeme gerencia exatamente?",
-        answer: "O FluxTeme é uma plataforma SaaS de gestão de prestadores de serviço com foco em controle de fluxo de validação, registro de contratos, status de aprovação e controle de pagamentos. Ciclo completo: cadastro, validação documental, aprovação multinível, ordem de pagamento, quitação e arquivamento."
+        question: "O que o Fluxteme gerencia exatamente?",
+        answer: "O Fluxteme é uma plataforma SaaS de gestão de prestadores de serviço com foco em controle de fluxo de validação, registro de contratos, status de aprovação e controle de pagamentos. Ciclo completo: cadastro, validação documental, aprovação multinível, ordem de pagamento, quitação e arquivamento."
       },
       {
         question: "Como funciona o fluxo de aprovação?",
         answer: "O fluxo é configurado pelo administrador da empresa: (1) Cadastro do prestador com dados e documentos; (2) Triagem e validação documental; (3) Aprovação gerencial conforme hierarquia; (4) Liberação da ordem de pagamento. Cada etapa registra responsável, data e justificativa."
       },
       {
-        question: "Os dados de pagamento ficam armazenados no FluxTeme?",
-        answer: "O FluxTeme registra os dados necessários para controle e auditoria (valores, datas, responsáveis, comprovantes). Dados bancários sensíveis são trafegados via canais criptografados com acesso restrito. A empresa não acessa dados financeiros fora do escopo operacional contratado."
+        question: "Os dados de pagamento ficam armazenados no Fluxteme?",
+        answer: "O Fluxteme registra os dados necessários para controle e auditoria (valores, datas, responsáveis, comprovantes). Dados bancários sensíveis são trafegados via canais criptografados com acesso restrito. A empresa não acessa dados financeiros fora do escopo operacional contratado."
       },
       {
         question: "Como exportar relatórios de pagamento?",
@@ -69,7 +69,7 @@ const faqCategories = [
       },
       {
         question: "O sistema registra minhas ações?",
-        answer: "Sim. Por razões de segurança e auditoria, o FluxTeme registra logs de acesso, ações realizadas, alterações de dados e tentativas de login. Esses registros são acessíveis apenas pelo time de TI e gestores autorizados, conforme a Política de Privacidade."
+        answer: "Sim. Por razões de segurança e auditoria, o Fluxteme registra logs de acesso, ações realizadas, alterações de dados e tentativas de login. Esses registros são acessíveis apenas pelo time de TI e gestores autorizados, conforme a Política de Privacidade."
       }
     ]
   },
@@ -134,7 +134,7 @@ export default function FAQPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
         <h1 className="text-xl font-semibold tracking-tight">Central de Ajuda</h1>
-        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas dúvidas sobre o FluxTeme</p>
+        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas dúvidas sobre o Fluxteme</p>
 
         {/* Search */}
         <div className="relative max-w-lg mx-auto mt-8">
@@ -252,7 +252,7 @@ export default function FAQPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 Fluxteme - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

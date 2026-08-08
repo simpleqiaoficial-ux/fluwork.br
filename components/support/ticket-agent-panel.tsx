@@ -91,7 +91,7 @@ export function TicketAgentPanel({ ticket, ehSuperAdmin }: TicketAgentPanelProps
 
         {!ehSuperAdmin && ticket.nivel_suporte === "nivel_1" && (
           <div className="space-y-2 border-t pt-4">
-            <p className="text-xs text-muted-foreground">Escalar para o time FluxTeme (Nível 2)</p>
+            <p className="text-xs text-muted-foreground">Escalar para o time Fluxteme (Nível 2)</p>
             <Textarea placeholder="Motivo do escalonamento" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
             <Button size="sm" variant="outline" onClick={handleEscalar} disabled={carregando} className="gap-1.5">
               {carregando && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

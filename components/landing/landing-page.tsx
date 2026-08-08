@@ -13,11 +13,11 @@ import { LandingFooter } from "@/components/landing/sections/landing-footer"
 const SOFTWARE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "FluxTeme",
+  name: "Fluxteme",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "FluxTeme é o ecossistema empresarial que conecta, organiza e impulsiona a operação da sua empresa: financeiro, prestadores de serviço, EHS, medicina ocupacional, documentos e muito mais em uma única plataforma.",
+    "Fluxteme é o ecossistema empresarial que conecta, organiza e impulsiona a operação da sua empresa: financeiro, prestadores de serviço, EHS, medicina ocupacional, documentos e muito mais em uma única plataforma.",
   offers: {
     "@type": "AggregateOffer",
     priceCurrency: "BRL",
@@ -26,7 +26,7 @@ const SOFTWARE_SCHEMA = {
   },
   brand: {
     "@type": "Organization",
-    name: "FluxTeme",
+    name: "Fluxteme",
     logo: "/fluwork-logo.png",
   },
 }

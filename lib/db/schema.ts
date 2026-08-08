@@ -23,7 +23,7 @@ export const tipoAcessoEnum = pgEnum("tipo_acesso", [
   "Gerente",
   "Financeiro",
   "Adm",
-  // Papel do time do FluxTeme (operador da plataforma SaaS) — enxerga todas as empresas.
+  // Papel do time do Fluxteme (operador da plataforma SaaS) — enxerga todas as empresas.
   // Único valor do enum sem empresa_id (ver check constraint em `colaboradores`).
   "SuperAdmin",
   // Módulo EHS & Compliance — enxerga só as telas do módulo (ver bloco dedicado em
@@ -371,7 +371,7 @@ export const auditLog = pgTable("audit_log", {
 
 export const contractTemplates = pgTable("contract_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
-  // Nullable: um template com empresa_id NULL é um modelo global do FluxTeme, copiável por
+  // Nullable: um template com empresa_id NULL é um modelo global do Fluxteme, copiável por
   // qualquer empresa; um template com empresa_id preenchido pertence só àquela empresa.
   empresaId: uuid("empresa_id").references(() => empresas.id, { onDelete: "cascade" }),
   nome: text("nome").notNull(),
@@ -721,7 +721,7 @@ export const ehsCarteirinhas = pgTable("ehs_carteirinhas", {
 ])
 
 // Módulo Central de Suporte — dois níveis de atendimento (nivel_1 = Adm da própria empresa,
-// nivel_2 = SuperAdmin FluxTeme), roteados automaticamente pela categoria em tempo de criação
+// nivel_2 = SuperAdmin Fluxteme), roteados automaticamente pela categoria em tempo de criação
 // (lib/support/routing.ts) — nunca uma escolha do usuário nem confiado do cliente.
 export const supportTickets = pgTable("support_tickets", {
   id: uuid("id").primaryKey().defaultRandom(),

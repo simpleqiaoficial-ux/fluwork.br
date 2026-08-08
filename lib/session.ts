@@ -5,7 +5,7 @@ export interface SessionData {
   email: string
   nomeCompleto: string
   tipoAcesso: string
-  // null só é válido quando tipoAcesso === "SuperAdmin" (usuário do time FluxTeme, sem empresa).
+  // null só é válido quando tipoAcesso === "SuperAdmin" (usuário do time Fluxteme, sem empresa).
   empresaId: string | null
   cnpj?: string
   salario?: number

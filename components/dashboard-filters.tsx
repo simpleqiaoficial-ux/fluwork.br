@@ -213,7 +213,7 @@ export function DashboardFilters({ pedidos }: DashboardFiltersProps) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `FluxTeme_Pedidos_${format(new Date(), "dd-MM-yyyy_HH-mm")}.csv`)
+    link.setAttribute("download", `Fluxteme_Pedidos_${format(new Date(), "dd-MM-yyyy_HH-mm")}.csv`)
     link.style.visibility = "hidden"
     document.body.appendChild(link)
     link.click()

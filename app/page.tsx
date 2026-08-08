@@ -12,9 +12,9 @@ import { LandingPage } from "@/components/landing/landing-page"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "FluxTeme — Tudo o que sua empresa precisa em um único lugar",
+  title: "Fluxteme — Tudo o que sua empresa precisa em um único lugar",
   description:
-    "FluxTeme é o ecossistema empresarial que conecta, organiza e impulsiona sua operação: financeiro, prestadores de serviço, EHS, documentos e muito mais, em uma única plataforma.",
+    "Fluxteme é o ecossistema empresarial que conecta, organiza e impulsiona sua operação: financeiro, prestadores de serviço, EHS, documentos e muito mais, em uma única plataforma.",
   keywords: [
     "ecossistema empresarial",
     "plataforma de gestão empresarial",
@@ -25,17 +25,17 @@ export const metadata: Metadata = {
     "software de gestão",
   ],
   openGraph: {
-    title: "FluxTeme — Tudo o que sua empresa precisa em um único lugar",
+    title: "Fluxteme — Tudo o que sua empresa precisa em um único lugar",
     description:
       "Uma plataforma completa para conectar, organizar e impulsionar sua empresa. Módulos de financeiro, prestadores, EHS, documentos e muito mais.",
     type: "website",
     locale: "pt_BR",
-    siteName: "FluxTeme",
-    images: [{ url: "/fluwork-logo.png", width: 1024, height: 1024, alt: "FluxTeme" }],
+    siteName: "Fluxteme",
+    images: [{ url: "/fluwork-logo.png", width: 1024, height: 1024, alt: "Fluxteme" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FluxTeme — Tudo o que sua empresa precisa em um único lugar",
+    title: "Fluxteme — Tudo o que sua empresa precisa em um único lugar",
     description: "Uma plataforma completa para conectar, organizar e impulsionar sua empresa.",
     images: ["/fluwork-logo.png"],
   },

@@ -102,7 +102,7 @@ export function SystemControl() {
               <div>
                 <CardTitle className="text-lg">Controle do Sistema</CardTitle>
                 <CardDescription>
-                  Gerencie o status de funcionamento do FluxTeme
+                  Gerencie o status de funcionamento do Fluxteme
                 </CardDescription>
               </div>
             </div>

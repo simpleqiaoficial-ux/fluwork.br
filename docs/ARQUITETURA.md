@@ -1,4 +1,4 @@
-# FluxTeme — Documentação de Arquitetura
+# Fluxteme — Documentação de Arquitetura
 
 **Versão do documento:** 1.0 · **Data:** 2026-07-13 · **Baseado em:** estado real do código na branch `main` no momento da escrita.
 
@@ -33,17 +33,17 @@
 
 ### Objetivo da aplicação
 
-FluxTeme é uma plataforma B2B SaaS multi-tenant para empresas que contratam prestadores de serviço PJ ("colaboradores" no vocabulário do sistema) gerenciarem todo o ciclo de vida financeiro e contratual dessa relação: lançamento e aprovação de ordens de pagamento, emissão e validação de notas fiscais, contratos com assinatura eletrônica, e — desde a adição mais recente — um módulo de compliance de Segurança do Trabalho (EHS) para empresas que também precisam controlar documentação (ASO, NRs, certificados) e agendamento de prestadores em clientes finais.
+Fluxteme é uma plataforma B2B SaaS multi-tenant para empresas que contratam prestadores de serviço PJ ("colaboradores" no vocabulário do sistema) gerenciarem todo o ciclo de vida financeiro e contratual dessa relação: lançamento e aprovação de ordens de pagamento, emissão e validação de notas fiscais, contratos com assinatura eletrônica, e — desde a adição mais recente — um módulo de compliance de Segurança do Trabalho (EHS) para empresas que também precisam controlar documentação (ASO, NRs, certificados) e agendamento de prestadores em clientes finais.
 
 ### Problema que resolve
 
-Empresas que operam com uma base grande de prestadores PJ (terceirizados, freelancers, técnicos alocados em clientes) tipicamente coordenam esse fluxo por planilhas, e-mail e WhatsApp: quem lançou a ordem, quem aprovou, se a nota fiscal foi anexada, se o contrato foi assinado, se a documentação de segurança do trabalho está válida. FluxTeme substitui esse processo manual por um fluxo de aprovação em duas etapas com trilha de auditoria, contratos com assinatura eletrônica juridicamente rastreável, e (no módulo EHS) um painel de compliance que calcula automaticamente o que está vencido ou prestes a vencer.
+Empresas que operam com uma base grande de prestadores PJ (terceirizados, freelancers, técnicos alocados em clientes) tipicamente coordenam esse fluxo por planilhas, e-mail e WhatsApp: quem lançou a ordem, quem aprovou, se a nota fiscal foi anexada, se o contrato foi assinado, se a documentação de segurança do trabalho está válida. Fluxteme substitui esse processo manual por um fluxo de aprovação em duas etapas com trilha de auditoria, contratos com assinatura eletrônica juridicamente rastreável, e (no módulo EHS) um painel de compliance que calcula automaticamente o que está vencido ou prestes a vencer.
 
 ### Público-alvo
 
-- **Empresas contratantes** (o tenant) — o cliente pagante da FluxTeme. Usam os papéis `Adm`, `Financeiro`, `Gerente`, `Supervisor`, e opcionalmente `EHS`.
+- **Empresas contratantes** (o tenant) — o cliente pagante da Fluxteme. Usam os papéis `Adm`, `Financeiro`, `Gerente`, `Supervisor`, e opcionalmente `EHS`.
 - **Prestadores PJ** (`Colaborador` no enum de papéis, rotulado "Prestador" na interface) — recebem pagamentos, assinam contratos, e no módulo EHS acompanham a própria documentação.
-- **Equipe da FluxTeme** (`SuperAdmin`) — não pertence a nenhuma empresa; opera um painel administrativo cross-tenant e pode entrar em modo "visualizar como empresa" para suporte.
+- **Equipe da Fluxteme** (`SuperAdmin`) — não pertence a nenhuma empresa; opera um painel administrativo cross-tenant e pode entrar em modo "visualizar como empresa" para suporte.
 
 ### Fluxos principais
 
@@ -66,7 +66,7 @@ graph TB
 
     subgraph "Google Cloud Platform — projeto fluworkbr"
         subgraph "Cloud Run (southamerica-east1)"
-            App["FluxTeme — Next.js 15 standalone\nServiço: fluworkbr\nmin=0 max=10 instâncias"]
+            App["Fluxteme — Next.js 15 standalone\nServiço: fluworkbr\nmin=0 max=10 instâncias"]
         end
         subgraph "VPC privada (fluworkbr-vpc)"
             SQL[("Cloud SQL Postgres\nIP privado")]
@@ -563,7 +563,7 @@ Para o inventário coluna-a-coluna de todas as 30 tabelas (tipo, nulidade, defau
 - **`faturas`**, **`faturas_colaboradores`**, **`boletos`** — presentes no schema mas não confirmados como conectados a nenhuma tela ativa nesta pesquisa (ver Capítulo 18, possível funcionalidade não finalizada ou legada).
 
 **Contratos**
-- **`contract_templates`** — `empresa_id` nulo = template global da FluxTeme; não-nulo = template próprio da empresa.
+- **`contract_templates`** — `empresa_id` nulo = template global da Fluxteme; não-nulo = template próprio da empresa.
 - **`contracts`** — `status` com 8 valores (`draft/sent/viewed/signed/refused/expired/cancelled/archived`), suporte a renovação automática (`renovacao_automatica`, `tipo_renovacao`, `periodo_renovacao_meses`).
 - **`contract_amendments`** — aditivos, versionados (`versao`), com seu próprio ciclo de assinatura independente.
 - **`contract_signers`** — o "token de acesso" ao fluxo público de assinatura; `token_hash` é `UNIQUE`.
@@ -826,7 +826,7 @@ Dois sistemas coexistem, não integrados entre si:
 | `Gerente` | 1º Aprovador | Primeira etapa de aprovação |
 | `Financeiro` | Aprovador Final | Segunda etapa de aprovação, controla pagamento |
 | `Adm` | Administrador | Acesso total dentro da própria empresa |
-| `SuperAdmin` | SuperAdmin | Equipe FluxTeme, acesso cross-tenant |
+| `SuperAdmin` | SuperAdmin | Equipe Fluxteme, acesso cross-tenant |
 | `EHS` | EHS | Equipe de compliance de segurança do trabalho |
 
 ### Multi-tenant
@@ -1293,12 +1293,12 @@ Ver Capítulo 19 (Roadmap Técnico).
 | **Server Action** | Função assíncrona do Next.js marcada `"use server"`, chamável diretamente de um Client Component como uma chamada de função local; é o mecanismo primário de "API" desta aplicação. |
 | **Server Component** | Componente React que roda e renderiza exclusivamente no servidor; é o padrão de todas as páginas (`page.tsx`) deste projeto, exceto uma. |
 | **Client Component** | Componente React marcado `"use client"`, hidratado e interativo no navegador; usado nas folhas da árvore (formulários, diálogos). |
-| **Tenant** | Uma empresa cliente da FluxTeme (linha em `empresas`) — o limite de isolamento de dados multi-tenant. |
+| **Tenant** | Uma empresa cliente da Fluxteme (linha em `empresas`) — o limite de isolamento de dados multi-tenant. |
 | **Impersonation / "Visualizar como empresa"** | Modo em que um `SuperAdmin` navega temporariamente com o escopo de dados de uma empresa específica, em modo somente leitura, para fins de suporte. |
 | **`getTenantScope()`** | Helper central (`lib/tenant.ts`) que resolve o escopo de empresa efetivo do usuário logado, considerando o modo impersonation. |
 | **RBAC** | Role-Based Access Control — no contexto deste projeto, especificamente o sistema granular de permissões do módulo EHS (`recurso` × `ação`), distinto da checagem de papel fixo usada no resto do sistema. |
 | **EHS** | Sigla em inglês para "Environment, Health & Safety" — o módulo de compliance de Segurança do Trabalho da aplicação; também o nome do papel de usuário responsável por essa área. |
-| **Cliente (EHS)** | No módulo EHS, a empresa onde um Prestador atua fisicamente (ex: "John Deere") — não deve ser confundido com "Tenant"/empresa contratante da FluxTeme; nunca guarda documentação de segurança do trabalho. |
+| **Cliente (EHS)** | No módulo EHS, a empresa onde um Prestador atua fisicamente (ex: "John Deere") — não deve ser confundido com "Tenant"/empresa contratante da Fluxteme; nunca guarda documentação de segurança do trabalho. |
 | **Integração (EHS)** | O agendamento/liberação de um Prestador em um Cliente — a única entidade que conecta as duas. |
 | **Compliance Score** | Percentual calculado em tempo real (nunca persistido) que resume quantos documentos de um Prestador estão válidos. |
 | **Carteirinha Digital** | Crachá em PDF, versionado por Prestador × Cliente, emitido pelo módulo EHS. |

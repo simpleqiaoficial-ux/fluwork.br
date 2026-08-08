@@ -132,7 +132,7 @@ export async function criarIntegracaoEhs(data: IntegracaoEhsInput) {
         cidade: data.cidade,
         telefone: data.telefone,
         portalUrl: `${process.env.APP_BASE_URL || ""}/meu-compliance`,
-        empresa: { nome: empresa?.nomeFantasia || empresa?.razaoSocial || "FluxTeme", razaoSocial: empresa?.razaoSocial || "", cnpj: empresa?.cnpj || "" },
+        empresa: { nome: empresa?.nomeFantasia || empresa?.razaoSocial || "Fluxteme", razaoSocial: empresa?.razaoSocial || "", cnpj: empresa?.cnpj || "" },
       })
     } catch (error) {
       console.error("[ehs] Erro ao enviar e-mail de integração agendada:", error)

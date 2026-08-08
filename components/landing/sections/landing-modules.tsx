@@ -11,7 +11,7 @@ export function LandingModules() {
         <SectionHeading
           eyebrow="Módulos"
           title="Um ecossistema de módulos, não um sistema fechado"
-          description="Ative os módulos que sua operação precisa hoje. A arquitetura do FluxTeme já está pronta para os próximos."
+          description="Ative os módulos que sua operação precisa hoje. A arquitetura do Fluxteme já está pronta para os próximos."
         />
 
         <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

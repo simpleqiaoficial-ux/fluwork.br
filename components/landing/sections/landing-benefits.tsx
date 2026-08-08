@@ -7,7 +7,7 @@ export function LandingBenefits() {
     <section id="beneficios" className="py-20 sm:py-28" aria-labelledby="beneficios-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Por que o FluxTeme"
+          eyebrow="Por que o Fluxteme"
           title="Organização empresarial real, não só mais um sistema"
           description="Construído para reduzir a distância entre a operação do dia a dia e a visão estratégica da sua empresa."
         />

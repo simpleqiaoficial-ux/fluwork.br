@@ -29,7 +29,7 @@ export async function consultarCnpj(cnpjRaw: string): Promise<ConsultaCnpjResult
     // BrasilAPI bloqueia com 403 requisições sem User-Agent — o fetch do Node não envia um por padrão.
     const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
       cache: "no-store",
-      headers: { "User-Agent": "FluxTeme/1.0 (+https://fluworkbr-mwarhzm76a-rj.a.run.app)" },
+      headers: { "User-Agent": "Fluxteme/1.0 (+https://fluworkbr-mwarhzm76a-rj.a.run.app)" },
     })
 
     if (!response.ok) {

@@ -29,7 +29,7 @@ export function LandingHeader() {
       )}
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center" aria-label="FluxTeme — página inicial">
+        <Link href="/" className="flex items-center" aria-label="Fluxteme — página inicial">
           <Logo size={38} />
         </Link>
 

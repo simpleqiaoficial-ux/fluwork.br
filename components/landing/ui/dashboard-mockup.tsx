@@ -15,6 +15,7 @@ import {
   FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/brand/logo"
 
 const CHART_DATA = [
   { mes: "Jan", valor: 42 },
@@ -45,7 +46,7 @@ interface DashboardMockupProps {
   detailed?: boolean
 }
 
-/** Mockup visual do dashboard do FluxTeme — 100% CSS/SVG, sem depender de screenshot externo. */
+/** Mockup visual do dashboard do Fluxteme — 100% CSS/SVG, sem depender de screenshot externo. */
 export function DashboardMockup({ className, detailed = false }: DashboardMockupProps) {
   return (
     <div
@@ -54,7 +55,7 @@ export function DashboardMockup({ className, detailed = false }: DashboardMockup
         className,
       )}
       role="img"
-      aria-label="Ilustração do painel executivo do FluxTeme, mostrando indicadores financeiros, prestadores ativos e atividades recentes"
+      aria-label="Ilustração do painel executivo do Fluxteme, mostrando indicadores financeiros, prestadores ativos e atividades recentes"
     >
       {/* Barra superior estilo navegador */}
       <div className="flex items-center gap-2 border-b border-border/70 bg-muted/40 px-4 py-3">
@@ -71,7 +72,7 @@ export function DashboardMockup({ className, detailed = false }: DashboardMockup
       <div className="flex">
         {/* Sidebar */}
         <div className="hidden w-14 shrink-0 flex-col items-center gap-4 border-r border-border/70 bg-muted/20 py-4 sm:flex">
-          <img src="/fluwork-logo.png" alt="" width={24} height={24} className="h-6 w-6 object-contain" aria-hidden="true" />
+          <Logo showWordmark={false} size={22} />
           <div className="mt-2 flex flex-col gap-3">
             {SIDEBAR_ICONS.map((Icon, i) => (
               <div

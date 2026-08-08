@@ -10,37 +10,40 @@
 
 @layer base {
   :root {
-    /* --font-poppins vem do next/font/google (ver app/layout.tsx), auto-hospedada — não
-       depende de rede em runtime. --font-mono cobre todo dado tabular (dinheiro, datas, CNPJ). */
-    --font-sans: var(--font-poppins), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Roboto Mono", monospace;
+    /* Tipografia — Manual de Marca v2.0. Jost (títulos/identidade), Inter (interface) e
+       JetBrains Mono (dados técnicos/auditáveis) vêm do next/font/google (ver app/layout.tsx),
+       auto-hospedadas — não dependem de rede em runtime. */
+    --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --font-heading: var(--font-jost), var(--font-sans);
+    --font-mono: var(--font-jetbrains-mono), ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 
-    /* Identidade FluxTeme — ciano-azul de marca (#52C1E6, H195°) com fundo branco/quase-branco.
-       --primary usa a mesma família de matiz num tom mais escuro (L38%) pra garantir contraste
-       com texto branco em botões sólidos (a cor de marca literal, L61%, não passa em WCAG AA
-       com texto branco em cima — ver --sidebar-accent-icon e --accent pra usos mais claros dela).
-       --carimbo é um segundo acento, reservado exclusivamente pra estados de documento
-       oficializado (nota autorizada, contrato assinado) — referência à tinta roxa de carimbo de
-       cartório brasileiro, não faz parte da identidade primária. */
-    --background: 200 25% 97%;
-    --foreground: 222 15% 11%;
+    /* Identidade Fluxteme — Manual de Marca v2.0. Quatro cores oficiais:
+       Navy #011832 (estrutural — backgrounds institucionais, títulos, sidebar) mapeada pra
+       --foreground/--sidebar-background; Teal #00668A (destaque principal — links, botões,
+       estados ativos) mapeada pra --primary; Aqua #00AEDE (destaque secundário, só sobre fundo
+       escuro) mapeada pra --sidebar-accent-icon e pro --primary do tema escuro; Cinza Técnico
+       #DFE3E6 (bordas/divisórias/tabelas) mapeado pra --border/--input, valor usado tal e qual.
+       --carimbo é um acento semântico à parte, reservado pra estados de documento oficializado
+       (nota autorizada, contrato assinado) — não faz parte da paleta primária da marca. */
+    --background: 206 15% 98%;
+    --foreground: 212 40% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222 15% 11%;
+    --card-foreground: 212 40% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 15% 11%;
-    --primary: 195 75% 38%;
+    --popover-foreground: 212 40% 11%;
+    --primary: 196 100% 27%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 20% 94%;
-    --secondary-foreground: 222 15% 11%;
-    --muted: 200 20% 95%;
-    --muted-foreground: 215 12% 42%;
-    --accent: 195 70% 94%;
-    --accent-foreground: 195 75% 28%;
+    --secondary: 206 25% 94%;
+    --secondary-foreground: 212 40% 15%;
+    --muted: 206 20% 95%;
+    --muted-foreground: 212 15% 42%;
+    --accent: 196 60% 94%;
+    --accent-foreground: 196 100% 22%;
     --destructive: 6 57% 41%;
     --destructive-foreground: 0 0% 100%;
-    --border: 205 20% 88%;
-    --input: 205 20% 88%;
-    --ring: 195 75% 45%;
+    --border: 206 12% 89%;
+    --input: 206 12% 89%;
+    --ring: 196 90% 35%;
     --radius: 0.375rem;
 
     --success: 150 60% 30%;
@@ -50,45 +53,45 @@
     --carimbo: 264 42% 39%;
     --carimbo-foreground: 0 0% 100%;
 
-    --chart-1: 195 75% 40%;
-    --chart-2: 224 70% 55%;
+    --chart-1: 196 100% 27%;
+    --chart-2: 193 100% 44%;
     --chart-3: 264 42% 45%;
     --chart-4: 150 60% 32%;
     --chart-5: 31 68% 42%;
 
-    /* Sidebar de navegação — navy escuro fixo, independente do tema claro/escuro do app (mesmo
-       padrão de console B2B com "sidebar sempre escura + conteúdo claro/escuro por opção"). Matiz
-       alinhado ao ciano de marca (H195-199°) em vez do indigo antigo. */
-    --sidebar-background: 205 45% 13%;
-    --sidebar-foreground: 205 20% 90%;
-    --sidebar-muted-foreground: 210 14% 62%;
-    --sidebar-border: 205 30% 21%;
-    --sidebar-hover: 205 28% 19%;
-    --sidebar-active: 199 55% 24%;
-    --sidebar-active-foreground: 195 90% 92%;
-    --sidebar-accent-icon: 195 85% 65%;
+    /* Sidebar de navegação — Fluxteme Navy (#011832) exata, fixa independente do tema claro/
+       escuro do app (mesmo padrão de console B2B "sidebar sempre escura + conteúdo por opção").
+       Ícone/estado ativo usam Aqua/Teal, conforme a regra de "fundo escuro" do manual. */
+    --sidebar-background: 212 96% 10%;
+    --sidebar-foreground: 206 25% 92%;
+    --sidebar-muted-foreground: 210 15% 65%;
+    --sidebar-border: 212 60% 18%;
+    --sidebar-hover: 212 55% 16%;
+    --sidebar-active: 196 70% 20%;
+    --sidebar-active-foreground: 193 90% 90%;
+    --sidebar-accent-icon: 193 100% 44%;
   }
 
   .dark {
-    --background: 210 25% 8%;
-    --foreground: 200 20% 92%;
-    --card: 210 22% 11%;
-    --card-foreground: 200 20% 92%;
-    --popover: 210 22% 11%;
-    --popover-foreground: 200 20% 92%;
-    --primary: 195 85% 65%;
-    --primary-foreground: 195 55% 12%;
-    --secondary: 210 18% 16%;
-    --secondary-foreground: 200 20% 92%;
-    --muted: 210 18% 16%;
-    --muted-foreground: 215 12% 62%;
-    --accent: 195 45% 18%;
-    --accent-foreground: 195 80% 85%;
+    --background: 212 55% 7%;
+    --foreground: 206 20% 92%;
+    --card: 212 45% 10%;
+    --card-foreground: 206 20% 92%;
+    --popover: 212 45% 10%;
+    --popover-foreground: 206 20% 92%;
+    --primary: 193 100% 44%;
+    --primary-foreground: 212 60% 10%;
+    --secondary: 212 40% 14%;
+    --secondary-foreground: 206 20% 92%;
+    --muted: 212 40% 14%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 196 55% 16%;
+    --accent-foreground: 193 90% 85%;
     --destructive: 6 55% 55%;
     --destructive-foreground: 0 0% 9%;
-    --border: 210 18% 20%;
-    --input: 210 18% 20%;
-    --ring: 195 85% 65%;
+    --border: 212 35% 20%;
+    --input: 212 35% 20%;
+    --ring: 193 100% 50%;
 
     --success: 150 45% 50%;
     --success-foreground: 222 25% 8%;
@@ -97,8 +100,8 @@
     --carimbo: 264 43% 72%;
     --carimbo-foreground: 222 25% 8%;
 
-    --chart-1: 195 85% 65%;
-    --chart-2: 224 75% 68%;
+    --chart-1: 193 100% 50%;
+    --chart-2: 196 85% 55%;
     --chart-3: 264 43% 68%;
     --chart-4: 150 45% 50%;
     --chart-5: 31 60% 58%;
@@ -113,6 +116,11 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 500;
   }
 
   code, kbd, samp, pre {

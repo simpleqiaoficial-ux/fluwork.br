@@ -83,6 +83,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Arial", "sans-serif"],
+        heading: ["var(--font-heading)", "var(--font-sans)"],
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       borderRadius: {

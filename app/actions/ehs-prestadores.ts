@@ -9,7 +9,7 @@ import { calcularComplianceDocumentos } from "@/lib/ehs/compliance"
 import { toColaboradorDTO } from "@/lib/db/mappers"
 
 /** "Prestador" no módulo EHS é o mesmo colaborador operacional já cadastrado no resto do
- *  FluxTeme — não existe uma tabela separada. Isolar por tipoAcesso = "Colaborador" mantém
+ *  Fluxteme — não existe uma tabela separada. Isolar por tipoAcesso = "Colaborador" mantém
  *  fora da lista qualquer papel administrativo/financeiro. */
 export async function listarPrestadoresEhs() {
   const scope = await getTenantScope()
