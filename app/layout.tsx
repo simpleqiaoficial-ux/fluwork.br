@@ -26,13 +26,9 @@ import cn from "classnames"
 // Jost: fonte de identidade (títulos, headings, números de destaque, assinaturas) — Manual de
 // Marca v2.0. Inter: fonte de interface (texto corrido, menus, tabelas, formulários, botões).
 // JetBrains Mono: fonte técnica (IDs, hashes, dados auditáveis, informação de rastreabilidade).
-// 600 entra além dos pesos principais do manual (300/500) porque a maior parte dos títulos do
-// app já usa a classe font-semibold — sem carregar esse peso, o navegador "forja" o negrito
-// (font synthesis) em cima do 500, o que fica grosso/borrado e foi justamente o problema
-// reportado ("fonte forte, parece amador"). Carregar o peso real resolve.
 const jost = Jost({
   subsets: ["latin"],
-  weight: ["300", "500", "600"],
+  weight: ["300", "500"],
   variable: "--font-jost",
   display: "swap",
 })

@@ -86,6 +86,14 @@ module.exports = {
         heading: ["var(--font-heading)", "var(--font-sans)"],
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
+      // Identidade minimalista: nenhum peso de fonte no app deve passar de 500 (Medium) — os
+      // dois pesos oficiais do Manual de Marca (300/500). font-semibold e font-bold continuam
+      // disponíveis nas classes (não precisa trocar cada componente), só o valor real deles cai
+      // pra 500, em vez do 600/700 padrão do Tailwind.
+      fontWeight: {
+        semibold: "500",
+        bold: "500",
+      },
       borderRadius: {
         xl: "calc(var(--radius) + 6px)",
         lg: "var(--radius)",
