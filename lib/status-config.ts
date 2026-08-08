@@ -75,7 +75,7 @@ export const CHAMADO_STATUS_CONFIG: Record<string, StatusConfigEntry> = {
   em_atendimento: { label: "Em atendimento", variant: "info", icon: Hourglass },
   aguardando_usuario: { label: "Aguardando você", variant: "warning", icon: Clock },
   aguardando_empresa: { label: "Aguardando empresa", variant: "warning", icon: Clock },
-  aguardando_fluwork: { label: "Aguardando FluWork", variant: "warning", icon: Clock },
+  aguardando_fluwork: { label: "Aguardando FluxTeme", variant: "warning", icon: Clock },
   resolvido: { label: "Resolvido", variant: "success", icon: CheckCircle2 },
   fechado: { label: "Fechado", variant: "neutral", icon: Archive },
   reaberto: { label: "Reaberto", variant: "warning", icon: RotateCcw },

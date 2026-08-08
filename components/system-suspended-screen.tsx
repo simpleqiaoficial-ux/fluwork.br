@@ -21,7 +21,7 @@ export function SystemSuspendedScreen({ reason }: SystemSuspendedScreenProps) {
         <div className="space-y-1.5">
           <h1 className="text-xl font-semibold">Sistema temporariamente suspenso</h1>
           <p className="text-sm text-muted-foreground">
-            O FluWork está em manutenção no momento.
+            O FluxTeme está em manutenção no momento.
           </p>
         </div>
 

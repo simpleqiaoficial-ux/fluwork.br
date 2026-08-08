@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // /admin é exclusivo do time do FluWork (SuperAdmin) — qualquer outro papel é redirecionado.
+  // /admin é exclusivo do time do FluxTeme (SuperAdmin) — qualquer outro papel é redirecionado.
   if (request.nextUrl.pathname.startsWith("/admin") && session?.tipoAcesso !== "SuperAdmin") {
     return NextResponse.redirect(new URL("/", request.url))
   }

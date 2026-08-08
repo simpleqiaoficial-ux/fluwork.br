@@ -31,7 +31,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "FluWork - Gestão de Prestadores",
+  title: "FluxTeme - Gestão de Prestadores",
   description: "Gerencie contratos, notas fiscais e valores contratuais de prestadores com facilidade",
 }
 
@@ -65,7 +65,7 @@ export default async function RootLayout({
     if (session.tipoAcesso === "SuperAdmin" && session.viewAsEmpresaId) {
       empresaNome = session.viewAsEmpresaNome || "Empresa"
     } else if (session.tipoAcesso === "SuperAdmin") {
-      empresaNome = "Painel FluWork"
+      empresaNome = "Painel FluxTeme"
     } else if (session.empresaId) {
       const [empresa] = await db
         .select({ razaoSocial: empresas.razaoSocial, nomeFantasia: empresas.nomeFantasia, status: empresas.status, bloqueadoMotivo: empresas.bloqueadoMotivo })

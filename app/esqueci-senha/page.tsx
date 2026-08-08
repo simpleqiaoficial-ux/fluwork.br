@@ -33,9 +33,9 @@ export default function EsqueciSenhaPage() {
 
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-3">
-            <span>simpleqia.oficial@gmail.com</span>
+            <span>contato@fluxteme.com.br</span>
           </div>
         </div>
       </footer>

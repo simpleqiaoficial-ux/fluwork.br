@@ -19,11 +19,11 @@ async function requireUser(): Promise<UsuarioAutenticado> {
   return usuario
 }
 
-/** Exige que o usuário logado seja o SuperAdmin (time FluWork, acesso a todas as empresas). */
+/** Exige que o usuário logado seja o SuperAdmin (time FluxTeme, acesso a todas as empresas). */
 export async function requireSuperAdmin(): Promise<UsuarioAutenticado> {
   const usuario = await requireUser()
   if (usuario.tipo_acesso !== "SuperAdmin") {
-    throw new Error("Apenas o administrador FluWork pode acessar este recurso")
+    throw new Error("Apenas o administrador FluxTeme pode acessar este recurso")
   }
   return usuario
 }

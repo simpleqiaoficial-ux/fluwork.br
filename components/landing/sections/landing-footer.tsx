@@ -54,9 +54,9 @@ export function LandingFooter() {
             <h3 className="text-sm font-semibold text-foreground">Contato</h3>
             <ul className="mt-4 space-y-3">
               <li>
-                <a href="mailto:simpleqia.oficial@gmail.com" className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <a href="mailto:contato@fluxteme.com.br" className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
                   <Mail className="h-4 w-4" aria-hidden="true" />
-                  simpleqia.oficial@gmail.com
+                  contato@fluxteme.com.br
                 </a>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -68,7 +68,7 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border/70 pt-8 sm:flex-row">
-          <p className="text-xs text-muted-foreground">© {year} FluWork. Todos os direitos reservados.</p>
+          <p className="text-xs text-muted-foreground">© {year} FluxTeme. Todos os direitos reservados.</p>
           <p className="text-xs text-muted-foreground">Feito para empresas que querem crescer com organização.</p>
         </div>
       </div>

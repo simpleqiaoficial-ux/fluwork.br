@@ -73,7 +73,7 @@ export async function suspendSystem(reason: string): Promise<{
   }
 
   if (session.tipoAcesso !== "SuperAdmin") {
-    return { success: false, error: "Apenas o time FluWork pode suspender o sistema" }
+    return { success: false, error: "Apenas o time FluxTeme pode suspender o sistema" }
   }
 
   if (!reason || reason.trim().length < 5) {
@@ -140,7 +140,7 @@ export async function reactivateSystem(): Promise<{
   }
 
   if (session.tipoAcesso !== "SuperAdmin") {
-    return { success: false, error: "Apenas o time FluWork pode reativar o sistema" }
+    return { success: false, error: "Apenas o time FluxTeme pode reativar o sistema" }
   }
 
   try {

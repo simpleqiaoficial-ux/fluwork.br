@@ -26,7 +26,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="container mx-auto px-4 lg:px-6 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-foreground">Painel FluWork</h1>
+        <h1 className="text-xl font-semibold text-foreground">Painel FluxTeme</h1>
         <p className="text-sm text-muted-foreground mt-1">Visão global de todas as empresas clientes da plataforma</p>
       </div>
 

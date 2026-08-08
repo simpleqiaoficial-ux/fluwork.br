@@ -61,7 +61,7 @@ export default async function RedefinirSenhaTokenPage({ params }: RedefinirSenha
 
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

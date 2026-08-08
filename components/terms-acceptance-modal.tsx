@@ -104,7 +104,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               <DialogTitle>Recusar termos de uso</DialogTitle>
             </div>
             <DialogDescription className="text-center">
-              Ao recusar os termos de uso, você será desconectado do sistema e não poderá acessar o FluWork até aceitar os termos.
+              Ao recusar os termos de uso, você será desconectado do sistema e não poderá acessar o FluxTeme até aceitar os termos.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 sm:flex-row">
@@ -139,7 +139,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
       >
         {/* Header fixo */}
         <DialogHeader className="px-4 sm:px-6 pt-5 pb-3 border-b shrink-0">
-          <DialogTitle className="text-center text-lg sm:text-xl">Termos de Uso do FluWork</DialogTitle>
+          <DialogTitle className="text-center text-lg sm:text-xl">Termos de Uso do FluxTeme</DialogTitle>
           <DialogDescription className="text-center text-xs sm:text-sm">
             {userName && <span className="font-medium">{userName}, </span>}
             Por favor, leia atentamente os termos antes de continuar.
@@ -159,7 +159,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">1. Aceitação dos Termos</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Ao acessar e utilizar o sistema FluWork, você concorda em cumprir e estar vinculado a estes
+                Ao acessar e utilizar o sistema FluxTeme, você concorda em cumprir e estar vinculado a estes
                 Termos de Uso. Se você não concordar com qualquer parte destes termos, não deverá utilizar
                 o sistema.
               </p>
@@ -168,7 +168,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">2. Descrição do Serviço</h3>
               <p className="text-muted-foreground leading-relaxed">
-                O FluWork é um sistema de gestão de pagamentos para colaboradores, permitindo o controle
+                O FluxTeme é um sistema de gestão de pagamentos para colaboradores, permitindo o controle
                 de pedidos, notas fiscais, aprovações e pagamentos. O sistema é disponibilizado pela empresa
                 contratante para uso exclusivo de seus colaboradores autorizados.
               </p>
@@ -249,7 +249,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
             <section>
               <h3 className="mb-2 font-semibold">10. Disposições Gerais</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Estes termos constituem o acordo integral entre você e o FluWork. A invalidade de qualquer
+                Estes termos constituem o acordo integral entre você e o FluxTeme. A invalidade de qualquer
                 disposição não afetará a validade das demais. O não exercício de qualquer direito não implica
                 renúncia ao mesmo.
               </p>
@@ -281,7 +281,7 @@ export function TermsAcceptanceModal({ isOpen, onAccept, userName, userId }: Ter
               htmlFor="accept-terms"
               className={`text-sm leading-relaxed cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
             >
-              Li e concordo com os Termos de Uso do FluWork. Entendo que meus dados serão processados conforme
+              Li e concordo com os Termos de Uso do FluxTeme. Entendo que meus dados serão processados conforme
               descrito acima e que devo utilizar o sistema de forma responsável.
             </Label>
           </div>

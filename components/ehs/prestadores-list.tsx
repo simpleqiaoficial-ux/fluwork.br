@@ -44,7 +44,7 @@ export function PrestadoresEhsList({ prestadores }: { prestadores: PrestadorEhsR
       <EmptyState
         icon={HardHat}
         title="Nenhum prestador cadastrado"
-        description="Prestadores são os colaboradores já cadastrados no FluWork — cadastre um colaborador em Cadastros para que ele apareça aqui."
+        description="Prestadores são os colaboradores já cadastrados no FluxTeme — cadastre um colaborador em Cadastros para que ele apareça aqui."
         className="py-16"
       />
     )

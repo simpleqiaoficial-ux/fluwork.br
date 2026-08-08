@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, Mail, Phone } from "lucide-react"
+import { ArrowLeft, Mail, LifeBuoy } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export default function PrivacidadePage() {
@@ -24,7 +24,7 @@ export default function PrivacidadePage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
         <h1 className="text-xl font-semibold tracking-tight">Política de Privacidade</h1>
-        <p className="text-sm text-muted-foreground mt-2">FluWork - LGPD (Lei nº 13.709/2018)</p>
+        <p className="text-sm text-muted-foreground mt-2">FluxTeme - LGPD (Lei nº 13.709/2018)</p>
         <p className="text-xs text-muted-foreground mt-3">
           Vigência: 02/04/2026 · Versão 2.1 · CNPJ 26.344.386/0001-42
         </p>
@@ -38,16 +38,16 @@ export default function PrivacidadePage() {
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             <strong className="text-foreground font-medium">Controlador dos Dados:</strong> FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
             CNPJ 26.344.386/0001-42, nome fantasia KAFERRI TEC SERVICOS, com sede em Osasco/SP, responsável pelas
-            decisões relativas ao tratamento de dados pessoais no FluWork.
+            decisões relativas ao tratamento de dados pessoais no FluxTeme.
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            <strong className="text-foreground font-medium">Encarregado de Dados (DPO):</strong> simpleqia.oficial@gmail.com. O DPO é o canal
+            <strong className="text-foreground font-medium">Encarregado de Dados (DPO):</strong> contato@fluxteme.com.br. O DPO é o canal
             oficial para exercício de direitos dos titulares, dúvidas sobre o tratamento de dados e comunicação com a ANPD.
           </p>
           <div className="border-l-2 border-border pl-4 py-1">
             <p className="text-sm text-muted-foreground">
               Para dados de prestadores inseridos pelas Empresas Clientes, a Empresa Cliente atua como Controladora
-              e o FluWork atua como Operadora, conforme Art. 37 da LGPD.
+              e o FluxTeme atua como Operadora, conforme Art. 37 da LGPD.
             </p>
           </div>
         </section>
@@ -73,7 +73,7 @@ export default function PrivacidadePage() {
           <div className="border-l-2 border-success pl-4 py-1">
             <p className="text-sm text-muted-foreground">
               Não coletamos dados sensíveis (saúde, biometria, etnia, orientação sexual) e não permitimos o cadastro
-              de dados de menores de 18 anos através do FluWork.
+              de dados de menores de 18 anos através do FluxTeme.
             </p>
           </div>
         </section>
@@ -125,7 +125,7 @@ export default function PrivacidadePage() {
           </ul>
           <div className="border-l-2 border-destructive pl-4 py-1">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground font-medium">Proibido:</strong> O FluWork jamais vende, cede ou comercializa dados pessoais para terceiros
+              <strong className="text-foreground font-medium">Proibido:</strong> O FluxTeme jamais vende, cede ou comercializa dados pessoais para terceiros
               para fins de marketing, publicidade ou qualquer finalidade alheia ao serviço contratado.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">5. Transferência Internacional de Dados</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Caso dados sejam processados em infraestrutura localizada fora do Brasil, o FluWork garante que tais
+            Caso dados sejam processados em infraestrutura localizada fora do Brasil, o FluxTeme garante que tais
             transferências ocorrem apenas para países com grau de proteção adequado reconhecido pela ANPD ou mediante
             cláusulas contratuais padrão, conforme Arts. 33 e seguintes da LGPD.
           </p>
@@ -203,7 +203,7 @@ export default function PrivacidadePage() {
             <li><strong className="text-foreground font-medium">Revogação do consentimento</strong> - a qualquer tempo, sem prejuízo do tratamento anterior</li>
           </ul>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Para exercer qualquer direito, envie solicitação para simpleqia.oficial@gmail.com com nome completo,
+            Para exercer qualquer direito, envie solicitação para contato@fluxteme.com.br com nome completo,
             e-mail cadastrado e descrição do pedido. Prazo de resposta: 15 dias úteis.
           </p>
         </section>
@@ -211,7 +211,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">9. Cookies e Tecnologias Similares</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluWork utiliza exclusivamente cookies estritamente necessários para:
+            O FluxTeme utiliza exclusivamente cookies estritamente necessários para:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Manutenção da sessão autenticada do usuário</li>
@@ -229,7 +229,7 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="text-base font-semibold mb-3">10. Incidentes de Segurança</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Em caso de incidente que possa afetar dados pessoais, o FluWork:
+            Em caso de incidente que possa afetar dados pessoais, o FluxTeme:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Notificará a Empresa Cliente no prazo máximo de 72 horas após ciência do evento</li>
@@ -238,7 +238,7 @@ export default function PrivacidadePage() {
             <li>Fornecerá relatório de incidente com causa, dados afetados e medidas adotadas</li>
           </ul>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Para reportar incidentes: simpleqia.oficial@gmail.com ou (11) 91486-0806
+            Para reportar incidentes: contato@fluxteme.com.br ou abra uma solicitação pela Central de Suporte da plataforma.
           </p>
         </section>
 
@@ -247,25 +247,23 @@ export default function PrivacidadePage() {
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             Esta Política entra em vigor em 02/04/2026 e pode ser atualizada periodicamente. Alterações relevantes
             serão comunicadas por e-mail com antecedência mínima de 15 dias. A versão vigente estará sempre disponível
-            na tela de login do FluWork.
+            na tela de login do FluxTeme.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:simpleqia.oficial@gmail.com"
+              href="mailto:contato@fluxteme.com.br"
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
               <Mail className="h-4 w-4" />
-              simpleqia.oficial@gmail.com
+              contato@fluxteme.com.br
             </a>
-            <a
-              href="https://wa.me/5511914860806"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/suporte"
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
-              <Phone className="h-4 w-4" />
-              (11) 91486-0806
-            </a>
+              <LifeBuoy className="h-4 w-4" />
+              Abrir solicitação pela plataforma
+            </Link>
           </div>
         </section>
 
@@ -274,7 +272,7 @@ export default function PrivacidadePage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

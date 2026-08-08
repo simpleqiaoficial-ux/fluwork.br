@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Search, ArrowLeft, Mail, Phone, HelpCircle, Shield, CreditCard, Key } from "lucide-react"
+import { ChevronDown, Search, ArrowLeft, Mail, LifeBuoy, HelpCircle, Shield, CreditCard, Key } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,20 +14,20 @@ const faqCategories = [
     icon: Key,
     questions: [
       {
-        question: "Como recebo meu acesso ao FluWork?",
-        answer: "O acesso é provisionado pelo administrador da empresa contratante. Após o cadastro, você recebe um e-mail com credenciais temporárias e deve alterar a senha no primeiro login. Caso não receba, verifique o spam ou contate simpleqia.oficial@gmail.com."
+        question: "Como recebo meu acesso ao FluxTeme?",
+        answer: "O acesso é provisionado pelo administrador da empresa contratante. Após o cadastro, você recebe um e-mail com credenciais temporárias e deve alterar a senha no primeiro login. Caso não receba, verifique o spam ou contate contato@fluxteme.com.br."
       },
       {
         question: "Como recupero minha senha?",
-        answer: "Clique em 'Esqueci minha senha' na tela de login e informe seu e-mail cadastrado. Você receberá um link de redefinição válido por 30 minutos. Se não chegar, contate simpleqia.oficial@gmail.com ou (11) 91486-0806 via WhatsApp com seu nome e empresa."
+        answer: "Clique em 'Esqueci minha senha' na tela de login e informe seu e-mail cadastrado. Você receberá um link de redefinição válido por 30 minutos. Se não chegar, contate contato@fluxteme.com.br ou abra uma solicitação pela Central de Suporte da plataforma, informando seu nome e empresa."
       },
       {
         question: "Por que minha conta foi bloqueada?",
         answer: "Por segurança, a conta é bloqueada após 5 tentativas incorretas consecutivas. O desbloqueio automático ocorre após 15 minutos. Para desbloqueio imediato, contate o suporte informando seu e-mail e empresa."
       },
       {
-        question: "Posso usar o FluWork no celular?",
-        answer: "Sim. O FluWork é responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi públicas sem VPN."
+        question: "Posso usar o FluxTeme no celular?",
+        answer: "Sim. O FluxTeme é responsivo e funciona em qualquer navegador moderno (Chrome, Firefox, Safari). Recomendamos ativar a trava de tela no dispositivo e evitar redes Wi-Fi públicas sem VPN."
       }
     ]
   },
@@ -37,16 +37,16 @@ const faqCategories = [
     icon: CreditCard,
     questions: [
       {
-        question: "O que o FluWork gerencia exatamente?",
-        answer: "O FluWork é uma plataforma SaaS de gestão de prestadores de serviço com foco em controle de fluxo de validação, registro de contratos, status de aprovação e controle de pagamentos. Ciclo completo: cadastro, validação documental, aprovação multinível, ordem de pagamento, quitação e arquivamento."
+        question: "O que o FluxTeme gerencia exatamente?",
+        answer: "O FluxTeme é uma plataforma SaaS de gestão de prestadores de serviço com foco em controle de fluxo de validação, registro de contratos, status de aprovação e controle de pagamentos. Ciclo completo: cadastro, validação documental, aprovação multinível, ordem de pagamento, quitação e arquivamento."
       },
       {
         question: "Como funciona o fluxo de aprovação?",
         answer: "O fluxo é configurado pelo administrador da empresa: (1) Cadastro do prestador com dados e documentos; (2) Triagem e validação documental; (3) Aprovação gerencial conforme hierarquia; (4) Liberação da ordem de pagamento. Cada etapa registra responsável, data e justificativa."
       },
       {
-        question: "Os dados de pagamento ficam armazenados no FluWork?",
-        answer: "O FluWork registra os dados necessários para controle e auditoria (valores, datas, responsáveis, comprovantes). Dados bancários sensíveis são trafegados via canais criptografados com acesso restrito. A empresa não acessa dados financeiros fora do escopo operacional contratado."
+        question: "Os dados de pagamento ficam armazenados no FluxTeme?",
+        answer: "O FluxTeme registra os dados necessários para controle e auditoria (valores, datas, responsáveis, comprovantes). Dados bancários sensíveis são trafegados via canais criptografados com acesso restrito. A empresa não acessa dados financeiros fora do escopo operacional contratado."
       },
       {
         question: "Como exportar relatórios de pagamento?",
@@ -65,11 +65,11 @@ const faqCategories = [
       },
       {
         question: "Como reportar uma suspeita de incidente de segurança?",
-        answer: "Notifique imediatamente via simpleqia.oficial@gmail.com ou WhatsApp (11) 91486-0806. Descreva o ocorrido, horário e funcionalidade envolvida. Nunca compartilhe sua senha com ninguém, nem com o suporte. SLA de resposta de 4 horas para incidentes críticos."
+        answer: "Notifique imediatamente via contato@fluxteme.com.br ou abrindo uma solicitação pela Central de Suporte da plataforma. Descreva o ocorrido, horário e funcionalidade envolvida. Nunca compartilhe sua senha com ninguém, nem com o suporte. SLA de resposta de 4 horas para incidentes críticos."
       },
       {
         question: "O sistema registra minhas ações?",
-        answer: "Sim. Por razões de segurança e auditoria, o FluWork registra logs de acesso, ações realizadas, alterações de dados e tentativas de login. Esses registros são acessíveis apenas pelo time de TI e gestores autorizados, conforme a Política de Privacidade."
+        answer: "Sim. Por razões de segurança e auditoria, o FluxTeme registra logs de acesso, ações realizadas, alterações de dados e tentativas de login. Esses registros são acessíveis apenas pelo time de TI e gestores autorizados, conforme a Política de Privacidade."
       }
     ]
   },
@@ -80,11 +80,11 @@ const faqCategories = [
     questions: [
       {
         question: "Quais são os canais de suporte?",
-        answer: "E-mail: simpleqia.oficial@gmail.com (resposta em até 24h úteis). WhatsApp: (11) 91486-0806 (seg-sex 8h-18h). Para incidentes críticos de produção: SLA de 4 horas corridas, 7 dias por semana. Sempre informe empresa, e-mail de acesso e descrição detalhada do problema."
+        answer: "E-mail: contato@fluxteme.com.br (resposta em até 24h úteis). Suporte: abra uma solicitação diretamente pela plataforma. Para incidentes críticos de produção: SLA de 4 horas corridas, 7 dias por semana. Sempre informe empresa, e-mail de acesso e descrição detalhada do problema."
       },
       {
         question: "Como solicitar criação ou remoção de usuários?",
-        answer: "O administrador da empresa pode gerenciar usuários no painel de configurações. Para operações em lote, contate simpleqia.oficial@gmail.com com nome completo, e-mail e nível de acesso desejado. Prazo de até 1 dia útil."
+        answer: "O administrador da empresa pode gerenciar usuários no painel de configurações. Para operações em lote, contate contato@fluxteme.com.br com nome completo, e-mail e nível de acesso desejado. Prazo de até 1 dia útil."
       }
     ]
   }
@@ -134,7 +134,7 @@ export default function FAQPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
         <h1 className="text-xl font-semibold tracking-tight">Central de Ajuda</h1>
-        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas dúvidas sobre o FluWork</p>
+        <p className="text-sm text-muted-foreground mt-2">Encontre respostas para suas dúvidas sobre o FluxTeme</p>
 
         {/* Search */}
         <div className="relative max-w-lg mx-auto mt-8">
@@ -234,16 +234,16 @@ export default function FAQPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild>
-              <a href="mailto:simpleqia.oficial@gmail.com">
+              <a href="mailto:contato@fluxteme.com.br">
                 <Mail className="h-4 w-4" />
-                simpleqia.oficial@gmail.com
+                contato@fluxteme.com.br
               </a>
             </Button>
             <Button asChild variant="outline">
-              <a href="https://wa.me/5511914860806" target="_blank" rel="noopener noreferrer">
-                <Phone className="h-4 w-4" />
-                (11) 91486-0806
-              </a>
+              <Link href="/suporte">
+                <LifeBuoy className="h-4 w-4" />
+                Abrir solicitação pela plataforma
+              </Link>
             </Button>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function FAQPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

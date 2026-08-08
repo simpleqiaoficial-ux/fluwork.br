@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, Mail, Phone, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Mail, LifeBuoy, AlertTriangle } from "lucide-react"
 
 export default function TermosPage() {
   return (
@@ -23,7 +23,7 @@ export default function TermosPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-4 pt-16 pb-10 text-center border-b">
         <h1 className="text-xl font-semibold tracking-tight">Termos de Uso</h1>
-        <p className="text-sm text-muted-foreground mt-2">FluWork - Plataforma de Gestão de Prestadores de Serviço</p>
+        <p className="text-sm text-muted-foreground mt-2">FluxTeme - Plataforma de Gestão de Prestadores de Serviço</p>
         <p className="text-xs text-muted-foreground mt-3">Última atualização: 02/04/2026 · Versão 2.1</p>
       </div>
 
@@ -31,13 +31,13 @@ export default function TermosPage() {
       <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
 
         <p className="text-sm text-muted-foreground italic border-l-2 border-border pl-4">
-          "Declaro que li, compreendi e concordo com os Termos de Uso e a Política de Privacidade do FluWork."
+          "Declaro que li, compreendi e concordo com os Termos de Uso e a Política de Privacidade do FluxTeme."
         </p>
 
         <section>
           <h2 className="text-base font-semibold mb-3">1. Identificação</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O FluWork é uma plataforma digital operada por FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
+            O FluxTeme é uma plataforma digital operada por FELIPE NOGUEIRA SILVA SERVICOS COMERCIO E LOCACAO,
             inscrita no CNPJ sob o nº 26.344.386/0001-42, com nome fantasia KAFERRI TEC SERVICOS, com sede em
             Osasco/SP, responsável pelo desenvolvimento, manutenção e gestão da plataforma.
           </p>
@@ -46,7 +46,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">2. Aceite dos Termos</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Ao acessar, utilizar ou se cadastrar na plataforma FluWork, o usuário declara que leu, compreendeu
+            Ao acessar, utilizar ou se cadastrar na plataforma FluxTeme, o usuário declara que leu, compreendeu
             e concorda integralmente com estes Termos de Uso e com a Política de Privacidade aplicável. O aceite
             é condição indispensável para utilização do sistema.
           </p>
@@ -62,7 +62,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">3. Objeto da Plataforma</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluWork consiste em uma plataforma digital voltada à gestão e organização de processos financeiros
+            O FluxTeme consiste em uma plataforma digital voltada à gestão e organização de processos financeiros
             corporativos, permitindo, entre outras funcionalidades:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
@@ -74,7 +74,7 @@ export default function TermosPage() {
           </ul>
           <div className="border-l-2 border-border pl-4 py-1">
             <p className="text-sm text-muted-foreground">
-              O FluWork não realiza movimentações financeiras, não sendo instituição financeira, banco,
+              O FluxTeme não realiza movimentações financeiras, não sendo instituição financeira, banco,
               intermediadora de pagamentos ou responsável por execuções de transferências, limitando-se à
               gestão e organização de informações.
             </p>
@@ -123,7 +123,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">6. Limitação de Responsabilidade</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Na máxima extensão permitida pela legislação aplicável, o FluWork não se responsabiliza por:
+            Na máxima extensão permitida pela legislação aplicável, o FluxTeme não se responsabiliza por:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4 mb-4">
             <li>Erros, inconsistências ou omissões nas informações inseridas pelos usuários</li>
@@ -144,7 +144,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">7. Disponibilidade do Sistema</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluWork poderá, a qualquer momento, realizar manutenções programadas ou emergenciais,
+            O FluxTeme poderá, a qualquer momento, realizar manutenções programadas ou emergenciais,
             implementar atualizações, melhorias ou correções, e suspender temporariamente o acesso por
             motivos técnicos ou de segurança.
           </p>
@@ -159,7 +159,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">8. Segurança da Informação</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluWork adota medidas técnicas e organizacionais compatíveis com boas práticas de mercado
+            O FluxTeme adota medidas técnicas e organizacionais compatíveis com boas práticas de mercado
             para proteção dos dados. Entretanto, o usuário reconhece que:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4">
@@ -172,7 +172,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">9. Suspensão e Encerramento</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            O FluWork poderá, a seu exclusivo critério, suspender, restringir ou encerrar o acesso do
+            O FluxTeme poderá, a seu exclusivo critério, suspender, restringir ou encerrar o acesso do
             usuário, a qualquer momento e sem aviso prévio, em caso de:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2 ml-4">
@@ -186,7 +186,7 @@ export default function TermosPage() {
         <section>
           <h2 className="text-base font-semibold mb-3">10. Alterações dos Termos</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            O FluWork poderá alterar estes Termos de Uso a qualquer momento. Em caso de atualização,
+            O FluxTeme poderá alterar estes Termos de Uso a qualquer momento. Em caso de atualização,
             a nova versão será disponibilizada na plataforma e poderá ser exigido novo aceite do usuário.
             A continuidade do uso poderá ser condicionada à aceitação dos novos termos.
           </p>
@@ -197,7 +197,7 @@ export default function TermosPage() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             O tratamento de dados pessoais será realizado em conformidade com a legislação aplicável,
             especialmente a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), conforme descrito
-            na Política de Privacidade do FluWork.
+            na Política de Privacidade do FluxTeme.
           </p>
         </section>
 
@@ -217,21 +217,19 @@ export default function TermosPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:simpleqia.oficial@gmail.com"
+              href="mailto:contato@fluxteme.com.br"
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
               <Mail className="h-4 w-4" />
-              simpleqia.oficial@gmail.com
+              contato@fluxteme.com.br
             </a>
-            <a
-              href="https://wa.me/5511914860806"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/suporte"
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
-              <Phone className="h-4 w-4" />
-              (11) 91486-0806
-            </a>
+              <LifeBuoy className="h-4 w-4" />
+              Abrir solicitação pela plataforma
+            </Link>
           </div>
         </section>
 
@@ -240,7 +238,7 @@ export default function TermosPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>2026 FluWork - Simpleqia. Todos os direitos reservados.</p>
+          <p>2026 FluxTeme - Simpleqia. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>

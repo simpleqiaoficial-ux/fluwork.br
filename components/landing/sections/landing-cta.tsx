@@ -29,9 +29,9 @@ export function LandingCta() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button size="lg" variant="outline" className="gap-2 bg-background" asChild>
-                <a href="mailto:simpleqia.oficial@gmail.com">
+                <a href="mailto:contato@fluxteme.com.br">
                   <Mail className="h-4 w-4" aria-hidden="true" />
-                  simpleqia.oficial@gmail.com
+                  contato@fluxteme.com.br
                 </a>
               </Button>
             </div>

@@ -181,9 +181,9 @@ export const PRICING_PLANS: PricingPlan[] = [
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
-    question: "O FluWork é um ERP?",
+    question: "O FluxTeme é um ERP?",
     answer:
-      "Não. O FluWork é um ecossistema empresarial: uma plataforma que reúne diversos módulos de gestão em um único lugar, pensada para crescer junto com a sua empresa, e não uma ferramenta fechada e engessada.",
+      "Não. O FluxTeme é um ecossistema empresarial: uma plataforma que reúne diversos módulos de gestão em um único lugar, pensada para crescer junto com a sua empresa, e não uma ferramenta fechada e engessada.",
   },
   {
     question: "Preciso contratar todos os módulos de uma vez?",
@@ -191,7 +191,7 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Não. Você escolhe os módulos que fazem sentido para o momento da sua empresa e pode ativar novos módulos quando precisar, sem trocar de plataforma.",
   },
   {
-    question: "O FluWork serve para qualquer segmento de empresa?",
+    question: "O FluxTeme serve para qualquer segmento de empresa?",
     answer:
       "Sim. A plataforma foi construída para se adaptar a operações de diferentes tamanhos e segmentos, sem depender de um nicho específico.",
   },
@@ -201,7 +201,7 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Cada usuário recebe um papel (por exemplo, administrador, financeiro ou gerente) com permissões específicas, garantindo que cada pessoa acesse apenas o que é relevante para sua função.",
   },
   {
-    question: "É possível migrar de outro sistema para o FluWork?",
+    question: "É possível migrar de outro sistema para o FluxTeme?",
     answer:
       "Sim. Nosso time de especialistas acompanha o processo de configuração inicial da sua empresa para tornar a transição simples e organizada.",
   },

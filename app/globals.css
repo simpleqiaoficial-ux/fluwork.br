@@ -15,29 +15,32 @@
     --font-sans: var(--font-poppins), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Roboto Mono", monospace;
 
-    /* Identidade azul e branco — fundo branco/quase-branco com leve viés azul, tinta
-       quase-preta, --primary é o azul de marca. --carimbo é um segundo acento, reservado
-       exclusivamente pra estados de documento oficializado (nota autorizada, contrato
-       assinado) — referência à tinta roxa de carimbo de cartório brasileiro. */
-    --background: 210 25% 97%;
+    /* Identidade FluxTeme — ciano-azul de marca (#52C1E6, H195°) com fundo branco/quase-branco.
+       --primary usa a mesma família de matiz num tom mais escuro (L38%) pra garantir contraste
+       com texto branco em botões sólidos (a cor de marca literal, L61%, não passa em WCAG AA
+       com texto branco em cima — ver --sidebar-accent-icon e --accent pra usos mais claros dela).
+       --carimbo é um segundo acento, reservado exclusivamente pra estados de documento
+       oficializado (nota autorizada, contrato assinado) — referência à tinta roxa de carimbo de
+       cartório brasileiro, não faz parte da identidade primária. */
+    --background: 200 25% 97%;
     --foreground: 222 15% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 15% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 15% 11%;
-    --primary: 224 76% 48%;
+    --primary: 195 75% 38%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 20% 94%;
+    --secondary: 200 20% 94%;
     --secondary-foreground: 222 15% 11%;
-    --muted: 210 20% 95%;
+    --muted: 200 20% 95%;
     --muted-foreground: 215 12% 42%;
-    --accent: 224 60% 94%;
-    --accent-foreground: 224 76% 32%;
+    --accent: 195 70% 94%;
+    --accent-foreground: 195 75% 28%;
     --destructive: 6 57% 41%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 224 76% 48%;
+    --border: 205 20% 88%;
+    --input: 205 20% 88%;
+    --ring: 195 75% 45%;
     --radius: 0.375rem;
 
     --success: 150 60% 30%;
@@ -47,44 +50,45 @@
     --carimbo: 264 42% 39%;
     --carimbo-foreground: 0 0% 100%;
 
-    --chart-1: 224 76% 48%;
-    --chart-2: 199 80% 45%;
+    --chart-1: 195 75% 40%;
+    --chart-2: 224 70% 55%;
     --chart-3: 264 42% 45%;
     --chart-4: 150 60% 32%;
     --chart-5: 31 68% 42%;
 
     /* Sidebar de navegação — navy escuro fixo, independente do tema claro/escuro do app (mesmo
-       padrão de console B2B com "sidebar sempre escura + conteúdo claro/escuro por opção"). */
-    --sidebar-background: 226 45% 13%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-muted-foreground: 220 14% 62%;
-    --sidebar-border: 226 30% 21%;
-    --sidebar-hover: 226 28% 19%;
-    --sidebar-active: 217 55% 23%;
-    --sidebar-active-foreground: 210 90% 92%;
-    --sidebar-accent-icon: 213 90% 68%;
+       padrão de console B2B com "sidebar sempre escura + conteúdo claro/escuro por opção"). Matiz
+       alinhado ao ciano de marca (H195-199°) em vez do indigo antigo. */
+    --sidebar-background: 205 45% 13%;
+    --sidebar-foreground: 205 20% 90%;
+    --sidebar-muted-foreground: 210 14% 62%;
+    --sidebar-border: 205 30% 21%;
+    --sidebar-hover: 205 28% 19%;
+    --sidebar-active: 199 55% 24%;
+    --sidebar-active-foreground: 195 90% 92%;
+    --sidebar-accent-icon: 195 85% 65%;
   }
 
   .dark {
-    --background: 222 25% 8%;
-    --foreground: 210 20% 92%;
-    --card: 222 22% 11%;
-    --card-foreground: 210 20% 92%;
-    --popover: 222 22% 11%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 228 100% 71%;
-    --primary-foreground: 228 40% 12%;
-    --secondary: 222 18% 16%;
-    --secondary-foreground: 210 20% 92%;
-    --muted: 222 18% 16%;
+    --background: 210 25% 8%;
+    --foreground: 200 20% 92%;
+    --card: 210 22% 11%;
+    --card-foreground: 200 20% 92%;
+    --popover: 210 22% 11%;
+    --popover-foreground: 200 20% 92%;
+    --primary: 195 85% 65%;
+    --primary-foreground: 195 55% 12%;
+    --secondary: 210 18% 16%;
+    --secondary-foreground: 200 20% 92%;
+    --muted: 210 18% 16%;
     --muted-foreground: 215 12% 62%;
-    --accent: 228 40% 18%;
-    --accent-foreground: 228 80% 85%;
+    --accent: 195 45% 18%;
+    --accent-foreground: 195 80% 85%;
     --destructive: 6 55% 55%;
     --destructive-foreground: 0 0% 9%;
-    --border: 222 18% 20%;
-    --input: 222 18% 20%;
-    --ring: 228 100% 71%;
+    --border: 210 18% 20%;
+    --input: 210 18% 20%;
+    --ring: 195 85% 65%;
 
     --success: 150 45% 50%;
     --success-foreground: 222 25% 8%;
@@ -93,8 +97,8 @@
     --carimbo: 264 43% 72%;
     --carimbo-foreground: 222 25% 8%;
 
-    --chart-1: 228 100% 71%;
-    --chart-2: 199 85% 60%;
+    --chart-1: 195 85% 65%;
+    --chart-2: 224 75% 68%;
     --chart-3: 264 43% 68%;
     --chart-4: 150 45% 50%;
     --chart-5: 31 60% 58%;

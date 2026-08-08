@@ -45,7 +45,7 @@ interface DashboardMockupProps {
   detailed?: boolean
 }
 
-/** Mockup visual do dashboard do FluWork — 100% CSS/SVG, sem depender de screenshot externo. */
+/** Mockup visual do dashboard do FluxTeme — 100% CSS/SVG, sem depender de screenshot externo. */
 export function DashboardMockup({ className, detailed = false }: DashboardMockupProps) {
   return (
     <div
@@ -54,7 +54,7 @@ export function DashboardMockup({ className, detailed = false }: DashboardMockup
         className,
       )}
       role="img"
-      aria-label="Ilustração do painel executivo do FluWork, mostrando indicadores financeiros, prestadores ativos e atividades recentes"
+      aria-label="Ilustração do painel executivo do FluxTeme, mostrando indicadores financeiros, prestadores ativos e atividades recentes"
     >
       {/* Barra superior estilo navegador */}
       <div className="flex items-center gap-2 border-b border-border/70 bg-muted/40 px-4 py-3">
@@ -64,7 +64,7 @@ export function DashboardMockup({ className, detailed = false }: DashboardMockup
           <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
         </div>
         <div className="ml-3 flex h-6 flex-1 items-center rounded-md bg-background px-3 text-[11px] text-muted-foreground">
-          app.fluwork.com/dashboard
+          app.fluxteme.com.br/dashboard
         </div>
       </div>
 
