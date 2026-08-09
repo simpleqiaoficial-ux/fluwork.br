@@ -7,40 +7,26 @@ interface LogoProps {
    *  recolhida, favicon-like). */
   showWordmark?: boolean
   size?: number
-  /** Variante clara — usada sobre fundo escuro (sidebar navy, que é sempre escura independente
-   *  do tema do app). Troca a haste pra branco e a barra pra Aqua, conforme o manual de marca. */
+  /** Variante clara do wordmark — usada sobre fundo escuro (sidebar navy, que é sempre escura
+   *  independente do tema do app). O ícone em si já carrega o próprio fundo navy→teal, não
+   *  precisa de variante própria. */
   dark?: boolean
 }
 
-/** Ícone oficial da Fluxteme: um F geométrico construído em dois blocos — a haste/braço superior
- *  na cor estrutural (Navy no claro, branco no escuro) e a barra horizontal como único elemento
- *  cromático (Teal no claro, Aqua no escuro). Construído em SVG (não é a fonte "F" estilizada)
- *  pra nunca distorcer/esticar/rotacionar como qualquer outro elemento de interface. */
-function FluxtemeIcon({ className, size, dark }: { className?: string; size: number; dark: boolean }) {
-  const hasteColor = dark ? "#FFFFFF" : "#011832"
-  const barColor = dark ? "#00AEDE" : "#00668A"
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      className={cn("shrink-0", className)}
-      role="img"
-      aria-label="Fluxteme"
-    >
-      <rect x="22" y="15" width="20" height="70" fill={hasteColor} />
-      <rect x="22" y="15" width="48" height="20" fill={hasteColor} />
-      <rect x="22" y="45" width="38" height="20" fill={barColor} />
-    </svg>
-  )
-}
-
-/** Logo oficial da Fluxteme — um só componente reutilizado em toda a marca (sidebar, landing,
- *  login). Wordmark sempre em caixa alta ("FLUXTEME"), conforme o Manual de Marca v2.0. */
+/** Logo oficial da Fluxteme — asset real da marca (F geométrico, barra cromática), reutilizado
+ *  em toda a marca (sidebar, landing, login). Nunca distorcer/esticar/rotacionar nem aplicar
+ *  efeitos por cima, conforme o Manual de Marca v2.0. Wordmark sempre em caixa alta. */
 export function Logo({ className, iconClassName, showWordmark = true, size = 36, dark = false }: LogoProps) {
   return (
     <span className={cn("inline-flex flex-col items-center gap-1", className)}>
-      <FluxtemeIcon size={size} dark={dark} className={iconClassName} />
+      <img
+        src="/fluxteme-logo.jpeg"
+        alt="Fluxteme"
+        width={size}
+        height={size}
+        className={cn("shrink-0 rounded-[22%] object-contain", iconClassName)}
+        style={{ width: size, height: size }}
+      />
       {showWordmark && (
         <span
           className={cn(

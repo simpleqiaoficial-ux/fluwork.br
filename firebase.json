@@ -1,0 +1,15 @@
+{
+  "hosting": {
+    "public": "firebase-public",
+    "ignore": ["**/.*"],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "fluworkbr",
+          "region": "southamerica-east1"
+        }
+      }
+    ]
+  }
+}
