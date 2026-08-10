@@ -31,13 +31,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Fluxteme",
-    images: [{ url: "/fluxteme-logo.jpeg", width: 1024, height: 1024, alt: "Fluxteme" }],
+    images: [{ url: "/fluxteme-logo.png", width: 1024, height: 1024, alt: "Fluxteme" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Fluxteme — Tudo o que sua empresa precisa em um único lugar",
     description: "Uma plataforma completa para conectar, organizar e impulsionar sua empresa.",
-    images: ["/fluxteme-logo.jpeg"],
+    images: ["/fluxteme-logo.png"],
   },
   robots: { index: true, follow: true },
 }

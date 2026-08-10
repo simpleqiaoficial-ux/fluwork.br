@@ -20,7 +20,7 @@ export function Logo({ className, iconClassName, showWordmark = true, size = 36,
   return (
     <span className={cn("inline-flex flex-col items-center gap-1", className)}>
       <img
-        src="/fluxteme-logo.jpeg"
+        src="/fluxteme-logo.png"
         alt="Fluxteme"
         width={size}
         height={size}

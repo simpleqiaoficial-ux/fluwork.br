@@ -27,7 +27,7 @@ const SOFTWARE_SCHEMA = {
   brand: {
     "@type": "Organization",
     name: "Fluxteme",
-    logo: "/fluxteme-logo.jpeg",
+    logo: "/fluxteme-logo.png",
   },
 }
 
